@@ -36,7 +36,7 @@ echo "DBUS_SESSION_BUS_PID=${DBUS_SESSION_BUS_PID};"
 echo "Test env setup complete"
 
 cd ${BINDIR}
-rm slave.jar
+rm *.jar
 wget ${HUDSONSERVER}/jnlpJars/slave.jar
 
 #KDE_DEVEL_PREFIX=/code/kde/ci
