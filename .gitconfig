@@ -1,0 +1,31 @@
+[color]
+   diff = true
+   status = true
+   branch = true
+   ui = true
+[color "diff"]
+   whitespace = red
+[core]
+   whitespace=fix,-indent-with-non-tab,trailing-space,cr-at-eol
+   pager=less -R
+[branch]
+   autosetupmerge = true
+[merge]
+   verbosity = 10
+   stat = true
+[gui]
+[alias]
+   hist = log --pretty=format:\"%h %ad | %s%d [%an]\" --graph --date=short
+   co = checkout
+   ci = commit
+   st = status
+   br = branch
+   wu = log --stat origin..@{0}
+   wup = log -p origin..@{0}
+   up = pull --rebase
+   cherrypick = cherry-pick -x
+   merge = merge --no-ff
+[push]
+   default = current
+[rerere]
+   enabled = 1
