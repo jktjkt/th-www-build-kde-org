@@ -5,18 +5,33 @@ BINDIR="$1"
 export JENKINS_SLAVE_HOME=${BINDIR}
 HUDSONSERVER=dx:8080
 
+echo "=> Getting running slave instances"
+pids=`pgrep java -U jenkins`
+if [[ $? == 0 ]]; then
+	echo "==> Pids found, killing"
+	killall -u jenkins java
+fi
+echo "=> Done"
+echo "=> Getting running Xvfb instances"
 pids=`pgrep Xvfb -U jenkins`
-for pid in $pids; do
-	killall $pid
-done
-pids=`pgrep dbus -U jenkins`
-for pid in $pids; do
-	killall $pid
-done
+if [[ $? == 0 ]]; then
+	echo "==> Pids found, killing"
+	killall -u jenkins Xvfb
+	rm -f /tmp/.X99-lock
+fi
+echo "=> Done"
+echo "=> Getting running dbus instances"
+pids=`pgrep dbus-daemon -U jenkins`
+if [[ $? == 0 ]]; then
+	echo "==> Pids found, killing"
+	killall -u jenkins dbus-daemon
+fi
+echo "=> Done"
 
 if [[ -z ${JENKINS_HOME} ]]; then
         JENKINS_HOME=${HOME}
 fi
+echo "=> \${JENKINS_HOME} = ${JENKINS_HOME}"
 if [[ -z ${KDE_DEVEL_PREFIX} ]]; then
 	if [[ -z $2 ]]; then
 		KDE_DEVEL_PREFIX="/var/code/kde/ci"
@@ -24,9 +39,15 @@ if [[ -z ${KDE_DEVEL_PREFIX} ]]; then
 		KDE_DEVEL_PREFIX="$2"
 	fi
 fi
-echo "No Test env found, starting a new one..."
+echo "=> \${KDE_DEVEL_PREFIX} = ${KDE_DEVEL_PREFIX}"
+
+echo "=> Starting Xvfb"
 export DISPLAY=:99
 Xvfb :99 -ac &
+for t in 1 2 3 4 5; do
+	sleep 1
+done
+echo "=> Starting dbus"
 DBUS_LAUNCH=`which dbus-launch`
 eval `${DBUS_LAUNCH} --sh-syntax`
 echo "DBUS_SESSION_BUS_ADDRESS='${DBUS_SESSION_BUS_ADDRESS}';"
@@ -56,4 +77,9 @@ export XDG_CONFIG_HOME=${KDE_INSTALL_PREFIX}/etx/xdg
 export XDG_DATA_DIRS=$XDG_DATA_HOME
 export XDG_CONFIG_DIRS=$XDG_CONFIG_HOME
 
+echo "============================================="
+echo "============== env =========================="
+env
+echo "============================================="
+echo "=> Starting slave"
 java -jar slave.jar
