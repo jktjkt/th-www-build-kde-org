@@ -70,10 +70,10 @@ echo "============== env =========================="
 env
 echo "============================================="
 
-
-rm -f build\JUnitTestResults.xml
-pushd build
-sed -ie 's/TimeOut: .*/TimeOut: 20/' build/DartConfiguration.tcl
+BUILD_DIR="${JENKINS_SLAVE_HOME}/../build/${JOB_NAME}"
+rm -f ${BUILD_DIR}/JUnitTestResults.xml
+pushd ${BUILD_DIR}
+sed -ie 's/TimeOut: .*/TimeOut: 20/' DartConfiguration.tcl
 ctest -T Test --output-on-failure --no-compress-output
 popd
-${JENKINS_SLAVE_HOME}/ctesttojunit.py build ${JENKINS_SLAVE_HOME}/ctesttojunit.xsl > build/JUnitTestResults.xml
+${JENKINS_SLAVE_HOME}/ctesttojunit.py ${BUILD_DIR} ${JENKINS_SLAVE_HOME}/ctesttojunit.xsl > JUnitTestResults.xml
