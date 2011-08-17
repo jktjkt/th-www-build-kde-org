@@ -51,6 +51,32 @@ Xvfb :99 -ac &
 #for t in 1 2 3 4 5; do
 #	sleep 1
 #done
+
+echo "=> Downloading Jenkins slave client"
+
+cd ${JENKINS_SLAVE_DIR}
+rm *.jar
+wget ${JENKINSSERVER}/jnlpJars/slave.jar
+
+echo "=> Setting up environment variables"
+
+export INSTALL_ROOT=${KDE_DEVEL_PREFIX}/install
+export KDE_INSTALL_ROOT=${INSTALL_ROOT}/master
+export QT_INSTALL_ROOT=${INSTALL_ROOT}/qt4
+export DEPS_INSTALL_ROOT=${INSTALL_ROOT}/deps
+
+unset XDG_DATA_DIRS
+unset XDG_CONFIG_DIRS
+
+export KDEHOME=${KDE_DEVEL_PREFIX}/.kde
+export PKG_CONFIG_PATH=${KDE_INSTALL_ROOT}/lib/pkgconfig:${QT_INSTALL_ROOT}/lib/pkgconfig:${DEPS_INSTALL_ROOT}/lib/pkgconfig:${PKG_CONFIG_PATH}
+export QT_PLUGIN_PATH=${KDE_INSTALL_ROOT}/lib/kde4/plugins:${QT_PLUGIN_PATH}
+export PATH=${KDE_INSTALL_ROOT}/bin:${QT_INSTALL_ROOT}/bin:${DEPS_INSTALL_ROOT}/bin:${PATH}
+export LD_LIBRARY_PATH=${KDE_INSTALL_ROOT}/lib:${QT_INSTALL_ROOT}/lib:${DEPS_INSTALL_ROOT}/lib:${LD_LIBRARY_PATH}
+
+export XDG_DATA_DIRS=${KDE_INSTALL_ROOT}/share:${DEPS_INSTALL_ROOT}/share
+export XDG_CONFIG_DIRS=${KDE_INSTALL_ROOT}/etc/xdg:${DEPS_INSTALL_ROOT}/etc/xdg
+
 echo "=> Starting dbus"
 DBUS_LAUNCH=`which dbus-launch`
 eval `${DBUS_LAUNCH} --sh-syntax`
@@ -59,28 +85,6 @@ echo "export DBUS_SESSION_BUS_ADDRESS;"
 echo "DBUS_SESSION_BUS_PID=${DBUS_SESSION_BUS_PID};"
 
 echo "Test env setup complete"
-
-cd ${JENKINS_SLAVE_DIR}
-rm *.jar
-wget ${JENKINSSERVER}/jnlpJars/slave.jar
-
-export KDE_INSTALL_ROOT=${KDE_DEVEL_PREFIX}/install
-export QT_INSTALL_ROOT=${KDE_INSTALL_ROOT}/qt4
-export DEPS_INSTALL_ROOT=${KDE_INSTALL_ROOT}/deps
-
-unset XDG_DATA_DIRS
-unset XDG_CONFIG_DIRS
-
-export KDEHOME=${KDE_DEVEL_PREFIX}/.kde
-export PKG_CONFIG_PATH=${KDE_INSTALL_PREFIX}/lib/pkgconfig:${QT_INSTALL_PREFIX}/lib/pkgconfig:${DEPS_INSTALL_PREFIX}/lib/pkgconfig:${PKG_CONFIG_PATH}
-export QT_PLUGIN_PATH=${KDE_INSTALL_PREFIX}/lib/kde4/plugins:${QT_PLUGIN_PATH}
-export PATH=${KDE_INSTALL_PREFIX}/bin:${QT_INSTALL_PREFIX}/bin:${DEPS_INSTALL_PREFIX}/bin:${PATH}
-export LD_LIBRARY_PATH=${KDE_INSTALL_PREFIX}/lib:${QT_INSTALL_PREFIX}/lib:${DEPS_INSTALL_PREFIX}/lib:${LD_LIBRARY_PATH}
-
-export XDG_DATA_HOME=${KDE_INSTALL_PREFIX}/share
-export XDG_CONFIG_HOME=${KDE_INSTALL_PREFIX}/etx/xdg
-export XDG_DATA_DIRS=${XDG_DATA_HOME}
-export XDG_CONFIG_DIRS=${XDG_CONFIG_HOME}
 
 echo "============================================="
 echo "============== env =========================="
