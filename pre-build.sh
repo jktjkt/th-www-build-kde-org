@@ -17,19 +17,6 @@
 #       VERSION:  1.0
 #       CREATED:  08/17/2011 08:19:54 PM CEST
 #===============================================================================
-
-####################
-# Update as needed #
-####################
-DEPS="kdelibs=KDE/4.7 \
-    kdepimlibs=master"
-
-RSYNC_OPTS="--recursive --links --perms --times --group --owner --devices \
-            --specials --delete-during --progress"
-############################################
-# Should not need to change anything below #
-############################################
-
 if [ -z ${MASTER} ]; then
     echo "\$MASTER not set!"
     exit 1
@@ -43,9 +30,30 @@ if [ -z ${JOB_NAME} ]; then
     exit 1
 fi
 if [ -z ${GIT_BRANCH} ]; then
-    echo "\$GIR_BRANCH not set!"
+    echo "\$GIT_BRANCH not set!"
     exit 1
 fi
+if [ -z ${WORKSPACE} ]; then
+    echo "\$WORKSPACE not set!"
+    exit 1
+fi
+if [ -z ${DEPS} ]; then
+    echo "###############################"
+    echo " WARN: No deps listed!"
+    echo "###############################"
+fi
+####################
+# Update as needed #
+####################
+#DEPS="kdelibs=KDE/4.7 \
+#    kdepimlibs=master"
+
+RSYNC_OPTS="--recursive --links --perms --times --group --owner --devices \
+            --specials --delete-during --progress"
+############################################
+# Should not need to change anything below #
+############################################
+
 
 unset CMAKE_PREFIX_PATH
 unset CMAKE_INSTALL_PREFIX

@@ -13,6 +13,12 @@ Post build task: post-build.sh (on successful builds only)
 pre-build.sh
 This script sets up the environment so that the job can find it's dependencies,
 it also downloads any changes to those deps from the master node.
+It requires that the build task that is running this also lists the dependencies
+and makes that available as the DEPS env var.
+
+Ex.
+export DEPS="qt-copy=master kdelibs=KDE/4.7"
+pre-build.sh
 
 ctest.sh
 This script runs CTest with the appropriate options and then transforms the
