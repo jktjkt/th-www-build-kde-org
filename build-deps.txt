@@ -1,0 +1,12 @@
+{ 
+	"kdelibs" : 
+		{ "master"  : {"deps" : "master"},
+		   "KDE/4.7" : {"deps" : "master"}
+		},
+	"kdepimlibs" :
+		{
+			"master"  : {"deps" : "master", "kdelibs" : "KDE/4.7"},
+			"4.7"     : {"deps" : "master", "kdelibs" : "KDE/4.7"}
+		}
+}
+		
