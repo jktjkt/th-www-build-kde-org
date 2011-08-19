@@ -46,12 +46,6 @@ if [ -z ${DEPS} ]; then
     echo "###############################"
 fi
 
-####################
-# Update as needed #
-####################
-#DEPS="kdelibs=KDE/4.7 \
-#    kdepimlibs=master"
-
 RSYNC_OPTS="--recursive --links --perms --times --group --owner --devices \
             --specials --delete-during --progress"
 
@@ -71,8 +65,10 @@ for DEP in ${DEPS}; do
     MODULE=${DEP%=*}
     MODULE_BRANCH=${DEP#*=}
 
-    echo "Syncing $MODULE ($MODULE_BRANCH) with ${MASTER}..."
-    rsync ${RSYNC_OPTS} ${MASTER}:${ROOT}/install/${MODULE}/${MODULE_BRANCH}/ ${ROOT}/install/${MODULE}/${MODULE_BRANCH}/
+    if [[ ${MASTER} != "localhost" ]]; then
+        echo "Syncing $MODULE ($MODULE_BRANCH) with ${MASTER}..."
+        rsync ${RSYNC_OPTS} ${MASTER}:${ROOT}/install/${MODULE}/${MODULE_BRANCH}/ ${ROOT}/install/${MODULE}/${MODULE_BRANCH}/
+    fi
 
     echo "Adding $MODULE ($MODULE_BRANCH) to env vars..."
     echo "    CMAKE_PREFIX_PATH"
