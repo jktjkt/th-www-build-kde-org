@@ -24,6 +24,7 @@ RSYNC_OPTS="--recursive --links --perms --times --group --owner --devices \
 ############################################
 # Should not need to change anything below #
 ############################################
+. environment-vars.sh
 
 if [ -z ${MASTER} ]; then
     echo "\$MASTER not set!"

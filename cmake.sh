@@ -1,2 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 . environment-vars.sh
+
+cmake $@
