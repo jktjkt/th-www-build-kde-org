@@ -49,5 +49,8 @@ fi
 
 rm -rf ${ROOT}/install/${JOB_NAME}/${GIT_BRANCH}
 mv ${WORKSPACE}/install ${ROOT}/install/${JOB_NAME}/${GIT_BRANCH}
-rsync ${RSYNC_OPTS} ${ROOT}/install/${JOB_NAME}/${GIT_BRANCH}/ \
+
+if [[ ${MASTER} != "localhost" ]]; then
+    rsync ${RSYNC_OPTS} ${ROOT}/install/${JOB_NAME}/${GIT_BRANCH}/ \
     ${MASTER}:${ROOT}/install/${JOB_NAME}/${GIT_BRANCH}/
+fi
