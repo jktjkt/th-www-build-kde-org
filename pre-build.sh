@@ -71,23 +71,23 @@ for DEP in ${DEPS}; do
     fi
 
     echo "Adding $MODULE ($MODULE_BRANCH) to env vars..."
-    echo "    CMAKE_PREFIX_PATH"
-    echo export CMAKE_PREFIX_PATH="${ROOT}/install/${MODULE}/${MODULE_BRANCH}:${CMAKE_PREFIX_PATH}" >> environment-vars.sh
-    echo "    CMAKE_INSTALL_PREFIX"
-    export CMAKE_INSTALL_PREFIX="${ROOT}/install/${MODULE}/${MODULE_BRANCH}:${CMAKE_INSTALL_PREFIX}" >> environment-vars.sh
-    echo "    PATH"
-    export PATH="${ROOT}/install/${MODULE}/${MODULE_BRANCH}/bin:${PATH}" >> environment-vars.sh
-    echo "    LD_LIBRARY_PATH"
-    export LD_LIBRARY_PATH="${ROOT}/install/${MODULE}/${MODULE_BRANCH}/lib:${LD_LIBRARY_PATH}" >> environment-vars.sh
-    echo "    PKG_CONFIG_PATH"
-    export PKG_CONFIG_PATH="${ROOT}/install/${MODULE}/${MODULE_BRANCH}:${PKG_CONFIG_PATH}" >> environment-vars.sh
-    echo "    QT_PLUGIN_PATH"
-    export QT_PLUGIN_PATH="${ROOT}/install/${MODULE}/${MODULE_BRANCH}:${QT_PLUGIN_PATH}" >> environment-vars.sh
-    echo "    XDG_DATA_DIRS"
-    export XDG_DATA_DIRS="${ROOT}/install/${MODULE}/${MODULE_BRANCH}/share:${XDG_DATA_DIRS}" >> environment-vars.sh
-    echo "    XDG_CONFIG_DIRS"
-    export XDG_CONFIG_DIRS="${ROOT}/install/${MODULE}/${MODULE_BRANCH}/etc/xdg:${XDG_CONFIG_DIRS}" >> environment-vars.sh
-    echo "    KDEDIRS"
-    export KDEDIRS="${ROOT}/install/${MODULE}/${MODULE_BRANCH}:${KDEDIRS}" >> environment-vars.sh
+    CMAKE_PREFIX_PATH="${ROOT}/install/${MODULE}/${MODULE_BRANCH}:${CMAKE_PREFIX_PATH}"
+    CMAKE_INSTALL_PREFIX="${ROOT}/install/${MODULE}/${MODULE_BRANCH}:${CMAKE_INSTALL_PREFIX}"
+    PATH="${ROOT}/install/${MODULE}/${MODULE_BRANCH}/bin:${PATH}"
+    LD_LIBRARY_PATH="${ROOT}/install/${MODULE}/${MODULE_BRANCH}/lib:${LD_LIBRARY_PATH}"
+    PKG_CONFIG_PATH="${ROOT}/install/${MODULE}/${MODULE_BRANCH}:${PKG_CONFIG_PATH}"
+    QT_PLUGIN_PATH="${ROOT}/install/${MODULE}/${MODULE_BRANCH}:${QT_PLUGIN_PATH}"
+    XDG_DATA_DIRS="${ROOT}/install/${MODULE}/${MODULE_BRANCH}/share:${XDG_DATA_DIRS}"
+    XDG_CONFIG_DIRS="${ROOT}/install/${MODULE}/${MODULE_BRANCH}/etc/xdg:${XDG_CONFIG_DIRS}"
+    KDEDIRS="${ROOT}/install/${MODULE}/${MODULE_BRANCH}:${KDEDIRS}"
 done
 
+echo export CMAKE_PREFIX_PATH="${CMAKE_PREFIX_PATH}" >> environment-vars.sh
+echo export CMAKE_INSTALL_PREFIX="${CMAKE_INSTALL_PREFIX}" >> environment-vars.sh
+echo export PATH="${PATH}" >> environment-vars.sh
+echo export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}" >> environment-vars.sh
+echo export PKG_CONFIG_PATH="${PKG_CONFIG_PATH}" >> environment-vars.sh
+echo export QT_PLUGIN_PATH="${QT_PLUGIN_PATH}" >> environment-vars.sh
+echo export XDG_DATA_DIRS="${XDG_DATA_DIRS}" >> environment-vars.sh
+echo export XDG_CONFIG_DIRS="${XDG_CONFIG_DIRS}" >> environment-vars.sh
+echo export KDEDIRS="${KDEDIRS}" >> environment-vars.sh

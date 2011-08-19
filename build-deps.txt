@@ -7,6 +7,10 @@
 		{
 			"master"  : {"deps" : "master", "kdelibs" : "KDE/4.7"},
 			"4.7"     : {"deps" : "master", "kdelibs" : "KDE/4.7"}
+		},
+	"experimental-kdepim-runtime" :
+		{
+			"master" : {"kdelibs" : "KDE/4.7", "kdepimlibs" : "master", "kdepim" : "master"}
 		}
 }
 		

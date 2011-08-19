@@ -75,10 +75,11 @@ def main():
 
 def check_args():
 	parser = argparse.ArgumentParser( description='Helper for setting variables that are needed in the build steps' )
-	parser.add_argument( '-r, --root', dest='root', action='store', required=True, help='Path to where the install root is.' )
-	parser.add_argument( '-m, --master', dest='master', action='store', required=True, help='Address of the master build slave, ie where the authoritive copy of all dependencies are stored.' )
+	parser.add_argument( '-r', '--root', dest='root', action='store', required=True, help='Path to where the install root is.' )
+	parser.add_argument( '-m', '--master', dest='master', action='store', required=True, help='Address of the master build slave, ie where the authoritive copy of all dependencies are stored.' )
 	args = parser.parse_args()
-	
+	root = args.root
+	master = args.master
 
 if __name__ == "__main__":
 	check_args()

@@ -1,4 +1,4 @@
 #!/bin/bash
-. environment-vars.sh
+. ${WORKSPACE}/environment-vars.sh
 
 cmake $@
