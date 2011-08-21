@@ -78,6 +78,8 @@ def check_args():
 	parser.add_argument( '-r', '--root', dest='root', action='store', required=True, help='Path to where the install root is.' )
 	parser.add_argument( '-m', '--master', dest='master', action='store', required=True, help='Address of the master build slave, ie where the authoritive copy of all dependencies are stored.' )
 	args = parser.parse_args()
+	global root
+	global master
 	root = args.root
 	master = args.master
 
