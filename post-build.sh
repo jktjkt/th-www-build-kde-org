@@ -30,8 +30,12 @@ if [ -z ${MASTER} ]; then
     echo "\$MASTER not set!"
     exit 1
 fi
-if [ -z ${ROOT} ]; then
-    echo "\$ROOT not set!"
+if [ -z ${MASTER_ROOT} ]; then
+    echo "\$MASTER_ROOT not set!"
+    exit 1
+fi
+if [ -z ${SLAVE_ROOT} ]; then
+    echo "\$SLAVE_ROOT not set!"
     exit 1
 fi
 if [ -z ${JOB_NAME} ]; then
@@ -47,10 +51,10 @@ if [ -z ${WORKSPACE} ]; then
     exit 1
 fi
 
-rm -rf ${ROOT}/install/${JOB_NAME}/${GIT_BRANCH}
-mv ${WORKSPACE}/install ${ROOT}/install/${JOB_NAME}/${GIT_BRANCH}
+rm -rf ${SLAVE_ROOT}/install/${JOB_NAME}/${GIT_BRANCH}
+mv ${WORKSPACE}/install ${SLAVE_ROOT}/install/${JOB_NAME}/${GIT_BRANCH}
 
 if [[ ${MASTER} != "localhost" ]]; then
-    rsync ${RSYNC_OPTS} ${ROOT}/install/${JOB_NAME}/${GIT_BRANCH}/ \
-    ${MASTER}:${ROOT}/install/${JOB_NAME}/${GIT_BRANCH}/
+    rsync ${RSYNC_OPTS} ${SLAVE_ROOT}/install/${JOB_NAME}/${GIT_BRANCH}/ \
+    ${MASTER}:${MASTER_ROOT}/install/${JOB_NAME}/${GIT_BRANCH}/
 fi

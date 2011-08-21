@@ -24,8 +24,12 @@ if [ -z ${MASTER} ]; then
     echo "\$MASTER not set!"
     exit 1
 fi
-if [ -z ${ROOT} ]; then
-    echo "\$ROOT not set!"
+if [ -z ${SLAVE_ROOT} ]; then
+    echo "\$SLAVE_ROOT not set!"
+    exit 1
+fi
+if [ -z ${MASTER_ROOT} ]; then
+    echo "\$MASTER_ROOT not set!"
     exit 1
 fi
 if [ -z ${JOB_NAME} ]; then
@@ -67,19 +71,20 @@ for DEP in ${DEPS}; do
 
     if [[ ${MASTER} != "localhost" ]]; then
         echo "Syncing $MODULE ($MODULE_BRANCH) with ${MASTER}..."
-        rsync ${RSYNC_OPTS} ${MASTER}:${ROOT}/install/${MODULE}/${MODULE_BRANCH}/ ${ROOT}/install/${MODULE}/${MODULE_BRANCH}/
+        rsync ${RSYNC_OPTS}
+        ${MASTER}:${MASTER_ROOT}/install/${MODULE}/${MODULE_BRANCH}/ ${SLAVE_ROOT}/install/${MODULE}/${MODULE_BRANCH}/
     fi
 
     echo "Adding $MODULE ($MODULE_BRANCH) to env vars..."
-    CMAKE_PREFIX_PATH="${ROOT}/install/${MODULE}/${MODULE_BRANCH}:${CMAKE_PREFIX_PATH}"
-    CMAKE_INSTALL_PREFIX="${ROOT}/install/${MODULE}/${MODULE_BRANCH}:${CMAKE_INSTALL_PREFIX}"
-    PATH="${ROOT}/install/${MODULE}/${MODULE_BRANCH}/bin:${PATH}"
-    LD_LIBRARY_PATH="${ROOT}/install/${MODULE}/${MODULE_BRANCH}/lib:${LD_LIBRARY_PATH}"
-    PKG_CONFIG_PATH="${ROOT}/install/${MODULE}/${MODULE_BRANCH}:${PKG_CONFIG_PATH}"
-    QT_PLUGIN_PATH="${ROOT}/install/${MODULE}/${MODULE_BRANCH}:${QT_PLUGIN_PATH}"
-    XDG_DATA_DIRS="${ROOT}/install/${MODULE}/${MODULE_BRANCH}/share:${XDG_DATA_DIRS}"
-    XDG_CONFIG_DIRS="${ROOT}/install/${MODULE}/${MODULE_BRANCH}/etc/xdg:${XDG_CONFIG_DIRS}"
-    KDEDIRS="${ROOT}/install/${MODULE}/${MODULE_BRANCH}:${KDEDIRS}"
+    CMAKE_PREFIX_PATH="${SLAVE_ROOT}/install/${MODULE}/${MODULE_BRANCH}:${CMAKE_PREFIX_PATH}"
+    CMAKE_INSTALL_PREFIX="${SLAVE_ROOT}/install/${MODULE}/${MODULE_BRANCH}:${CMAKE_INSTALL_PREFIX}"
+    PATH="${SLAVE_ROOT}/install/${MODULE}/${MODULE_BRANCH}/bin:${PATH}"
+    LD_LIBRARY_PATH="${SLAVE_ROOT}/install/${MODULE}/${MODULE_BRANCH}/lib:${LD_LIBRARY_PATH}"
+    PKG_CONFIG_PATH="${SLAVE_ROOT}/install/${MODULE}/${MODULE_BRANCH}:${PKG_CONFIG_PATH}"
+    QT_PLUGIN_PATH="${SLAVE_ROOT}/install/${MODULE}/${MODULE_BRANCH}:${QT_PLUGIN_PATH}"
+    XDG_DATA_DIRS="${SLAVE_ROOT}/install/${MODULE}/${MODULE_BRANCH}/share:${XDG_DATA_DIRS}"
+    XDG_CONFIG_DIRS="${SLAVE_ROOT}/install/${MODULE}/${MODULE_BRANCH}/etc/xdg:${XDG_CONFIG_DIRS}"
+    KDEDIRS="${SLAVE_ROOT}/install/${MODULE}/${MODULE_BRANCH}:${KDEDIRS}"
 done
 
 echo export CMAKE_PREFIX_PATH="${CMAKE_PREFIX_PATH}" >> environment-vars.sh
