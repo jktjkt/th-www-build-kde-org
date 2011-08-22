@@ -35,8 +35,12 @@ if [ -z ${MASTER_ROOT} ]; then
     exit 1
 fi
 if [ -z ${SLAVE_ROOT} ]; then
-    echo "\$SLAVE_ROOT not set!"
-    exit 1
+    if [ -z ${JENKINS_SLAVE_HOME} ]; then
+        echo "\$SLAVE_ROOT not set!"
+        exit 1
+    else
+        SLAVE_ROOT=${JENKINS_SLAVE_HOME}
+    fi
 fi
 if [ -z ${JOB_NAME} ]; then
     echo "\$JOB_NAME not set!"

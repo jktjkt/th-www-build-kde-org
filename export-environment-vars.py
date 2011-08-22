@@ -63,7 +63,7 @@ def write_export_file( export_str ):
 	build_dir = os.getenv("WORKSPACE")
 	f = open( os.path.join( build_dir, "environment-vars.sh" ), 'w' )
 	f.write( export_str + "\n" )
-	f.write( "export ROOT=%s\n"%root )
+	f.write( "export MASTER_ROOT=%s\n"%root )
 	f.write( "export MASTER=%s\n"%master )
 	f.close()
 
