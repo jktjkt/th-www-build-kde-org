@@ -61,10 +61,12 @@ def get_current_module_str( module_deps ):
 
 def write_export_file( export_str ):
 	build_dir = os.getenv("WORKSPACE")
+	slave_root = os.path.dirname( os.path.realpath(__file__) )
 	f = open( os.path.join( build_dir, "environment-vars.sh" ), 'w' )
 	f.write( export_str + "\n" )
 	f.write( "export MASTER_ROOT=%s\n"%root )
 	f.write( "export MASTER=%s\n"%master )
+	f.write( "export SLAVE_ROOT=%s\n"%slave_root )
 	f.close()
 
 def main():
