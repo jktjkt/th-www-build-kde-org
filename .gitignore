@@ -28,3 +28,7 @@ war/
 .ssh
 .ccache
 .subversion
+.dbus
+*.log.*
+install
+source
