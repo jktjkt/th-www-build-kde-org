@@ -1,8 +1,32 @@
 #!/bin/bash -x
+# vim: set sw=4 sts=4 et tw=80 :
+#===============================================================================
+#
+#          FILE:  ctest-new.sh
+# 
+#         USAGE:  As a build task in Jenkins/Hudson, should be run after the
+#                 real build.
+# 
+#   DESCRIPTION:  Performs the following tasks:
+#                 1: Start a KDE unit test environment
+#                 2: Runs ctest with appropriate args
+#                 3: Converts the resulting ctest results to junit compatable
+#                    as that is what Jenkins/Hudson requires
+# 
+#        AUTHOR:  Torgny Nyblom <nyblom@kde.org>
+#       COMPANY:  KDE e.V.
+#       VERSION:  1.0
+#       CREATED:  08/23/2011 08:19:54 PM CEST
+#===============================================================================
+
+############################################################
+# Possible bug incase of more then one executor per slave  #
+# Then the test environment might be recreated or destoyed #
+# behind a builds back                                     #
+############################################################
+. ./environment-vars.sh
 
 BINDIR="$( cd "$( dirname "$0" )" && pwd )"
-export JENKINS_SLAVE_HOME=${BINDIR}
-echo "=> JENKINS_SLAVE_HOME=${JENKINS_SLAVE_HOME}"
 
 echo "=> Getting running Xvfb instances"
 pids=`pgrep Xvfb -U jenkins`
@@ -22,38 +46,9 @@ if [[ $? == 0 ]]; then
 fi
 echo "=> Done"
 
-echo "=> \${JENKINS_HOME} = ${JENKINS_HOME}"
-if [[ -z ${KDE_DEVEL_PREFIX} ]]; then
-    if [[ -z $1 ]]; then
-        KDE_DEVEL_PREFIX="/home/jenkins"
-    else
-        KDE_DEVEL_PREFIX="$1"
-    fi
-fi
-echo "=> \${KDE_DEVEL_PREFIX} = ${KDE_DEVEL_PREFIX}"
-
 echo "=> Starting Xvfb"
 export DISPLAY=:99
 Xvfb :99 -ac &
-
-echo "=> Setting up environment variables"
-
-export INSTALL_ROOT=${KDE_DEVEL_PREFIX}/install
-export KDE_INSTALL_ROOT=${INSTALL_ROOT}/master
-export QT_INSTALL_ROOT=${INSTALL_ROOT}/qt4
-export DEPS_INSTALL_ROOT=${INSTALL_ROOT}/deps
-
-unset XDG_DATA_DIRS
-unset XDG_CONFIG_DIRS
-
-export KDEHOME=${KDE_DEVEL_PREFIX}/.kde
-export PKG_CONFIG_PATH=${KDE_INSTALL_ROOT}/lib/pkgconfig:${QT_INSTALL_ROOT}/lib/pkgconfig:${DEPS_INSTALL_ROOT}/lib/pkgconfig:${PKG_CONFIG_PATH}
-export QT_PLUGIN_PATH=${KDE_INSTALL_ROOT}/lib/kde4/plugins:${QT_PLUGIN_PATH}
-export PATH=${KDE_INSTALL_ROOT}/bin:${QT_INSTALL_ROOT}/bin:${DEPS_INSTALL_ROOT}/bin:${PATH}
-export LD_LIBRARY_PATH=${KDE_INSTALL_ROOT}/lib:${QT_INSTALL_ROOT}/lib:${DEPS_INSTALL_ROOT}/lib:${LD_LIBRARY_PATH}
-
-export XDG_DATA_DIRS=${KDE_INSTALL_ROOT}/share:${DEPS_INSTALL_ROOT}/share
-export XDG_CONFIG_DIRS=${KDE_INSTALL_ROOT}/etc/xdg:${DEPS_INSTALL_ROOT}/etc/xdg
 
 echo "=> Starting dbus"
 DBUS_LAUNCH=`which dbus-launch`
@@ -75,7 +70,7 @@ echo "============== env =========================="
 env
 echo "============================================="
 
-BUILD_DIR="${JENKINS_SLAVE_HOME}/../build/${JOB_NAME}"
+BUILD_DIR="${WORKSPACE}/build"
 rm -f ${BUILD_DIR}/JUnitTestResults.xml
 pushd ${BUILD_DIR}
 sed -ie 's/TimeOut: .*/TimeOut: 20/' DartConfiguration.tcl
