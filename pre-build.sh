@@ -25,12 +25,8 @@ if [ -z ${MASTER} ]; then
     exit 1
 fi
 if [ -z ${SLAVE_ROOT} ]; then
-    if [ -z ${JENKINS_SLAVE_HOME} ]; then
-        echo "\$SLAVE_ROOT not set!"
-        exit 1
-    else
-        SLAVE_ROOT=${JENKINS_SLAVE_HOME}
-    fi
+    echo "\$SLAVE_ROOT not set!"
+    exit 1
 fi
 if [ -z ${MASTER_ROOT} ]; then
     echo "\$MASTER_ROOT not set!"
@@ -48,7 +44,7 @@ if [ -z ${WORKSPACE} ]; then
     echo "\$WORKSPACE not set!"
     exit 1
 fi
-if [ -z ${DEPS} ]; then
+if [ -z "${DEPS}" ]; then
     echo "###############################"
     echo " WARN: No deps listed!"
     echo "###############################"
@@ -75,8 +71,7 @@ for DEP in ${DEPS}; do
 
     if [[ ${MASTER} != "localhost" ]]; then
         echo "Syncing $MODULE ($MODULE_BRANCH) with ${MASTER}..."
-        rsync ${RSYNC_OPTS}
-        ${MASTER}:${MASTER_ROOT}/install/${MODULE}/${MODULE_BRANCH}/ ${SLAVE_ROOT}/install/${MODULE}/${MODULE_BRANCH}/
+        rsync ${RSYNC_OPTS} ${MASTER}:${MASTER_ROOT}/install/${MODULE}/${MODULE_BRANCH}/ ${SLAVE_ROOT}/install/${MODULE}/${MODULE_BRANCH}/
     fi
 
     echo "Adding $MODULE ($MODULE_BRANCH) to env vars..."
