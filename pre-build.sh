@@ -71,6 +71,7 @@ for DEP in ${DEPS}; do
 
     if [[ ${MASTER} != "localhost" ]]; then
         echo "Syncing $MODULE ($MODULE_BRANCH) with ${MASTER}..."
+	mkdir -p ${SLAVE_ROOT}/install/${MODULE}/${MODULE_BRANCH}
         rsync ${RSYNC_OPTS} ${MASTER}:${MASTER_ROOT}/install/${MODULE}/${MODULE_BRANCH}/ ${SLAVE_ROOT}/install/${MODULE}/${MODULE_BRANCH}/
     fi
 
