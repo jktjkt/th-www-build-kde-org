@@ -17,7 +17,6 @@
 
 if [ -z "${WORKSPACE}" ]; then
     echo "\$WORKSPACE not set!"
-    exit 1
 fi
 
 . ${WORKSPACE}/environment-vars.sh
