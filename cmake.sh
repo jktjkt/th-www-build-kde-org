@@ -14,25 +14,12 @@
 #       VERSION:  1.0
 #       CREATED:  08/23/2011 07:43:00 PM CEST
 #===============================================================================
+
+if [ -z "${WORKSPACE}" ]; then
+    echo "\$WORKSPACE not set!"
+    exit 1
+fi
+
 . ${WORKSPACE}/environment-vars.sh
 
-ARGS=""
-ORIGARGS="$@"
-while [ -n "$1" ]; do
-    if [[ "$1" =~ "-G" ]]; then
-	ARGS="${ARGS} $1 \""
-	shift
-	ARGS="${ARGS}$1"
-	shift
-        while [[ -n "$1" && "$1" =~ "^[:alpha:]" ]]; do
-	    ARGS="${ARGS} $1"
-            shift
-        done
-        ARGS="${ARGS}\""
-    else
-        ARGS="${ARGS} $1"
-    fi
-    shift
-done
-
-cmake ${ARGS}
+cmake "${@}"
