@@ -26,6 +26,8 @@ RSYNC_OPTS="--recursive --links --perms --times --group --owner --devices \
 ############################################
 . ./environment-vars.sh
 
+LOCALHOST=`hostname -f`
+
 if [ -z ${MASTER} ]; then
     echo "\$MASTER not set!"
     exit 1
@@ -34,6 +36,10 @@ if [ -z ${MASTER_ROOT} ]; then
     echo "\$MASTER_ROOT not set!"
     exit 1
 fi
+if [[ "${MASTER}" == "${LOCALHOST}" ]]; then
+	SLAVE_ROOT="${MASTER_ROOT}"
+fi
+
 if [ -z ${SLAVE_ROOT} ]; then
     echo "\$SLAVE_ROOT not set!"
     exit 1
@@ -54,7 +60,6 @@ fi
 rm -rf ${SLAVE_ROOT}/install/${JOB_NAME}/${GIT_BRANCH}
 mv ${WORKSPACE}/install ${SLAVE_ROOT}/install/${JOB_NAME}/${GIT_BRANCH}
 
-LOCALHOST=`hostname -f`
 if [[ ${MASTER} != "${LOCALHOST}" ]]; then
     rsync ${RSYNC_OPTS} ${SLAVE_ROOT}/install/${JOB_NAME}/${GIT_BRANCH}/ \
     ${MASTER}:${MASTER_ROOT}/install/${JOB_NAME}/${GIT_BRANCH}/
