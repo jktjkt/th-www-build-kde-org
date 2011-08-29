@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 # vim: set sw=4 sts=4 et tw=80 :
 #===============================================================================
 #
@@ -28,11 +28,11 @@ RSYNC_OPTS="--recursive --links --perms --times --group --owner --devices \
 
 LOCALHOST=`hostname -f`
 
-if [ -z ${MASTER} ]; then
+if [ -z "${MASTER}" ]; then
     echo "\$MASTER not set!"
     exit 1
 fi
-if [ -z ${MASTER_ROOT} ]; then
+if [ -z "${MASTER_ROOT}" ]; then
     echo "\$MASTER_ROOT not set!"
     exit 1
 fi
@@ -40,27 +40,37 @@ if [[ "${MASTER}" == "${LOCALHOST}" ]]; then
 	SLAVE_ROOT="${MASTER_ROOT}"
 fi
 
-if [ -z ${SLAVE_ROOT} ]; then
+if [ -z "${SLAVE_ROOT}" ]; then
     echo "\$SLAVE_ROOT not set!"
     exit 1
 fi
-if [ -z ${JOB_NAME} ]; then
+if [ -z "${JOB_NAME}" ]; then
     echo "\$JOB_NAME not set!"
     exit 1
 fi
-if [ -z ${GIT_BRANCH} ]; then
-    echo "\$GIR_BRANCH not set!"
+if [ -z "${GIT_BRANCH}" ]; then
+    echo "\$GIT_BRANCH not set!"
     exit 1
 fi
-if [ -z ${WORKSPACE} ]; then
+if [ -z "${WORKSPACE}" ]; then
     echo "\$WORKSPACE not set!"
     exit 1
 fi
 
-rm -rf ${SLAVE_ROOT}/install/${JOB_NAME}/${GIT_BRANCH}
-mv ${WORKSPACE}/install ${SLAVE_ROOT}/install/${JOB_NAME}/${GIT_BRANCH}
+GIT_BRANCH_DIR=${GIT_BRANCH/\//_/}
+JOB_NAME_DIR=${JOB_NAME%_*}
+echo -n "=> Removing old install dir..."
+rm -rf "${SLAVE_ROOT}/install/${JOB_NAME_DIR}/${GIT_BRANCH_DIR}"
+echo " done"
+basedir=`dirname "${SLAVE_ROOT}/install/${JOB_NAME_DIR}/${GIT_BRANCH_DIR}"`
+echo -n "=> Moving new install to global location..."
+mkdir -p "${basedir}"
+mv "${WORKSPACE}/install" "${SLAVE_ROOT}/install/${JOB_NAME_DIR}/${GIT_BRANCH_DIR}"
+echo " done"
 
-if [[ ${MASTER} != "${LOCALHOST}" ]]; then
-    rsync ${RSYNC_OPTS} ${SLAVE_ROOT}/install/${JOB_NAME}/${GIT_BRANCH}/ \
-    ${MASTER}:${MASTER_ROOT}/install/${JOB_NAME}/${GIT_BRANCH}/
+if [[ "${MASTER}" != "${LOCALHOST}" ]]; then
+    echo "=> Syncing changes with master..."
+    rsync "${RSYNC_OPTS} ${SLAVE_ROOT}/install/${JOB_NAME_DIR}/${GIT_BRANCH_DIR}/" \
+    "${MASTER}:${MASTER_ROOT}/install/${JOB_NAME_DIR}/${GIT_BRANCH_DIR}/"
+    echo "=> done"
 fi

@@ -19,6 +19,7 @@ if [ -z "${WORKSPACE}" ]; then
     echo "\$WORKSPACE not set!"
 fi
 
-. ${WORKSPACE}/environment-vars.sh
+env
+. build/environment-vars.sh
 
 cmake "${@}"
