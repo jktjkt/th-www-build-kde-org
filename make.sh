@@ -2,9 +2,9 @@
 # vim: set sw=4 sts=4 et tw=80 :
 #===============================================================================
 #
-#          FILE:  cmake.sh
+#          FILE:  make.sh
 # 
-#         USAGE:  As a cmake wrapper, to make sure that all needed environment
+#         USAGE:  As a make wrapper, to make sure that all needed environment
 #                 variables are set. 
 # 
 #   DESCRIPTION:  Takes the given command line and tries to reapply quoting.
@@ -21,4 +21,4 @@ else
     . ${WORKSPACE}/environment-vars.sh
 fi
 
-cmake -DCMAKE_VERBOSE_MAKEFILE:BOOL=True ${CMAKE_CMD_LINE} "${@}"
+DESTDIR=${WORKSPACE}/install make "${@}"

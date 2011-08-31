@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 # vim: set sw=4 sts=4 et tw=80 :
 #===============================================================================
 #
@@ -20,27 +20,27 @@
 
 . environment-vars.sh
 
-if [ -z ${MASTER} ]; then
+if [ -z "${MASTER}" ]; then
     echo "\$MASTER not set!"
     exit 1
 fi
-if [ -z ${SLAVE_ROOT} ]; then
+if [ -z "${SLAVE_ROOT}" ]; then
     echo "\$SLAVE_ROOT not set!"
     exit 1
 fi
-if [ -z ${MASTER_ROOT} ]; then
+if [ -z "${MASTER_ROOT}" ]; then
     echo "\$MASTER_ROOT not set!"
     exit 1
 fi
-if [ -z ${JOB_NAME} ]; then
+if [ -z "${JOB_NAME}" ]; then
     echo "\$JOB_NAME not set!"
     exit 1
 fi
-if [ -z ${GIT_BRANCH} ]; then
+if [ -z "${GIT_BRANCH}" ]; then
     echo "\$GIT_BRANCH not set!"
     exit 1
 fi
-if [ -z ${WORKSPACE} ]; then
+if [ -z "${WORKSPACE}" ]; then
     echo "\$WORKSPACE not set!"
     exit 1
 fi
@@ -69,17 +69,17 @@ LOCALHOST=`hostname -f`
 for DEP in ${DEPS}; do
     MODULE=${DEP%=*}
     MODULE_BRANCH=${DEP#*=}
-    MODULE_BRANCH_DIR=${MODULE_BRANCH/\/_/}
+    #MODULE_BRANCH_DIR=${MODULE_BRANCH/\/_/}
+    MODULE_BRANCH_DIR=${MODULE_BRANCH}
 
-    if [[ ${MASTER} != "${LOCALHOST}" ]]; then
+    if [[ "${MASTER}" != "${LOCALHOST}" ]]; then
         echo "Syncing $MODULE ($MODULE_BRANCH) with ${MASTER}..."
 	mkdir -p ${SLAVE_ROOT}/install/${MODULE}/${MODULE_BRANCH_DIR}
         rsync ${RSYNC_OPTS} ${MASTER}:${MASTER_ROOT}/install/${MODULE}/${MODULE_BRANCH_DIR}/ ${SLAVE_ROOT}/install/${MODULE}/${MODULE_BRANCH_DIR}/
     fi
 
-    echo "Adding $MODULE ($MODULE_BRANCH) to env vars..."
+    echo "Adding $MODULE ($MODULE_BRANCH dir: ${MODULE_BRANCH_DIR}) to env vars..."
     CMAKE_PREFIX_PATH="${SLAVE_ROOT}/install/${MODULE}/${MODULE_BRANCH_DIR}:${CMAKE_PREFIX_PATH}"
-    #CMAKE_INSTALL_PREFIX="${SLAVE_ROOT}/install/${MODULE}/${MODULE_BRANCH}:${CMAKE_INSTALL_PREFIX}"
     PATH="${SLAVE_ROOT}/install/${MODULE}/${MODULE_BRANCH}/bin:${PATH}"
     LD_LIBRARY_PATH="${SLAVE_ROOT}/install/${MODULE}/${MODULE_BRANCH_DIR}/lib:${LD_LIBRARY_PATH}"
     PKG_CONFIG_PATH="${SLAVE_ROOT}/install/${MODULE}/${MODULE_BRANCH_DIR}:${PKG_CONFIG_PATH}"
@@ -89,12 +89,13 @@ for DEP in ${DEPS}; do
     KDEDIRS="${SLAVE_ROOT}/install/${MODULE}/${MODULE_BRANCH_DIR}:${KDEDIRS}"
 done
 
-echo export CMAKE_PREFIX_PATH="${CMAKE_PREFIX_PATH}" >> environment-vars.sh
+echo export CMAKE_PREFIX_PATH="${CMAKE_PREFIX_PATH%:}" >> environment-vars.sh
 #echo export CMAKE_INSTALL_PREFIX="${CMAKE_INSTALL_PREFIX}" >> environment-vars.sh
-echo export PATH="${JENKINS_SLAVE_HOME}:${PATH}" >> environment-vars.sh
-echo export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}" >> environment-vars.sh
-echo export PKG_CONFIG_PATH="${PKG_CONFIG_PATH}" >> environment-vars.sh
-echo export QT_PLUGIN_PATH="${QT_PLUGIN_PATH}" >> environment-vars.sh
-echo export XDG_DATA_DIRS="${XDG_DATA_DIRS}" >> environment-vars.sh
-echo export XDG_CONFIG_DIRS="${XDG_CONFIG_DIRS}" >> environment-vars.sh
-echo export KDEDIRS="${KDEDIRS}" >> environment-vars.sh
+echo export PATH="${JENKINS_SLAVE_HOME}:${PATH%:}" >> environment-vars.sh
+echo export LD_LIBRARY_PATH="${LD_LIBRARY_PATH%:}" >> environment-vars.sh
+echo export PKG_CONFIG_PATH="${PKG_CONFIG_PATH%:}" >> environment-vars.sh
+echo export QT_PLUGIN_PATH="${QT_PLUGIN_PATH%:}" >> environment-vars.sh
+echo export XDG_DATA_DIRS="${XDG_DATA_DIRS%:}" >> environment-vars.sh
+echo export XDG_CONFIG_DIRS="${XDG_CONFIG_DIRS%:}" >> environment-vars.sh
+echo export KDEDIRS="${KDEDIRS%:}" >> environment-vars.sh
+echo CMAKE_CMD_LINE="-DCMAKE_PREFIX_PATH=\"${CMAKE_PREFIX_PATH%:}\"" >> environment-vars.sh

@@ -37,7 +37,12 @@ def read_build_deps():
 	f = open('build-deps.txt', 'r')
 	data = f.read()
 	f.close()
-	module_deps = json.loads(data)
+	module_deps = None
+	try:
+		module_deps = json.loads(data)
+	except ValueError as e:
+		print "!!! Unable to parse module dependencies !!!\n!!! Error: %s"%e
+		sys.exit(1)
 	return module_deps
 
 def get_current_module_str( module_deps ):
@@ -47,7 +52,7 @@ def get_current_module_str( module_deps ):
 		if os.getenv("JOB_NAME") == module:
 			print "Match, creating dependency exports..."
 			for branch, branch_deps in branches.iteritems():
-				if os.getenv("GIT_BRANCH") == branch:
+				if os.getenv("GIT_BRANCH").endswith( branch ):
 					print "    ", branch
 					export_str = 'export DEPS="'
 					for dep, dep_branch in branch_deps.iteritems():
@@ -55,6 +60,8 @@ def get_current_module_str( module_deps ):
 						export_str += "%s=%s "%(dep, dep_branch)
 					export_str = export_str.strip() + '"'
 					print export_str
+				else:
+					print "    Skipping branch: %s"%branch
 		else:
 			print "No match"
 	return export_str

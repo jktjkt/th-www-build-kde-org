@@ -10,14 +10,14 @@ global
     use-clean-install true
 # This is the directory that your KDE sources are downloaded to.  This
 # directory also holds the build and log directories by default.
-	source-dir /code/kde/src/KDE
+	source-dir /code/KDE
 
 # This is the directory that KDE will end up installed at.  The default is
 # appropriate for a single-user installation of KDE, which requires no root
 # permissions.  If you'd like, you can install and use the sudo program to
 # install KDE anywhere on your system, in conjunction with the
 # make-install-prefix option.
-	kdedir /code/kde/inst/master
+	kdedir /srv/test/install/deps/master
 #	kdedir /opt/kde
 #
 # You can overwrite the installation directory for a given module using
@@ -33,7 +33,7 @@ global
 # building /trunk.  If you are building an older branch you may use your
 # system installed Qt by setting qtdir to point to it (what qmake -v
 # reports with the /lib removed).
-	qtdir /code/kde/inst/master  # Default to installing Qt
+	qtdir /srv/test/install/qt/master  # Default to installing Qt
 
 # By default (if the above is commented out), you are getting trunk.
 # If instead you want to check out another branch, like 4.4, use
@@ -107,7 +107,7 @@ global
 # This directory is where everything gets built before it is installed.  By
 # default it is relative to the value for source-dir.  You can specify an
 # absolute path if you'd like (begin the path with a slash).
-	build-dir /code/kde/build/KDE
+	build-dir /code/KDE/build
 
 # These are the compilation flags to use by default when compiling KDE.
 # gcc supports a -march option in order to generate specific code for pentium4, athlon-xp,
@@ -233,180 +233,8 @@ module dbusmenu-git
     repository git://gitorious.org/dbusmenu/dbusmenu-qt.git
 end module
 
-# kdelibs are the base KDE libraries needed by all KDE applications.
 module-set
-    use-modules kdelibs
     repository kde-projects
-# KDE 4 uses CMake, if you need to pass options to the cmake command, use this
-# option:
-#	cmake-options -DKDE4_BUILD_TESTS:BOOL=ON
-
-# If you're a programmer you may want to build the API docs.  There is a
-# separate script in kdesdk/scripts to do that for you however.
-end module
-
-# akonadi is required for kdepimlibs,
-# kdepimlibs contains required PIM (mail, instant messenger, etc.) basics
-# that are needed by some other KDE modules.  Should be built after kdelibs
-# kde-runtime includes required programs
-# kde-workspace contains the workspace, i.e. the desktop.
-# kde-baseapps includes apps such as Konqueror, Dolphin.
-module-set
-    use-modules konsole \
-                kate kde-baseapps kde-workspace kde-runtime \
-                phonon-gstreamer # or you can try phonon-vlc
-    repository kde-projects
+    use-modules akonadi
 end module-set
 
-# kdemultimedia contains JuK, noatun, Kaboodle, and other KDE multimedia
-# applications.  It does not include amarok, which is in extragear/multimedia
-#module kdemultimedia
-#end module
-
-# ... Well, they're games. ;)
-#module kdegames
-#end module
-
-# kdesdk is a useful module for software developers.  It is where kdesrc-build
-# is developed, in addition to other handy scripts for KDE and general software
-# developers.  Programmers *need* this module for kcachegrind
-#module kdesdk
-#end module
-
-# kdenetwork has Kopete and other useful applications for the Internet and
-# other networks.
-#module kdenetwork
-#end module
-
-# kdepim contains KMail, Kontact, KOrganizer, and other insanely useful
-# programs that help you keep track of things. It consists of two core components,
-# kdepim-runtime, and kdepim itself, which both depend on kdepimlibs.
-module-set
-    repository kde-projects
-    use-modules akonadi kdepimlibs kdepim kdepim-runtime
-	cmake-options -DKDE4_BUILD_TESTS:BOOL=ON
-end module-set
-
-# kdeadmin has system administration tools for your computer.
-#module kdeadmin
-#end module
-
-# kdeaccessibility accessibility tools
-#module kdeaccessibility
-#end module
-
-# kdeartwork has themes and screensaver
-#module kdeartwork
-#end module
-
-
-# kdebindings is useful for software developers, and for those who wish to run
-# some KDE programs that don't use C++.
-#module kdebindings
-
-# kdebindings will probably need to use the following option to install
-# successfully due to necessary integration with the program interpreters.  You
-# must configure the sudo program first to allow for passwordless operation.
-#	make-install-prefix sudo -S
-#end module
-
-# kdeutils has miscellaneous programs which can be useful.  You probably won't
-# die if you remove this from the config file though.
-#module kdeutils
-#end module
-
-# kdegraphics contains various programs useful for graphics editing.  It
-# doesn't include Krita, which is part of KOffice, but it is worth it just for
-# KolourPaint and Gwenview.
-#module kdegraphics
-#end module
-
-# Contains nifty diversions of time, which generally aren't games.
-#module kdetoys
-	# Let's explain a new kdesrc-build feature here, as an example:
-	# Say you don't want "./kdesrc-build" to always update and build kdetoys,
-	# but you want to specify options here (branch, cmake-options etc.) so that
-	# you can invoke "./kdesrc-build kdetoys" explicitly, now and then.
-	# The option manual-update does exactly this.
-#	manual-update true
-#end module
-
-# Educational programs.  Some are actually quite fun even if you're not trying
-# to learn anything.
-#module kdeedu
-#end module
-
-# Extra collection of useful plasma applets, runners, data engines, etc.
-#module-set
-#    repository kde-projects
-#    use-modules kdeplasma-addons
-#end module
-
-# The KDE Office Suite.  Includes a pretty expansive collection of programs.
-# It is rather large, so you can cut download and build times by removing it
-# from this file.
-#module koffice
-#end module
-
-## A prerequisite for kdevelop other modules using the kdevelop platform, like
-# kdewebdev
-#module-set
-#    use-modules kdevplatform
-#    repository kde-projects
-#end module-set
-
-## The KDevelop IDE, useful for developing all kinds of programs.  If you don't
-# plan on being a software developer you can save time by removing this from
-# your configuration.
-#module-set
-#    use-modules kdevelop
-#    repository kde-projects
-#end module-set
-
-# Modules in extragear and playground can also be added.
-#
-# To see what you can find in the various modules, browse
-# http://websvn.kde.org/trunk/extragear and
-# http://websvn.kde.org/trunk/playground
-
-# Amarok is a KDE application that uses the "git" source control system, like
-# Nokia Qt does.  It used to be in extragear/multimedia.  If you want to
-# build and install amarok, simply uncomment this module
-#   NOTE: Ensure you've enabled ASF and MP4 support above in kdesupport. (If
-#   you build the kdesupport/taglib module by itself, then make sure you've
-#   enabled this support for taglib).
-#module amarok
-#	Read-only access
-#	repository git://git.kde.org/amarok.git
-#
-#	Read-write access. See
-#	http://techbase.kde.org/Getting_Started/Sources/Amarok_Git_Tutorial
-#	for a good intro tutorial for developers.
-#	repository git@git.kde.org:amarok.git
-#end module
-
-# --- The K3B cd/dvd/etc. burner.
-#module-set
-#    use-modules k3b
-#    repository kde-projects
-#end module-set
-
-# Includes various media players.
-#module extragear/multimedia
-#end module
-
-# Includes various photo management applications, scanner frontends, etc.
-#module extragear/graphics
-#end module
-
-# KTorrent, Konversation, some Kopete plugins, Choqok, etc.
-# module extragear/network
-# end module
-
-# Calligra
-#module-set
-#    repository kde-projects
-#    use-modules calligra
-#end module-set
-
-# Add more modules as needed.

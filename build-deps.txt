@@ -1,20 +1,23 @@
 { 
 	"kdelibs" : 
-		{ "master"  : {"deps" : "master"},
-		   "KDE/4.7" : {"deps" : "master"}
+		{
+			"master"  : {"qt" : "master", "deps" : "master"},
+			"KDE/4.7" : {"qt" : "master", "deps" : "master"}
 		},
 	"kdepimlibs" :
 		{
-			"master"  : {"deps" : "master", "kdelibs" : "KDE/4.7"},
-			"4.7"     : {"deps" : "master", "kdelibs" : "KDE/4.7"}
+			"master"  : {"qt" : "master", "deps" : "master", "kdelibs" : "KDE/4.7"},
+			"4.7"     : {"qt" : "master", "deps" : "master", "kdelibs" : "KDE/4.7"}
 		},
 	"kdepim" :
 		{
-			"master" : {"kdelibs" : "KDE/4.7", "kdepimlibs" : "master"}
+			"master" : {"qt" : "master", "deps" : "master", "kdelibs" : "KDE/4.7", "kdepimlibs" : "master"},
+			"4.7"    : {"qt" : "master", "deps" : "master", "kdelibs" : "KDE/4.7", "kdepimlibs" : "4.7"}
 		},
 	"kdepim-runtime" :
 		{
-			"master" : {"kdelibs" : "KDE/4.7", "kdepimlibs" : "master", "kdepim" : "master"}
+			"master" : {"qt" : "master", "deps" : "master", "kdelibs" : "KDE/4.7", "kdepimlibs" : "master", "kdepim" : "master"},
+			"4.7"    : {"qt" : "master", "deps" : "master", "kdelibs" : "KDE/4.7", "kdepimlibs" : "4.7", "kdepim" : "4.7"}
 		}
 }
 		

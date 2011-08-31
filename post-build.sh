@@ -57,19 +57,23 @@ if [ -z "${WORKSPACE}" ]; then
     exit 1
 fi
 
-GIT_BRANCH_DIR=${GIT_BRANCH/\//_/}
+GIT_BRANCH_DIR=${GIT_BRANCH/refs\//}
+GIT_BRANCH_DIR=${GIT_BRANCH_DIR/heads\//}
+GIT_BRANCH_DIR=${GIT_BRANCH_DIR/origin\//}
+GIT_BRANCH_DIR=${GIT_BRANCH_DIR/remotes\//}
+#GIT_BRANCH_DIR=${GIT_BRANCH_DIR/\//_/}
 JOB_NAME_DIR=${JOB_NAME%_*}
-echo -n "=> Removing old install dir..."
+echo -n "=> Removing old install dir (\"${SLAVE_ROOT}/install/${JOB_NAME_DIR}/${GIT_BRANCH_DIR}\")..."
 rm -rf "${SLAVE_ROOT}/install/${JOB_NAME_DIR}/${GIT_BRANCH_DIR}"
 echo " done"
 basedir=`dirname "${SLAVE_ROOT}/install/${JOB_NAME_DIR}/${GIT_BRANCH_DIR}"`
-echo -n "=> Moving new install to global location..."
+echo -n "=> Moving new install to global location (\"${SLAVE_ROOT}/install/${JOB_NAME_DIR}/${GIT_BRANCH_DIR}\")..."
 mkdir -p "${basedir}"
-mv "${WORKSPACE}/install" "${SLAVE_ROOT}/install/${JOB_NAME_DIR}/${GIT_BRANCH_DIR}"
+mv "${WORKSPACE}/install/${SLAVE_ROOT}/install/${JOB_NAME_DIR}/${GIT_BRANCH_DIR}" "${SLAVE_ROOT}/install/${JOB_NAME_DIR}/${GIT_BRANCH_DIR}"
 echo " done"
 
 if [[ "${MASTER}" != "${LOCALHOST}" ]]; then
-    echo "=> Syncing changes with master..."
+    echo "=> Syncing changes with master (\"${MASTER}\")..."
     rsync "${RSYNC_OPTS} ${SLAVE_ROOT}/install/${JOB_NAME_DIR}/${GIT_BRANCH_DIR}/" \
     "${MASTER}:${MASTER_ROOT}/install/${JOB_NAME_DIR}/${GIT_BRANCH_DIR}/"
     echo "=> done"
