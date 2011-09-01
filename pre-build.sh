@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 # vim: set sw=4 sts=4 et tw=80 :
 #===============================================================================
 #
@@ -24,12 +24,8 @@ if [ -z "${MASTER}" ]; then
     echo "\$MASTER not set!"
     exit 1
 fi
-if [ -z "${SLAVE_ROOT}" ]; then
-    echo "\$SLAVE_ROOT not set!"
-    exit 1
-fi
-if [ -z "${MASTER_ROOT}" ]; then
-    echo "\$MASTER_ROOT not set!"
+if [ -z "${ROOT}" ]; then
+    echo "\$ROOT not set!"
     exit 1
 fi
 if [ -z "${JOB_NAME}" ]; then
@@ -51,7 +47,7 @@ if [ -z "${DEPS}" ]; then
 fi
 
 RSYNC_OPTS="--recursive --links --perms --times --group --owner --devices \
-            --specials --delete-during --progress"
+            --specials --delete-during --update --checksum --human-readable --progress"
 
 ############################################
 # Should not need to change anything below #
@@ -69,28 +65,25 @@ LOCALHOST=`hostname -f`
 for DEP in ${DEPS}; do
     MODULE=${DEP%=*}
     MODULE_BRANCH=${DEP#*=}
-    #MODULE_BRANCH_DIR=${MODULE_BRANCH/\/_/}
-    MODULE_BRANCH_DIR=${MODULE_BRANCH}
 
     if [[ "${MASTER}" != "${LOCALHOST}" ]]; then
         echo "Syncing $MODULE ($MODULE_BRANCH) with ${MASTER}..."
-	mkdir -p ${SLAVE_ROOT}/install/${MODULE}/${MODULE_BRANCH_DIR}
-        rsync ${RSYNC_OPTS} ${MASTER}:${MASTER_ROOT}/install/${MODULE}/${MODULE_BRANCH_DIR}/ ${SLAVE_ROOT}/install/${MODULE}/${MODULE_BRANCH_DIR}/
+	mkdir -p ${ROOT}/install/${MODULE}/${MODULE_BRANCH}
+        rsync ${RSYNC_OPTS} ${MASTER}:${ROOT}/install/${MODULE}/${MODULE_BRANCH}/ ${ROOT}/install/${MODULE}/${MODULE_BRANCH}/
     fi
 
-    echo "Adding $MODULE ($MODULE_BRANCH dir: ${MODULE_BRANCH_DIR}) to env vars..."
-    CMAKE_PREFIX_PATH="${SLAVE_ROOT}/install/${MODULE}/${MODULE_BRANCH_DIR}:${CMAKE_PREFIX_PATH}"
-    PATH="${SLAVE_ROOT}/install/${MODULE}/${MODULE_BRANCH}/bin:${PATH}"
-    LD_LIBRARY_PATH="${SLAVE_ROOT}/install/${MODULE}/${MODULE_BRANCH_DIR}/lib:${LD_LIBRARY_PATH}"
-    PKG_CONFIG_PATH="${SLAVE_ROOT}/install/${MODULE}/${MODULE_BRANCH_DIR}:${PKG_CONFIG_PATH}"
-    QT_PLUGIN_PATH="${SLAVE_ROOT}/install/${MODULE}/${MODULE_BRANCH_DIR}:${QT_PLUGIN_PATH}"
-    XDG_DATA_DIRS="${SLAVE_ROOT}/install/${MODULE}/${MODULE_BRANCH_DIR}/share:${XDG_DATA_DIRS}"
-    XDG_CONFIG_DIRS="${SLAVE_ROOT}/install/${MODULE}/${MODULE_BRANCH_DIR}/etc/xdg:${XDG_CONFIG_DIRS}"
-    KDEDIRS="${SLAVE_ROOT}/install/${MODULE}/${MODULE_BRANCH_DIR}:${KDEDIRS}"
+    echo "Adding $MODULE ($MODULE_BRANCH) to env vars..."
+    CMAKE_PREFIX_PATH="${ROOT}/install/${MODULE}/${MODULE_BRANCH_DIR}:${CMAKE_PREFIX_PATH}"
+    PATH="${ROOT}/install/${MODULE}/${MODULE_BRANCH}/bin:${PATH}"
+    LD_LIBRARY_PATH="${ROOT}/install/${MODULE}/${MODULE_BRANCH}/lib:${LD_LIBRARY_PATH}"
+    PKG_CONFIG_PATH="${ROOT}/install/${MODULE}/${MODULE_BRANCH}:${PKG_CONFIG_PATH}"
+    QT_PLUGIN_PATH="${ROOT}/install/${MODULE}/${MODULE_BRANCH}:${QT_PLUGIN_PATH}"
+    XDG_DATA_DIRS="${ROOT}/install/${MODULE}/${MODULE_BRANCH}/share:${XDG_DATA_DIRS}"
+    XDG_CONFIG_DIRS="${ROOT}/install/${MODULE}/${MODULE_BRANCH}/etc/xdg:${XDG_CONFIG_DIRS}"
+    KDEDIRS="${ROOT}/install/${MODULE}/${MODULE_BRANCH}:${KDEDIRS}"
 done
 
 echo export CMAKE_PREFIX_PATH="${CMAKE_PREFIX_PATH%:}" >> environment-vars.sh
-#echo export CMAKE_INSTALL_PREFIX="${CMAKE_INSTALL_PREFIX}" >> environment-vars.sh
 echo export PATH="${JENKINS_SLAVE_HOME}:${PATH%:}" >> environment-vars.sh
 echo export LD_LIBRARY_PATH="${LD_LIBRARY_PATH%:}" >> environment-vars.sh
 echo export PKG_CONFIG_PATH="${PKG_CONFIG_PATH%:}" >> environment-vars.sh

@@ -17,7 +17,7 @@ global
 # permissions.  If you'd like, you can install and use the sudo program to
 # install KDE anywhere on your system, in conjunction with the
 # make-install-prefix option.
-	kdedir /srv/test/install/deps/master
+	kdedir /var/lib/jenkins/install/deps/master
 #	kdedir /opt/kde
 #
 # You can overwrite the installation directory for a given module using
@@ -33,7 +33,7 @@ global
 # building /trunk.  If you are building an older branch you may use your
 # system installed Qt by setting qtdir to point to it (what qmake -v
 # reports with the /lib removed).
-	qtdir /srv/test/install/qt/master  # Default to installing Qt
+	qtdir /var/lib/jenkins/install/qt/master  # Default to installing Qt
 
 # By default (if the above is commented out), you are getting trunk.
 # If instead you want to check out another branch, like 4.4, use
@@ -133,7 +133,7 @@ end global
 #
 # Note that this module uses the "git" source control tool instead of
 # Subversion, so read carefully the comments below. ;)
-#module qt-copy
+module qt-copy
 # Configure flags. See README.kde-qt for the official recommended ones, which
 # may become inconsistent with these sample flags.
 # Do not specify -prefix, kdesrc-build will handle that.
@@ -143,13 +143,13 @@ end global
 # - Alternatively, if you use Qt's phonon, remove "phonon" from the use-modules
 #   option in the module-set below.
 # - As of KDE 4.6/Qt 4.7 the "right answer" is the first option: separate phonon.
-#	configure-flags -fast -debug -no-separate-debug-info -v \
-#	                -system-zlib -system-libpng -system-libjpeg \
-#	                -dbus -webkit -plugin-sql-mysql \
-#	                -nomake examples -nomake demos \
-#	                -no-phonon # See module-set below
-#
-#	make-options -j2
+	configure-flags -fast -debug -no-separate-debug-info -v \
+	                -system-zlib -system-libpng -system-libjpeg \
+	                -dbus -webkit -plugin-sql-mysql \
+	                -nomake examples -nomake demos \
+	                -no-phonon # See module-set below
+
+	make-options -j2
 #
 #	Default Qt repository -- Use this if you want Nokia's official Qt
 #	without any KDE fixes or extensions.
@@ -159,7 +159,7 @@ end global
 #	optimizations and bugfixes and is generally what KDE developers use.
 #	This is recommended in most cases.  If you used to use the old
 #	"apply-patches" option, this is the git equivalent.
-#    repository git@git.kde.org:qt-kde
+    repository git@git.kde.org:qt-kde
 
 # If you use the branch option up in the "global" section to set a
 # default KDE version, you should manually choose a branch here for Qt.
@@ -168,10 +168,10 @@ end global
 #
 # The "master" branch is the best choice for both kde-qt and official Qt if
 # you have no preference.
-#	branch master
+	branch master
 #    branch 4.7-stable
 #    manual-update true
-#end module
+end module
 
 # Next is shown a "module-set", which is a grouping of modules that has special
 # handling of the "repository" option (the module name is automatically added

@@ -32,6 +32,9 @@ def check_environment():
 	if not os.getenv( "GIT_BRANCH" ):
 		print "Missing ${GIT_BRANCH} environment variable, fatal error!"
 		sys.exit( 1 )
+	if not os.getenv( "JENKINS_HOST" ):
+		print "Missing ${JENKINS_HOST} environment variable, fatal error!"
+		sys.exit( 1 )
 
 def read_build_deps():
 	f = open('build-deps.txt', 'r')
@@ -68,12 +71,12 @@ def get_current_module_str( module_deps ):
 
 def write_export_file( export_str ):
 	build_dir = os.getenv("WORKSPACE")
-	slave_root = os.path.dirname( os.path.realpath(__file__) )
+	root = os.path.dirname( os.path.realpath(__file__) )
+	master = os.getenv("JENKINS_HOST")
 	f = open( os.path.join( build_dir, "environment-vars.sh" ), 'w' )
 	f.write( export_str + "\n" )
-	f.write( "export MASTER_ROOT=%s\n"%root )
 	f.write( "export MASTER=%s\n"%master )
-	f.write( "export SLAVE_ROOT=%s\n"%slave_root )
+	f.write( "export ROOT=%s\n"%root )
 	f.close()
 
 def main():
@@ -84,13 +87,7 @@ def main():
 
 def check_args():
 	parser = argparse.ArgumentParser( description='Helper for setting variables that are needed in the build steps' )
-	parser.add_argument( '-r', '--root', dest='root', action='store', required=True, help='Path to where the install root is.' )
-	parser.add_argument( '-m', '--master', dest='master', action='store', required=True, help='Address of the master build slave, ie where the authoritive copy of all dependencies are stored.' )
 	args = parser.parse_args()
-	global root
-	global master
-	root = args.root
-	master = args.master
 
 if __name__ == "__main__":
 	check_args()

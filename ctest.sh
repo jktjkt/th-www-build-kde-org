@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 
 BINDIR="$( cd "$( dirname "$0" )" && pwd )"
 export JENKINS_SLAVE_HOME=${BINDIR}
