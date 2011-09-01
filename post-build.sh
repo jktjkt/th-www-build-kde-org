@@ -66,7 +66,7 @@ echo " done"
 
 if [[ "${MASTER}" != "${LOCALHOST}" ]]; then
     echo "=> Syncing changes with master (\"${MASTER}\")..."
-    rsync "${RSYNC_OPTS} ${ROOT}/install/${JOB_NAME_DIR}/${GIT_BRANCH_DIR}/" \
+    rsync ${RSYNC_OPTS} "${ROOT}/install/${JOB_NAME_DIR}/${GIT_BRANCH_DIR}/" \
     "${MASTER}:${ROOT}/install/${JOB_NAME_DIR}/${GIT_BRANCH_DIR}/"
     echo "=> done"
 fi
