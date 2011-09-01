@@ -74,6 +74,8 @@ def write_export_file( export_str ):
 	root = os.path.dirname( os.path.realpath(__file__) )
 	master = os.getenv("JENKINS_HOST")
 	f = open( os.path.join( build_dir, "environment-vars.sh" ), 'w' )
+	f.write( "#!/bin/bash -x\n" )
+	f.write( "env\n" )
 	f.write( export_str + "\n" )
 	f.write( "export MASTER=%s\n"%master )
 	f.write( "export ROOT=%s\n"%root )
