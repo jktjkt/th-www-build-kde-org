@@ -32,8 +32,8 @@ def check_environment():
 	if not os.getenv( "GIT_BRANCH" ):
 		print "Missing ${GIT_BRANCH} environment variable, fatal error!"
 		sys.exit( 1 )
-	if not os.getenv( "JENKINS_HOST" ):
-		print "Missing ${JENKINS_HOST} environment variable, fatal error!"
+	if not os.getenv( "JENKINS_URL" ):
+		print "Missing ${JENKINS_URL} environment variable, fatal error!"
 		sys.exit( 1 )
 
 def read_build_deps():
@@ -72,7 +72,7 @@ def get_current_module_str( module_deps ):
 def write_export_file( export_str ):
 	build_dir = os.getenv("WORKSPACE")
 	root = os.path.dirname( os.path.realpath(__file__) )
-	master = os.getenv("JENKINS_HOST")
+	master = os.getenv("JENKINS_URL")
 	f = open( os.path.join( build_dir, "environment-vars.sh" ), 'w' )
 	f.write( "#!/bin/bash -x\n" )
 	f.write( "env\n" )
