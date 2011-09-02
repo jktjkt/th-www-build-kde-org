@@ -1,7 +1,10 @@
 { 
 	"kdelibs" : 
 		{
-			"master"  : {"qt" : "master", "deps" : "master"},
+			"master"  : {"qt" : "master", "deps" : "master"}
+		},
+	"kdelibs_stable" : 
+		{
 			"KDE/4.7" : {"qt" : "master", "deps" : "master"}
 		},
 	"kdepimlibs" :

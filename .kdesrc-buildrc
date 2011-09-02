@@ -10,14 +10,14 @@ global
     use-clean-install true
 # This is the directory that your KDE sources are downloaded to.  This
 # directory also holds the build and log directories by default.
-	source-dir /code/KDE
+	source-dir /srv/source
 
 # This is the directory that KDE will end up installed at.  The default is
 # appropriate for a single-user installation of KDE, which requires no root
 # permissions.  If you'd like, you can install and use the sudo program to
 # install KDE anywhere on your system, in conjunction with the
 # make-install-prefix option.
-	kdedir /var/lib/jenkins/install/deps/master
+	kdedir /srv/install/deps/master
 #	kdedir /opt/kde
 #
 # You can overwrite the installation directory for a given module using
@@ -33,7 +33,7 @@ global
 # building /trunk.  If you are building an older branch you may use your
 # system installed Qt by setting qtdir to point to it (what qmake -v
 # reports with the /lib removed).
-	qtdir /var/lib/jenkins/install/qt/master  # Default to installing Qt
+	qtdir /srv/install/qt/master  # Default to installing Qt
 
 # By default (if the above is commented out), you are getting trunk.
 # If instead you want to check out another branch, like 4.4, use
@@ -47,11 +47,11 @@ global
 # grouping and the "use-modules" option. This sets up the "kde-projects" git
 # repository, you can change the URL if you are a developer.
 #	git-repository-base kde-projects git://anongit.kde.org/
-	git-repository-base kde-projects git@git.kde.org: # Developers
+	git-repository-base kde-projects git://git.kde.org:
 
 # This is the Subversion server to download the rest of the KDE sources from.  Developers:
 # Don't forget to add your username to the URL if necessary!
-	svn-server svn+ssh://svn.kde.org/home/kde
+	svn-server svn://anonsvn.kde.org/home/kde
 
 # cmake-options controls the compilation options for building KDE 4 modules.
 # These options apply to all KDE modules unless otherwise specified.
@@ -107,7 +107,7 @@ global
 # This directory is where everything gets built before it is installed.  By
 # default it is relative to the value for source-dir.  You can specify an
 # absolute path if you'd like (begin the path with a slash).
-	build-dir /code/KDE/build
+	build-dir /srv/build
 
 # These are the compilation flags to use by default when compiling KDE.
 # gcc supports a -march option in order to generate specific code for pentium4, athlon-xp,
@@ -149,7 +149,7 @@ module qt-copy
 	                -nomake examples -nomake demos \
 	                -no-phonon # See module-set below
 
-	make-options -j2
+	make-options -j5
 #
 #	Default Qt repository -- Use this if you want Nokia's official Qt
 #	without any KDE fixes or extensions.
@@ -159,7 +159,7 @@ module qt-copy
 #	optimizations and bugfixes and is generally what KDE developers use.
 #	This is recommended in most cases.  If you used to use the old
 #	"apply-patches" option, this is the git equivalent.
-    repository git@git.kde.org:qt-kde
+    repository git://git.kde.org/qt-kde
 
 # If you use the branch option up in the "global" section to set a
 # default KDE version, you should manually choose a branch here for Qt.
@@ -237,4 +237,6 @@ module-set
     repository kde-projects
     use-modules akonadi
 end module-set
-
+module shared-desktop-ontologies
+    repository git://oscaf.git.sourceforge.net/gitroot/oscaf/shared-desktop-ontologies
+end module

@@ -21,4 +21,6 @@ else
     source ${WORKSPACE}/environment-vars.sh
 fi
 
+echo "=> cmake ${CMAKE_CMD_LINE} ${@}"
 cmake ${CMAKE_CMD_LINE} "${@}"
+

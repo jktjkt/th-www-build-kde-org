@@ -23,6 +23,9 @@ root=None
 master=None
 
 def check_environment():
+	if not os.getenv( "ROOT" ):
+		print "Missing ${ROOT} environment variable, fatal error!"
+		sys.exit( 1 )
 	if not os.getenv( "WORKSPACE" ):
 		print "Missing ${WORKSPACE} environment variable, fatal error!"
 		sys.exit( 1 )
@@ -71,7 +74,7 @@ def get_current_module_str( module_deps ):
 
 def write_export_file( export_str ):
 	build_dir = os.getenv("WORKSPACE")
-	root = os.path.dirname( os.path.realpath(__file__) )
+	root = os.getenv( "ROOT" )
 	master = os.getenv("JENKINS_URL")
 	master = master[7:]
 	if master.count(":") > 0:
