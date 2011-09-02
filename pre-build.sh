@@ -18,7 +18,7 @@
 #       CREATED:  08/17/2011 08:19:54 PM CEST
 #===============================================================================
 
-. environment-vars.sh
+source environment-vars.sh
 
 if [ -z "${MASTER}" ]; then
     echo "\$MASTER not set!"
@@ -73,7 +73,7 @@ for DEP in ${DEPS}; do
     fi
 
     echo "Adding $MODULE ($MODULE_BRANCH) to env vars..."
-    CMAKE_PREFIX_PATH="${ROOT}/install/${MODULE}/${MODULE_BRANCH_DIR}:${CMAKE_PREFIX_PATH}"
+    CMAKE_PREFIX_PATH="${ROOT}/install/${MODULE}/${MODULE_BRANCH}:${CMAKE_PREFIX_PATH}"
     PATH="${ROOT}/install/${MODULE}/${MODULE_BRANCH}/bin:${PATH}"
     LD_LIBRARY_PATH="${ROOT}/install/${MODULE}/${MODULE_BRANCH}/lib:${LD_LIBRARY_PATH}"
     PKG_CONFIG_PATH="${ROOT}/install/${MODULE}/${MODULE_BRANCH}:${PKG_CONFIG_PATH}"

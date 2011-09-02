@@ -18,7 +18,7 @@
 if [ -z "${WORKSPACE}" ]; then
     echo "\$WORKSPACE not set!"
 else
-    . ${WORKSPACE}/environment-vars.sh
+    source ${WORKSPACE}/environment-vars.sh
 fi
 
-cmake -DCMAKE_VERBOSE_MAKEFILE:BOOL=True ${CMAKE_CMD_LINE} "${@}"
+cmake ${CMAKE_CMD_LINE} "${@}"

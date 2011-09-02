@@ -24,7 +24,7 @@ RSYNC_OPTS="--recursive --links --perms --times --group --owner --devices \
 ############################################
 # Should not need to change anything below #
 ############################################
-. ./environment-vars.sh
+source ./environment-vars.sh
 
 LOCALHOST=`hostname -f`
 

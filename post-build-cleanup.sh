@@ -1,4 +1,4 @@
 #!/bin/bash
-. environment-vars.sh
+source environment-vars.sh
 
 rm -rf ${WORKSPACE}/build

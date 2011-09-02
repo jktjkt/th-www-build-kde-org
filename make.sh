@@ -18,7 +18,7 @@
 if [ -z "${WORKSPACE}" ]; then
     echo "\$WORKSPACE not set!"
 else
-    . ${WORKSPACE}/environment-vars.sh
+    source ${WORKSPACE}/environment-vars.sh
 fi
 
 DESTDIR=${WORKSPACE}/install make "${@}"
