@@ -73,6 +73,9 @@ def write_export_file( export_str ):
 	build_dir = os.getenv("WORKSPACE")
 	root = os.path.dirname( os.path.realpath(__file__) )
 	master = os.getenv("JENKINS_URL")
+	master = master[7:]
+	if master.count(":") > 0:
+		master = master[:master.rfind(":")]
 	f = open( os.path.join( build_dir, "environment-vars.sh" ), 'w' )
 	f.write( "#!/bin/bash -x\n" )
 	f.write( "env\n" )
