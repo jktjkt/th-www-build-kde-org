@@ -75,8 +75,11 @@ def get_current_module_str( module_deps ):
 def write_export_file( export_str ):
 	build_dir = os.getenv("WORKSPACE")
 	root = os.getenv( "ROOT" )
-	master = os.getenv("JENKINS_URL")
-	master = master[7:]
+	if os.getenv( "MASTER" ):
+		master = os.getenv( "MASTER" )
+	else:
+		master = os.getenv("JENKINS_URL")
+		master = master[7:]
 	if master.count(":") > 0:
 		master = master[:master.rfind(":")]
 	f = open( os.path.join( build_dir, "environment-vars.sh" ), 'w' )
