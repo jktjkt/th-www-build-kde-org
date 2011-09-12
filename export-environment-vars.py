@@ -55,7 +55,11 @@ def get_current_module_str( module_deps ):
 	export_str = ""
 	for module, branches in module_deps.iteritems():
 		print module, "-",
-		if os.getenv("JOB_NAME") == module:
+		job_name = os.getenv("JOB_NAME")
+		if job_name.endswith("-test"):
+			print "Test job found, comparing deps with non test variant"
+			job_name = job_name[:-5]
+		if job_name == module:
 			print "Match, creating dependency exports..."
 			for branch, branch_deps in branches.iteritems():
 				if os.getenv("GIT_BRANCH").endswith( branch ):
