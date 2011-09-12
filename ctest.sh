@@ -38,16 +38,18 @@ nepomukserver &> /dev/null &
 
 echo "=> Waiting for startup of KDE processes to complete..."
 sleep 30s
+echo "=> Checking status of KDE processes..."
+pgrep -l -U jenkins kdeinit4
+pgrep -l -U jenkins nepomukserver
 
-echo "==> cwd: $(pwd)"
 BUILD_DIR="${WORKSPACE}/build"
 rm -f ${BUILD_DIR}/JUnitTestResults.xml
 pushd ${BUILD_DIR}
-echo "==> cwd: $(pwd)"
+
 sed -ie 's/TimeOut: .*/TimeOut: 20/' DartConfiguration.tcl
 ctest -T Test --output-on-failure --no-compress-output
 popd
-echo "==> cwd: $(pwd)"
+
 ${JENKINS_SLAVE_HOME}/ctesttojunit.py ${BUILD_DIR} ${JENKINS_SLAVE_HOME}/ctesttojunit.xsl > JUnitTestResults.xml
 
 echo "=> Testing completed, shutting down processes..."
@@ -56,3 +58,8 @@ killall -u jenkins kdeinit4 kded4 klauncher knotify4
 
 echo "=> Waiting for KDE processes to shutdown..."
 sleep 30s
+echo "=> Checking status of KDE processes..."
+pgrep -l -U jenkins kdeinit4
+pgrep -l -U jenkins nepomukserver
+pgrep -l -U jenkins kded4
+pgrep -l -U jenkins knotify4
