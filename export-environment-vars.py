@@ -63,7 +63,7 @@ def get_current_module_str( module_deps ):
 		if job_name == module:
 			print "Match, creating dependency exports..."
 			for branch, branch_deps in branches.iteritems():
-				if git_branch.endswith( branch ):
+				if job_branch.endswith( branch ):
 					print "    ", branch
 					export_str = 'export DEPS="'
 					for dep, dep_branch in branch_deps.iteritems():
