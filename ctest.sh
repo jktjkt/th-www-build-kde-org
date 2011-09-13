@@ -63,3 +63,4 @@ pgrep -l -U jenkins kdeinit4
 pgrep -l -U jenkins nepomukserver
 pgrep -l -U jenkins kded4
 pgrep -l -U jenkins knotify4
+echo "=> done"
