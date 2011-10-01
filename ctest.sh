@@ -3,6 +3,11 @@
 BINDIR="$( cd "$( dirname "$0" )" && pwd )"
 export JENKINS_SLAVE_HOME=${BINDIR}
 echo "=> JENKINS_SLAVE_HOME=${JENKINS_SLAVE_HOME}"
+if [ -z "${WORKSPACE}" ]; then
+    echo "\$WORKSPACE not set!"
+else
+    source ${WORKSPACE}/environment-vars.sh
+fi
 
 echo "=> Getting running Xvfb instances"
 pids=`pgrep Xvfb -U jenkins`
