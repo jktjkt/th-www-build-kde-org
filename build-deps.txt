@@ -27,6 +27,10 @@
 		{
 			"master"  : {"qt" : "master", "deps" : "master", "kdelibs" : "KDE/4.7"},
 			"4.7"     : {"qt" : "master", "deps" : "master", "kdelibs" : "KDE/4.7"}
+		},
+	"libqzeitgeist" :
+		{
+			"master" : {"qt" : "master", "deps" : "master"}
 		}
 }
 		
