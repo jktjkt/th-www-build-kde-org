@@ -47,6 +47,8 @@ echo "=> Checking status of KDE processes..."
 pgrep -l -U jenkins kdeinit4
 pgrep -l -U jenkins nepomukserver
 
+kbuildsycoca4 --noincremental
+
 BUILD_DIR="${WORKSPACE}/build"
 rm -f ${BUILD_DIR}/JUnitTestResults.xml
 pushd ${BUILD_DIR}
