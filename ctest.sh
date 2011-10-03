@@ -54,6 +54,11 @@ rm -f ${BUILD_DIR}/JUnitTestResults.xml
 pushd ${BUILD_DIR}
 
 sed -ie 's/TimeOut: .*/TimeOut: 20/' DartConfiguration.tcl
+
+echo "==> TEST is using the following env."
+env
+echo "==> /TEST env"
+
 ctest -T Test --output-on-failure --no-compress-output
 popd
 
