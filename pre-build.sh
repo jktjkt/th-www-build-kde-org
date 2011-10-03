@@ -57,9 +57,16 @@ unset CMAKE_PREFIX_PATH
 unset CMAKE_INSTALL_PREFIX
 unset QT_PLUGIN_PATH
 unset XDG_DATA_HOME
-unset XDG_DATA_DIRS
+#unset XDG_DATA_DIRS
 unset XDG_CONFIG_HOME
-unset XDG_CONFIG_DIRS
+#unset XDG_CONFIG_DIRS
+unset KDEDIRS
+
+BRANCH=${GIT_BRANCH/refs\//}
+BRANCH=${BRANCH/heads\//}
+BRANCH=${BRANCH/origin\//}
+BRANCH=${BRANCH/remotes\//}
+JOB_NAME_DIR=${JOB_NAME%_*}
 
 LOCALHOST=`hostname -f`
 for DEP in ${DEPS}; do
@@ -84,11 +91,11 @@ for DEP in ${DEPS}; do
 done
 
 echo export CMAKE_PREFIX_PATH="${CMAKE_PREFIX_PATH%:}" >> environment-vars.sh
-echo export PATH="${JENKINS_SLAVE_HOME}:${PATH%:}" >> environment-vars.sh
-echo export LD_LIBRARY_PATH="${LD_LIBRARY_PATH%:}" >> environment-vars.sh
-echo export PKG_CONFIG_PATH="${PKG_CONFIG_PATH%:}" >> environment-vars.sh
-echo export QT_PLUGIN_PATH="${QT_PLUGIN_PATH%:}" >> environment-vars.sh
-echo export XDG_DATA_DIRS="${XDG_DATA_DIRS%:}" >> environment-vars.sh
-echo export XDG_CONFIG_DIRS="${XDG_CONFIG_DIRS%:}" >> environment-vars.sh
-echo export KDEDIRS="${KDEDIRS%:}" >> environment-vars.sh
+echo export PATH="${JENKINS_SLAVE_HOME}:${ROOT}/install/${JOB_NAME_DIR}/${BRANCH}:${PATH%:}" >> environment-vars.sh
+echo export LD_LIBRARY_PATH="${ROOT}/install/${JOB_NAME_DIR}/${BRANCH}/lib:${LD_LIBRARY_PATH%:}" >> environment-vars.sh
+echo export PKG_CONFIG_PATH="${ROOT}/install/${JOB_NAME_DIR}/${BRANCH}:${PKG_CONFIG_PATH%:}" >> environment-vars.sh
+echo export QT_PLUGIN_PATH="${ROOT}/install/${JOB_NAME_DIR}/${BRANCH}:${QT_PLUGIN_PATH%:}" >> environment-vars.sh
+echo export XDG_DATA_DIRS="${ROOT}/install/${JOB_NAME_DIR}/${BRANCH}/share:${XDG_DATA_DIRS%:}" >> environment-vars.sh
+echo export XDG_CONFIG_DIRS="${ROOT}/install/${JOB_NAME_DIR}/${BRANCH}/etc/xdg:${XDG_CONFIG_DIRS%:}" >> environment-vars.sh
+echo export KDEDIRS="${ROOT}/install/${JOB_NAME_DIR}/${BRANCH}:${KDEDIRS%:}" >> environment-vars.sh
 echo CMAKE_CMD_LINE="-DCMAKE_PREFIX_PATH=\"${CMAKE_PREFIX_PATH%:}\"" >> environment-vars.sh
