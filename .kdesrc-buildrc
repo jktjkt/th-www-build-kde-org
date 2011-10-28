@@ -6,7 +6,7 @@
 # Global settings go in this section.  They apply to every module unless
 # overridden later.
 global
-    colorful-output true
+    colorful-output false
     use-clean-install true
 # This is the directory that your KDE sources are downloaded to.  This
 # directory also holds the build and log directories by default.
@@ -159,7 +159,7 @@ module qt-copy
 #	optimizations and bugfixes and is generally what KDE developers use.
 #	This is recommended in most cases.  If you used to use the old
 #	"apply-patches" option, this is the git equivalent.
-    repository git://git.kde.org/qt-kde
+    repository git://git.kde.org/qt
 
 # If you use the branch option up in the "global" section to set a
 # default KDE version, you should manually choose a branch here for Qt.
@@ -168,7 +168,7 @@ module qt-copy
 #
 # The "master" branch is the best choice for both kde-qt and official Qt if
 # you have no preference.
-	branch master
+	branch 4.8
 #    branch 4.7-stable
 #    manual-update true
 end module
@@ -233,10 +233,10 @@ module dbusmenu-git
     repository git://gitorious.org/dbusmenu/dbusmenu-qt.git
 end module
 
-module-set
-    repository kde-projects
-    use-modules akonadi
-end module-set
+#module-set
+#    repository kde-projects
+#    use-modules akonadi
+#end module-set
 module shared-desktop-ontologies
     repository git://oscaf.git.sourceforge.net/gitroot/oscaf/shared-desktop-ontologies
 end module

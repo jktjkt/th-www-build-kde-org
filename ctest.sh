@@ -9,6 +9,15 @@ else
     source ${WORKSPACE}/environment-vars.sh
 fi
 
+BUILD_DIR="${WORKSPACE}/build"
+rm -f ${BUILD_DIR}/JUnitTestResults.xml
+pushd ${BUILD_DIR}
+
+ctest -N | grep "Total Tests: 0"
+if [[ $? == 0 ]]; then
+    echo "=> No tests found"
+else
+
 echo "=> Getting running Xvfb instances"
 pids=`pgrep Xvfb -U jenkins`
 if [[ $? == 0 ]]; then
@@ -49,10 +58,6 @@ pgrep -l -U jenkins nepomukserver
 
 kbuildsycoca4 --noincremental
 
-BUILD_DIR="${WORKSPACE}/build"
-rm -f ${BUILD_DIR}/JUnitTestResults.xml
-pushd ${BUILD_DIR}
-
 sed -ie 's/TimeOut: .*/TimeOut: 20/' DartConfiguration.tcl
 
 echo "==> TEST is using the following env."
@@ -76,3 +81,4 @@ pgrep -l -U jenkins nepomukserver
 pgrep -l -U jenkins kded4
 pgrep -l -U jenkins knotify4
 echo "=> done"
+fi

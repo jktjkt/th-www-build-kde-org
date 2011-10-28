@@ -54,6 +54,8 @@ def read_build_deps():
 def get_current_module_str( module_deps ):
 	export_str = ""
 	job_name = os.getenv("JOB_NAME")
+	if '_' in job_name:
+		job_name = job_name[:job_name.find("_")]
 	if job_name.endswith("-test"):
 		print "Test job found, comparing deps with non test variant"
 		job_name = job_name[:-5]
