@@ -149,7 +149,7 @@ module qt-copy
 	                -nomake examples -nomake demos \
 	                -no-phonon # See module-set below
 
-	make-options -j5
+	make-options -j3
 #
 #	Default Qt repository -- Use this if you want Nokia's official Qt
 #	without any KDE fixes or extensions.
@@ -226,7 +226,9 @@ module kdesupport
 #	(defined below, near the end of this file) to build.
 	cmake-options -DWITH_ASF=TRUE -DWITH_MP4=TRUE
 end module
-
+module kdesupport/qca
+	
+end module
 # Support for notification area menus via the DBusMenu protocol
 # This is needed by kdelibs.
 module dbusmenu-git

@@ -99,3 +99,9 @@ echo export XDG_DATA_DIRS="${ROOT}/install/${JOB_NAME_DIR}/${BRANCH}/share:${XDG
 echo export XDG_CONFIG_DIRS="${ROOT}/install/${JOB_NAME_DIR}/${BRANCH}/etc/xdg:${XDG_CONFIG_DIRS%:}:/etc/xdg" >> environment-vars.sh
 echo export KDEDIRS="${ROOT}/install/${JOB_NAME_DIR}/${BRANCH}:${KDEDIRS%:}" >> environment-vars.sh
 echo CMAKE_CMD_LINE="-DCMAKE_PREFIX_PATH=\"${CMAKE_PREFIX_PATH%:}\"" >> environment-vars.sh
+
+
+# Apply any local patches
+#for f in /srv/patches/${JOB_NAME_DIR}/*.patch; do
+#	patch -p0 < ${f}
+#done
