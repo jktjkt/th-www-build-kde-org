@@ -2,23 +2,23 @@
 	"kdelibs" : 
 		{
 			"master"  : {"qt" : "master", "deps" : "master"},
-			"KDE/4.7" : {"qt" : "master", "deps" : "master"},
-			"frameworks"  : {"qt" : "master", "deps" : "master"}
+			"KDE/4.8" : {"qt" : "master", "deps" : "master"},
+			"frameworks"  : {"qt" : "master", "deps" : "master", "extra-cmake-modules" : "master"}
 		},
 	"kactivities" :
 		{
-			"master"  : {"qt" : "master", "deps" : "master", "kdelibs" : "KDE/4.7"},
-			"KDE/4.7"     : {"qt" : "master", "deps" : "master", "kdelibs" : "KDE/4.7"}
+			"master"  : {"qt" : "master", "deps" : "master", "kdelibs" : "KDE/4.8"},
+			"KDE/4.8"     : {"qt" : "master", "deps" : "master", "kdelibs" : "KDE/4.8"}
 		},
 	"nepomuk-core" :
 		{
 			"master"  : {"qt" : "master", "deps" : "master", "kdelibs" : "frameworks"},
-			"KDE/4.7"     : {"qt" : "master", "deps" : "master", "kdelibs" : "KDE/4.7"}
+			"KDE/4.8"     : {"qt" : "master", "deps" : "master", "kdelibs" : "KDE/4.8"}
 		},
 	"kdepimlibs" :
 		{
-			"master"  : {"qt" : "master", "deps" : "master", "kdelibs" : "KDE/4.7", "akonadi" : "master", "kde-runtime" : "master"},
-			"KDE/4.7"     : {"qt" : "master", "deps" : "master", "kdelibs" : "KDE/4.7", "akonadi" : "1.6", "kde-runtime" : "KDE/4.7"}
+			"master"  : {"qt" : "master", "deps" : "master", "kdelibs" : "KDE/4.8", "akonadi" : "master", "kde-runtime" : "master"},
+			"KDE/4.8"     : {"qt" : "master", "deps" : "master", "kdelibs" : "KDE/4.8", "akonadi" : "1.6", "kde-runtime" : "KDE/4.8"}
 		},
 	"akonadi" :
 		{
@@ -27,37 +27,42 @@
 		},
 	"kde-baseapps" :
 		{
-			"master" : {"qt" : "master", "deps" : "master", "kdelibs" : "KDE/4.7", "kde-runtime" : "master"},
-			"KDE/4.7" : {"qt" : "master", "deps" : "master", "kdelibs" : "KDE/4.7", "kde-runtime" : "KDE/4.7"}
+			"master" : {"qt" : "master", "deps" : "master", "kdelibs" : "KDE/4.8", "kde-runtime" : "master"},
+			"KDE/4.8" : {"qt" : "master", "deps" : "master", "kdelibs" : "KDE/4.8", "kde-runtime" : "KDE/4.8"}
 		},
 	"kde-workspace" :
 		{
-			"master" : {"qt" : "master", "deps" : "master", "kdelibs" : "KDE/4.7", "kdepimlibs" : "master", "kde-runtime" : "master", "kactivities" : "master"},
-			"KDE/4.7" : {"qt" : "master", "deps" : "master", "kdelibs" : "KDE/4.7", "kdepimlibs" : "KDE/4.7", "kde-runtime" : "KDE/4.7"}
+			"master" : {"qt" : "master", "deps" : "master", "kdelibs" : "KDE/4.8", "kdepimlibs" : "master", "kde-runtime" : "master", "kactivities" : "master"},
+			"KDE/4.8" : {"qt" : "master", "deps" : "master", "kdelibs" : "KDE/4.8", "kdepimlibs" : "KDE/4.8", "kde-runtime" : "KDE/4.8"}
 		},
 	"kdeplasma-addons" :
 		{
-			"master" : {"qt" : "master", "deps" : "master", "kdelibs" : "KDE/4.7", "kde-workspace" : "master", "kdepimlibs" : "master", "kde-runtime" : "master"},
-			"KDE/4.7" : {"qt" : "master", "deps" : "master", "kdelibs" : "KDE/4.7", "kde-workspace" : "KDE/4.7", "kdepimlibs" : "KDE/4.7", "kde-runtime" : "KDE/4.7"}
+			"master" : {"qt" : "master", "deps" : "master", "kdelibs" : "KDE/4.8", "kde-workspace" : "master", "kdepimlibs" : "master", "kde-runtime" : "master"},
+			"KDE/4.8" : {"qt" : "master", "deps" : "master", "kdelibs" : "KDE/4.8", "kde-workspace" : "KDE/4.8", "kdepimlibs" : "KDE/4.8", "kde-runtime" : "KDE/4.8"}
 		},
 	"kdepim" :
 		{
-			"master" : {"qt" : "master", "deps" : "master", "kdelibs" : "KDE/4.7", "kdepimlibs" : "master", "akonadi" : "master", "kde-runtime" : "master"},
-			"KDE/4.7"    : {"qt" : "master", "deps" : "master", "kdelibs" : "KDE/4.7", "kdepimlibs" : "KDE/4.7", "akonadi" : "1.6", "kde-runtime" : "KDE/4.7"}
+			"master" : {"qt" : "master", "deps" : "master", "kdelibs" : "KDE/4.8", "kdepimlibs" : "master", "akonadi" : "master", "kde-runtime" : "master"},
+			"KDE/4.8"    : {"qt" : "master", "deps" : "master", "kdelibs" : "KDE/4.8", "kdepimlibs" : "KDE/4.8", "akonadi" : "1.6", "kde-runtime" : "KDE/4.8"}
 		},
 	"kdepim-runtime" :
 		{
-			"master" : {"qt" : "master", "deps" : "master", "kdelibs" : "KDE/4.7", "kdepimlibs" : "master", "kdepim" : "master", "akonadi" : "master", "kde-runtime" : "master"},
-			"KDE/4.7"    : {"qt" : "master", "deps" : "master", "kdelibs" : "KDE/4.7", "kdepimlibs" : "KDE/4.7", "kdepim" : "KDE/4.7", "akonadi" : "1.6", "kde-runtime" : "KDE/4.7"}
+			"master" : {"qt" : "master", "deps" : "master", "kdelibs" : "KDE/4.8", "kdepimlibs" : "master", "kdepim" : "master", "akonadi" : "master", "kde-runtime" : "master"},
+			"KDE/4.8"    : {"qt" : "master", "deps" : "master", "kdelibs" : "KDE/4.8", "kdepimlibs" : "KDE/4.8", "kdepim" : "KDE/4.8", "akonadi" : "1.6", "kde-runtime" : "KDE/4.8"}
 		},
 	"kde-runtime" :
 		{
-			"master"  : {"qt" : "master", "deps" : "master", "kdelibs" : "KDE/4.7"},
-			"KDE/4.7"     : {"qt" : "master", "deps" : "master", "kdelibs" : "KDE/4.7"}
+			"master"  : {"qt" : "master", "deps" : "master", "kdelibs" : "KDE/4.8"},
+			"KDE/4.8"     : {"qt" : "master", "deps" : "master", "kdelibs" : "KDE/4.8"}
 		},
 	"libqzeitgeist" :
 		{
 			"master" : {"qt" : "master", "deps" : "master"}
+		},
+	"marble" :
+		{
+			"master" : {"qt" : "master", "deps" : "master"},
+			"KDE/4.8" : {"qt" : "master", "deps" : "master"}
 		}
 }
 		
