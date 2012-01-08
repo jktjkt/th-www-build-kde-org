@@ -149,7 +149,7 @@ module qt-copy
 	                -nomake examples -nomake demos \
 	                -no-phonon # See module-set below
 
-	make-options -j3
+	make-options -j5
 #
 #	Default Qt repository -- Use this if you want Nokia's official Qt
 #	without any KDE fixes or extensions.
@@ -172,7 +172,10 @@ module qt-copy
 #    branch 4.7-stable
 #    manual-update true
 end module
-
+module qt-components
+	make-options -j5
+	repository git://gitorious.org/qt-components/qt-components.git
+end module
 # Next is shown a "module-set", which is a grouping of modules that has special
 # handling of the "repository" option (the module name is automatically added
 # to the end for every module defined in this set), and accepts the special
