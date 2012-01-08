@@ -11,6 +11,7 @@ fi
 
 BUILD_DIR="${WORKSPACE}/build"
 rm -f ${BUILD_DIR}/JUnitTestResults.xml
+rm -f ${BUILD_DIR}/Testing
 pushd ${BUILD_DIR}
 
 ctest -N | grep "Total Tests: 0"
