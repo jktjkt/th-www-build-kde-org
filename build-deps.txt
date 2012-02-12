@@ -77,6 +77,10 @@
 		{
 			"master" : {"qt" : "4.8", "deps" : "master", "kdelibs" : "KDE/4.8"},
 			"KDE/4.8" : {"qt" : "4.8", "deps" : "master", "kdelibs" : "KDE/4.8"}
+		},
+	"amarok" :
+		{
+			"master" : {"qt" : "4.8", "deps" : "master", "kdelibs" : "KDE/4.8"}
 		}
 }
 		
