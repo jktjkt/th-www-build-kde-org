@@ -17,6 +17,7 @@
 	"kdepimlibs" :
 		{
 			"master"  : {"qt" : "4.8", "deps" : "master", "kdelibs" : "KDE/4.8", "akonadi" : "master", "kde-runtime" : "master"},
+			"frameworks"  : {"qt" : "5", "deps" : "master", "kdelibs" : "frameworks", "akonadi" : "master", "kde-runtime" : "master", "extra-cmake-modules" : "master"},
 			"KDE/4.8"     : {"qt" : "4.8", "deps" : "master", "kdelibs" : "KDE/4.8", "akonadi" : "1.6", "kde-runtime" : "KDE/4.8"}
 		},
 	"akonadi" :
