@@ -21,4 +21,4 @@ else
     source ${WORKSPACE}/environment-vars.sh
 fi
 
-DESTDIR=${WORKSPACE}/install make "${@}"
+DESTDIR=${WORKSPACE}/install make -l 2.0 "${@}"
