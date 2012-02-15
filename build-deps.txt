@@ -82,6 +82,10 @@
 	"amarok" :
 		{
 			"master" : {"qt" : "4.8", "deps" : "master", "kdelibs" : "KDE/4.8"}
+		},
+	"automoc" :
+		{
+			"master" : {"qt" : "4.8"}
 		}
 }
 		
