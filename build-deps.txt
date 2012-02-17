@@ -23,7 +23,7 @@
 	"akonadi" :
 		{
 			"master" : {"qt" : "4.8", "deps" : "master"},
-			"1.6" : {"qt" : "4.8", "deps" : "master"}
+			"1.7" : {"qt" : "4.8", "deps" : "master"}
 		},
 	"kde-baseapps" :
 		{
