@@ -57,6 +57,9 @@ echo "=> Checking status of KDE processes..."
 pgrep -l -U jenkins kdeinit4
 pgrep -l -U jenkins nepomukserver
 
+echo "==> kbuildsycoca4 servicetypes search paths:"
+kde4-config --path servicetypes
+
 kbuildsycoca4 --noincremental
 
 sed -ie 's/TimeOut: .*/TimeOut: 20/' DartConfiguration.tcl
