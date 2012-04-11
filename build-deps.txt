@@ -91,6 +91,10 @@
 		{
 			"master" : {"qt" : "4.8", "kdelibs" : "master", "deps" : "master"},
 			"KDE/4.8" : {"qt" : "4.8", "kdelibs" : "KDE/4.8", "deps" : "master"}
+		},
+	"attica" :
+		{
+			"master" : {"qt" : "4.8", "deps" : "master"}
 		}
 }
 		
