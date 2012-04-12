@@ -95,6 +95,14 @@
 	"attica" :
 		{
 			"master" : {"qt" : "4.8", "deps" : "master"}
+		},
+	"kanagram" :
+		{
+			"master" : {"qt" : "4.8", "deps" : "master", "kdelibs" : "master", "libkdeedu" : "master"}
+		},
+	"libkdeedu" : 
+		{
+			"master" : {"qt" : "4.8", "deps" : "master", "kdelibs" : "master"}
 		}
 }
 		
