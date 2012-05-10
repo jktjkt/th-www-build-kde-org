@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <project>
   <actions/>
-  <description>Builds the ${PROJECT} ${BRANCH} of &lt;a href=https://projects.kde.org/projects/${PROJECTGROUP}/${PROJECT}&gt;${PROJECT}&lt;/a&gt;.</description>
+  <description>Builds the $branch branch of &lt;a href=$weburl&gt;$name&lt;/a&gt;.</description>
   <logRotator>
     <daysToKeep>365</daysToKeep>
     <numToKeep>200</numToKeep>
@@ -16,14 +16,15 @@
       <hudson.plugins.git.UserRemoteConfig>
         <name>origin</name>
         <refspec>+refs/heads/*:refs/remotes/origin/*</refspec>
-        <url>git://anongit4.kde.org/${PROJECT}</url>
+        <url>$cloneurl</url>
       </hudson.plugins.git.UserRemoteConfig>
     </userRemoteConfigs>
     <branches>
       <hudson.plugins.git.BranchSpec>
-        <name>refs/remotes/origin/${BRANCH}</name>
+        <name>refs/remotes/origin/$branch</name>
       </hudson.plugins.git.BranchSpec>
     </branches>
+    <disableSubmodules>false</disableSubmodules>
     <recursiveSubmodules>false</recursiveSubmodules>
     <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
     <authorOrCommitter>false</authorOrCommitter>
@@ -34,7 +35,7 @@
     <buildChooser class="hudson.plugins.git.util.DefaultBuildChooser"/>
     <gitTool>Default</gitTool>
     <browser class="hudson.plugins.git.browser.RedmineWeb">
-      <url>https://projects.kde.org/projects/${PROJECTGROUP}/${PROJECT}/repository/</url>
+      <url>$repourl</url>
     </browser>
     <submoduleCfg class="list"/>
     <relativeTargetDir></relativeTargetDir>
@@ -49,7 +50,7 @@
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
-  <authToken>PNcTKQORJW653QKVTwL0GV64OZA-${PROJECT}</authToken>
+  <authToken>PNcTKQORJW653QKVTwL0GV64OZA-$identifier</authToken>
   <triggers class="vector">
     <hudson.triggers.SCMTrigger>
       <spec></spec>
@@ -59,22 +60,22 @@
   <builders>
     <hudson.tasks.Shell>
       <command>env
-cd ${JENKINS_SLAVE_HOME}
+cd $${JENKINS_SLAVE_HOME}
 git pull
 ./export-environment-vars.py</command>
     </hudson.tasks.Shell>
     <hudson.tasks.Shell>
-      <command>${JENKINS_SLAVE_HOME}/pre-build.sh</command>
+      <command>$${JENKINS_SLAVE_HOME}/pre-build.sh</command>
     </hudson.tasks.Shell>
     <hudson.plugins.cmake.CmakeBuilder>
       <sourceDir>.</sourceDir>
       <buildDir>./build</buildDir>
-      <installDir>$ROOT/install/${PROJECT}/${BRANCH}</installDir>
+      <installDir>$$ROOT/install/$path/$branch</installDir>
       <buildType>Debug</buildType>
       <otherBuildType></otherBuildType>
       <generator>Unix Makefiles</generator>
-      <makeCommand>$JENKINS_SLAVE_HOME/make.sh -j5</makeCommand>
-      <installCommand>$JENKINS_SLAVE_HOME/make.sh -j5 install</installCommand>
+      <makeCommand>$$JENKINS_SLAVE_HOME/make.sh -j5</makeCommand>
+      <installCommand>$$JENKINS_SLAVE_HOME/make.sh -j5 install</installCommand>
       <preloadScript></preloadScript>
       <cmakeArgs>-DKDE4_BUILD_TESTS:BOOL=ON</cmakeArgs>
       <projectCmakePath></projectCmakePath>
@@ -83,7 +84,10 @@ git pull
       <builderImpl/>
     </hudson.plugins.cmake.CmakeBuilder>
     <hudson.tasks.Shell>
-      <command>${JENKINS_SLAVE_HOME}/ctest.sh</command>
+      <command>cppcheck --xml -j5 --report-progress -ibuild . 2&gt; cppcheck.xml</command>
+    </hudson.tasks.Shell>
+    <hudson.tasks.Shell>
+      <command>$${JENKINS_SLAVE_HOME}/ctest.sh</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>
@@ -114,6 +118,7 @@ git pull
         <failedNewLow></failedNewLow>
       </thresholds>
       <shouldDetectModules>false</shouldDetectModules>
+      <dontComputeNew>false</dontComputeNew>
       <parserConfigurations/>
       <consoleLogParsers>
         <string>GNU compiler 4 (ld)</string>
@@ -131,7 +136,7 @@ git pull
           </logTexts>
           <EscalateStatus>false</EscalateStatus>
           <RunIfJobSuccessful>true</RunIfJobSuccessful>
-          <script>${JENKINS_SLAVE_HOME}/post-build.sh</script>
+          <script>$${JENKINS_SLAVE_HOME}/post-build.sh</script>
         </hudson.plugins.postbuildtask.TaskProperties>
       </tasks>
     </hudson.plugins.postbuildtask.PostbuildTask>
@@ -140,16 +145,41 @@ git pull
       <keepLongStdio>true</keepLongStdio>
       <testDataPublishers/>
     </hudson.tasks.junit.JUnitResultArchiver>
-    <hudson.tasks.Mailer>
-      <recipients>${MAILNOTIFIER}</recipients>
-      <dontNotifyEveryUnstableBuild>true</dontNotifyEveryUnstableBuild>
-      <sendToIndividuals>false</sendToIndividuals>
-    </hudson.tasks.Mailer>
+    <org.jenkinsci.plugins.cppcheck.CppcheckPublisher>
+      <cppcheckConfig>
+        <pattern>cppcheck.xml</pattern>
+        <ignoreBlankFiles>true</ignoreBlankFiles>
+        <configSeverityEvaluation>
+          <threshold></threshold>
+          <newThreshold></newThreshold>
+          <failureThreshold></failureThreshold>
+          <newFailureThreshold></newFailureThreshold>
+          <healthy></healthy>
+          <unHealthy></unHealthy>
+          <severityError>true</severityError>
+          <severityWarning>true</severityWarning>
+          <severityStyle>true</severityStyle>
+          <severityPerformance>true</severityPerformance>
+          <severityInformation>true</severityInformation>
+        </configSeverityEvaluation>
+        <configGraph>
+          <xSize>500</xSize>
+          <ySize>200</ySize>
+          <displayAllErrors>true</displayAllErrors>
+          <displayErrorSeverity>false</displayErrorSeverity>
+          <displayWarningSeverity>false</displayWarningSeverity>
+          <displayStyleSeverity>false</displayStyleSeverity>
+          <displayPerformanceSeverity>false</displayPerformanceSeverity>
+          <displayInformationSeverity>false</displayInformationSeverity>
+        </configGraph>
+      </cppcheckConfig>
+    </org.jenkinsci.plugins.cppcheck.CppcheckPublisher>
     <hudson.plugins.ircbot.IrcPublisher>
       <targets>
         <hudson.plugins.im.GroupChatIMMessageTarget>
           <name>#kde-builds</name>
           <password></password>
+          <notificationOnly>false</notificationOnly>
         </hudson.plugins.im.GroupChatIMMessageTarget>
       </targets>
       <strategy>FAILURE_AND_FIXED</strategy>
@@ -160,7 +190,6 @@ git pull
       <notifyUpstreamCommitters>false</notifyUpstreamCommitters>
       <buildToChatNotifier class="hudson.plugins.im.build_notify.DefaultBuildToChatNotifier"/>
       <matrixMultiplier>ONLY_CONFIGURATIONS</matrixMultiplier>
-      <channels/>
     </hudson.plugins.ircbot.IrcPublisher>
   </publishers>
   <buildWrappers>
