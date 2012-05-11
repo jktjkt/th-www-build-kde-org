@@ -6,10 +6,19 @@ from string import Template
 import xml.dom.minidom
 import urllib
 import pprint
+import codecs
 
-#KDE_PROJECTS_URL="http://projects.kde.org/kde_projects.xml"
-KDE_PROJECTS_URL="kde_projects.xml"
+KDE_PROJECTS_URL="http://projects.kde.org/kde_projects.xml"
+#KDE_PROJECTS_URL="kde_projects.xml"
 CONFIG_ROOT="jobs"
+JENKINS_INSTANCE="http://build.kde.org"
+
+def saveConfig(values):
+	fileName = "%s/%s_%s.xml"%(CONFIG_ROOT, values['identifier'].replace('/', '-'), values['branchType'])
+	config = template.substitute( name=values['name'], repourl=values['repourl'], cloneurl=values['cloneurl'], description=values['description'], path=values['path'], weburl=values['weburl'], branch=values['masterBranch'], identifier=values['identifier'] )
+	configFile = codecs.open( fileName, 'w', 'utf-8' )
+	configFile.write(config)
+	configFile.close
 
 if __name__ in "__main__":
 
@@ -35,28 +44,27 @@ if __name__ in "__main__":
 	dom = xml.dom.minidom.parse(urllib.urlopen(KDE_PROJECTS_URL))
 
 	repos = dom.getElementsByTagName('repo')
-	
+
+	scriptFile = open( 'send_configs_to_jenkins.sh', 'w' )
+	scriptFile.write( "#!/bin/bash -e\n\n" )
+	scriptFile.write( "rm jenkins-cli.jar\n" )
+	scriptFile.write( "wget %s/jnlpJars/jenkins-cli.jar\n\n"%JENKINS_INSTANCE )
+
 	for repo in repos:
-		name=None
-		repourl=None
-		cloneurl=None
-		description=None
-		path=None
-		weburl=None
-		branch=None
-		identifier=repo.parentNode.getAttribute('identifier')
+		values = {}
+		values['identifier']=repo.parentNode.getAttribute('identifier')
 		for node in repo.childNodes:
 			if node.nodeType != xml.dom.Node.ELEMENT_NODE:
 				continue
 			try:
 				if node.tagName == 'web' and node.getAttribute('type') == 'projects':
-					repourl = node.childNodes[0].nodeValue
+					values['repourl'] = node.childNodes[0].nodeValue
 				elif node.tagName == 'url' and node.getAttribute('protocol') == 'git':
-					cloneurl = node.childNodes[0].nodeValue
+					values['cloneurl'] = node.childNodes[0].nodeValue
 				elif node.tagName == 'branch' and node.getAttribute('i18n') == 'trunk':
-					masterBranch = node.childNodes[0].nodeValue
+					values['masterBranch'] = node.childNodes[0].nodeValue
 				elif node.tagName == 'branch' and node.getAttribute('i18n') == 'stable':
-					stableBranch = node.childNodes[0].nodeValue
+					values['stableBranch'] = node.childNodes[0].nodeValue
 			except IndexError:
 				continue
 
@@ -65,33 +73,34 @@ if __name__ in "__main__":
 				continue
 			try:
 				if node.tagName == 'name':
-					name = node.childNodes[0].nodeValue
+					values['name'] = node.childNodes[0].nodeValue
 				elif node.tagName == 'description':
-					description = node.childNodes[1].nodeValue
+					values['description'] = node.childNodes[1].nodeValue
 				elif node.tagName == 'path':
-					path = node.childNodes[0].nodeValue
+					values['path'] = node.childNodes[0].nodeValue
 				elif node.tagName == 'web':
-					weburl = node.childNodes[0].nodeValue
+					values['weburl'] = node.childNodes[0].nodeValue
 			except IndexError:
 				continue
 
-		if path.startswith( filterPath ):
-			if masterBranch is None:
-				masterBranch = "master"
+		if values['path'].startswith( filterPath ):
+			if not 'masterBranch' in values:
+				values['masterBranch'] = "master"
 
 			template = Template( templateContent )
-			config = template.substitute( name=name, repourl=repourl, cloneurl=cloneurl, description=description, path=path, weburl=weburl, branch=masterBranch, identifier=identifier )
-			configFile = open( "%s/%s_master.xml"%(CONFIG_ROOT, path.replace('/', '-')), 'w' )
-			configFile.write(config)
-			configFile.close
+			values['branchType'] = 'master'
+			saveConfig(values)
+			scriptFile.write( "echo -n %s:%s...\n"%(values['identifier'], values['branchType'] ) )
+			scriptFile.write( "java -jar jenkins-cli.jar -s %s -i jenkins-private.key create-job %s_%s <%s"%(JENKINS_INSTANCE, values['identifier'].replace('/', '-'), values['branchType'], "%s/%s_%s.xml\n"%(CONFIG_ROOT, values['path'].replace('/', '-'), values['branchType'])) )
+			scriptFile.write( "echo Done\n" )
+			scriptFile.write( "sleep 1\n" )
 
-			if stableBranch is not None:
-				config = template.substitute( name=name, repourl=repourl, cloneurl=cloneurl, description=description, path=path, weburl=weburl, branch=stableBranch, identifier=identifier )
-				configFile = open( "%s/%s_stable.xml"%(CONFIG_ROOT, path.replace('/', '-')), 'w' )
-				configFile.write(config)
-				configFile.close
-			
+			if 'stableBranch' in values:
+				values['branchType'] = 'stable'
+				saveConfig(values)
+				scriptFile.write( "echo -n %s:%s...\n"%(values['identifier'], values['branchType'] ) )
+				scriptFile.write( "java -jar jenkins-cli.jar -s %s -i jenkins-private.key create-job %s_%s <%s"%(JENKINS_INSTANCE, values['identifier'].replace('/', '-'), values['branchType'], "%s/%s_%s.xml\n"%(CONFIG_ROOT, values['path'].replace('/', '-'), values['branchType'])) )
+				scriptFile.write( "echo Done\n" )
+				scriptFile.write( "sleep 1\n" )
 
-
-
-		
+	scriptFile.close()
