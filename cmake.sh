@@ -15,10 +15,8 @@
 #       CREATED:  08/23/2011 07:43:00 PM CEST
 #===============================================================================
 
-if [ -z "${WORKSPACE}" ]; then
-    echo "\$WORKSPACE not set!"
-else
-    source ${WORKSPACE}/environment-vars.sh
+if [ -z "${CMAKE_CMD_LINE}" ]; then
+    echo "CMAKE_CMD_LINE not set!"
 fi
 
 echo "=> cmake ${CMAKE_CMD_LINE} ${@}"

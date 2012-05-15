@@ -180,14 +180,23 @@ if __name__ in '__main__':
 	project = sys.argv[1]
 	branch = sys.argv[2]
 
+	# 1: Find all dependencies
 	dep_parser = Dependency_parser()
 	projects = dep_parser.parse()
 
 	dependencies = dep_parser.find_deps_for_project_and_branch(project, branch)
 
+	# 2: Add dependencies to environment
+	build_dir = os.getenv("WORKSPACE")
+	f = open( os.path.join( build_dir, "environment-vars.sh" ), 'w' )
+	f.write( "#!/bin/bash -x\n" )
+	f.write( "export MASTER=%s\n"%master )
+	f.write( "export ROOT=%s\n"%root )
+	f.write( 'export DEPS="' )
+
 	for dependency in dependencies:
+		f.write("%s=%s "%(dependency, dependencies[dependency]))
 		print "%s:%s"%(dependency, dependencies[dependency])
 
-
-
-
+	f.write( '"' )
+	f.close()

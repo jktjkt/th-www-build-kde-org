@@ -17,8 +17,8 @@
 
 if [ -z "${WORKSPACE}" ]; then
     echo "\$WORKSPACE not set!"
-else
-    source ${WORKSPACE}/environment-vars.sh
 fi
+
+# TODO: Detect number of CPUs and use that as a limit to make ex: make -j $(($CPU_COUNT +1)) -l $(($CPU_COUNT))
 
 DESTDIR=${WORKSPACE}/install make -l 4.0 "${@}"

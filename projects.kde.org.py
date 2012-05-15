@@ -9,7 +9,6 @@ import pprint
 import codecs
 
 KDE_PROJECTS_URL="http://projects.kde.org/kde_projects.xml"
-#KDE_PROJECTS_URL="kde_projects.xml"
 CONFIG_ROOT="jobs"
 JENKINS_INSTANCE="http://build.kde.org"
 
@@ -20,28 +19,16 @@ def saveConfig(values):
 	configFile.write(config)
 	configFile.close
 
-if __name__ in "__main__":
-
-	if len(sys.argv) < 2:
-		print "Usage: %s <template-file> [filter_path]"%sys.argv[0]
-		sys.exit(1)
-
+def createJobs(dom, templateFile, filterPath):
 	try:
 		os.makedirs( CONFIG_ROOT )
 	except OSError:
 		pass
-	templateFile = sys.argv[1]
+
 	templateFile = open(templateFile)
 
 	templateContent = templateFile.read()
 	templateFile.close()
-
-	if len(sys.argv) == 3:
-		filterPath = sys.argv[2]
-	else:
-		filterPath = "kde/"
-
-	dom = xml.dom.minidom.parse(urllib.urlopen(KDE_PROJECTS_URL))
 
 	repos = dom.getElementsByTagName('repo')
 
@@ -104,3 +91,64 @@ if __name__ in "__main__":
 				scriptFile.write( "sleep 1\n" )
 
 	scriptFile.close()
+
+def resolveBranch(dom, project, branch):
+	repos = dom.getElementsByTagName('repo')
+
+	if branch == 'master':
+		branch == 'trunk'
+
+	realBranch = ""
+
+	for repo in repos:
+		if repo.parentNode.getAttribute('identifier') == project:
+			for node in repo.childNodes:
+				if node.nodeType != xml.dom.Node.ELEMENT_NODE:
+					continue
+				try:
+					if node.tagName == 'branch' and node.getAttribute('i18n') == branch:
+						realBranch = node.childNodes[0].nodeValue
+				except IndexError:
+					continue
+	print realBranch
+
+if __name__ in "__main__":
+	usage = "Usage: %s [resolve <project> <branch>] [createjobs <template-file> [filter_path]]"%sys.argv[0]
+	if len(sys.argv) < 4:
+		print usage
+		sys.exit(1)
+	elif sys.argv[1] == 'resolve':
+		if len(sys.argv) != 4:
+			print usage
+			sys.exit(1)
+	elif sys.argv[1] == 'createjobs':
+		if len(sys.argv) < 3 or len(sys.argv) > 4:
+			print usage
+			sys.exit(1)
+	else:
+		print usage
+		sys.exit(1)
+
+	project_file = "./project_file.xml"
+	if not os.path.exists(project_file) or time.localtime() > os.path.getmtime(project_file) + 60*60:
+		urllib.urlretrieve(KDE_PROJECTS_URL, project_file)
+
+	dom = xml.dom.minidom.parse(project_file)
+
+	if sys.argv[1] == 'resolve':
+		project = sys.argv[2]
+		branch = sys.argv[3]
+		resolveBranch(dom, project, branch)
+	else:
+		templateFile = sys.argv[2]
+		if len(sys.argv) == 3:
+			filterPath = sys.argv[3]
+		else:
+			filterPath = ""
+		createJobs(dom, templateFile, filterPath)
+
+
+
+
+
+

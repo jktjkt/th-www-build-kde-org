@@ -86,3 +86,5 @@ pgrep -l -U jenkins kded4
 pgrep -l -U jenkins knotify4
 echo "=> done"
 fi
+
+touch JUnitTestResults.xml
