@@ -5,11 +5,6 @@ if [ -z ${JOB_TYPE} ]; then
 	FAIL
 fi
 
-if [ -z ${JENKINS_BRANCH} ]; then
-	echo "=> JENKINS_BRANCH not set!"
-	FAIL
-fi
-
 if [ -z "${MASTER}" ]; then
     echo "MASTER not set!"
     FAIL
@@ -118,9 +113,13 @@ function save_results() {
 	echo " done"
 }
 
-`git fetch origin` && FAIL
-`git checkout ${JENKINS_BRANCH}` && FAIL
-`git log -1 HEAD`
+function set_revision {
+	#if [ -d .git ]; then
+	#	git checkout ${REVISION}
+	#elif [ -d .svn ]; then
+	#	svn co ${REPO_URL}
+	#fi
+}
 
 JOB_NAME=${JOB_NAME/test-/}
 PROJECT="${JOB_NAME%%_*}"
@@ -133,18 +132,19 @@ rm -r environment-vars.sh
 
 case ${JOB_TYPE} in
 	build)
-		BRANCH=`projects.kde.org.py resolve ${PROJECT} ${BRANCH}`
-		build-deps-parser.py ${PROJECT} ${BRANCH}
+		BRANCH=`${JENKINS_SLAVE_HOME}/projects.kde.org.py resolve ${PROJECT} ${BRANCH}`
+		${JENKINS_SLAVE_HOME}/build-deps-parser.py ${PROJECT} ${BRANCH}
 		source environment-vars.sh
 		sync_from_master
 		export_vars
-		cmake.sh
-		make.sh
+		${JENKINS_SLAVE_HOME}/cmake.sh
+		${JENKINS_SLAVE_HOME}/make.sh
 		save_results
 		sync_to_master
-		ctest.sh
+		${JENKINS_SLAVE_HOME}/ctest.sh
 		;;
 	package)
+		set_revision
 		;;
 esac
 
