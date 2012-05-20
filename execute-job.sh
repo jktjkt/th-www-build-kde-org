@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash -ex
 
 if [ -z ${JOB_TYPE} ]; then
 	echo "=> JOB_TYPE not set!"
