@@ -181,7 +181,8 @@ if __name__ in '__main__':
 	branch = sys.argv[2]
 
 	# 1: Find all dependencies
-	dep_parser = Dependency_parser()
+	jenkins_slave_home = os.getenv('JENKINS_SLAVE_HOME')
+	dep_parser = Dependency_parser(dependency_file = jenkins_slave_home + '/dependencies/dependency-data', ignore_file = jenkins_slave_home + '/dependencies/build-script-ignore' )
 	projects = dep_parser.parse()
 
 	dependencies = dep_parser.find_deps_for_project_and_branch(project, branch)
