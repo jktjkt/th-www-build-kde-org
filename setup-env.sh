@@ -2,7 +2,7 @@
 
 function FAIL {
 	# return if sourced and exit if executed
-	[ $0 =~ "bash" ] || return 1
+	[ "$0" =~ "bash" ] || return 1
 	exit 1
 }
 
