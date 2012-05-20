@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 
 function FAIL {
 	# return if sourced and exit if executed
