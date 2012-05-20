@@ -113,7 +113,8 @@ function save_results() {
 	echo " done"
 }
 
-function set_revision {
+function set_revision() {
+	echo "No not yet"
 	#if [ -d .git ]; then
 	#	git checkout ${REVISION}
 	#elif [ -d .svn ]; then
