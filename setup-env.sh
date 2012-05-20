@@ -2,7 +2,7 @@
 
 if [ -z ${JENKINS_BRANCH} ]; then
 	echo "=> JENKINS_BRANCH not set!"
-	FAIL
+	export JENKINS_BRANCH="origin/master"
 fi
 
 if [ -z "${WORKSPACE}" ]; then
@@ -18,4 +18,5 @@ function FAIL {
 
 `git fetch origin` && FAIL
 `git checkout ${JENKINS_BRANCH}` && FAIL
+`git merge --ff-only ${JENKINS_BRANCH}` && FAIL
 `git log -1 HEAD`
