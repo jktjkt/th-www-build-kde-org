@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-import sys,io,os
+import sys,io,os,time
 from string import Template
 import xml.dom.minidom
 import urllib

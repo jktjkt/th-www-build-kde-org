@@ -129,7 +129,7 @@ LOCALHOST=`hostname -f`
 
 echo "=> Building ${PROJECT}:${BRANCH}"
 
-rm -r environment-vars.sh
+rm -f environment-vars.sh
 
 case ${JOB_TYPE} in
 	build)
