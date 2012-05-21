@@ -41,7 +41,7 @@ pushd ${JENKINS_SLAVE_HOME}/dependencies
 echo "=>Setting up dependency info..."
 (
 	if [ ! -d ".git" ]; then
-		git clone git://anongit.kde.org/kde-build-metada .
+		git clone git://anongit.kde.org/kde-build-metadata .
 	fi
 	git fetch origin
 	git checkout ${JENKINS_DEPENDENCY_BRANCH}
