@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-import sys
+import sys,os
 import re
 import copy
 import pprint
@@ -191,8 +191,8 @@ if __name__ in '__main__':
 	build_dir = os.getenv("WORKSPACE")
 	f = open( os.path.join( build_dir, "environment-vars.sh" ), 'w' )
 	f.write( "#!/bin/bash -x\n" )
-	f.write( "export MASTER=%s\n"%master )
-	f.write( "export ROOT=%s\n"%root )
+	#f.write( "export MASTER=%s\n"%master )
+	#f.write( "export ROOT=%s\n"%root )
 	f.write( 'export DEPS="' )
 
 	for dependency in dependencies:

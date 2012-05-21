@@ -52,6 +52,14 @@ function export_vars() {
 		MODULE=${DEP%=*}
 		MODULE_BRANCH=${DEP#*=}
 
+		if [ "$MODULE" == "Qt" ]; then
+			MODULE_BRANCH=$QT_STABLE_BRANCH
+		fi
+
+		if [ "$MODULE_BRANCH" == "*" ]; then
+			MODULE_BRANCH=$REAL_BRANCH
+		fi
+
 		echo "=> Adding $MODULE ($MODULE_BRANCH) to env vars..."
 		CMAKE_PREFIX_PATH="${ROOT}/install/${MODULE}/${MODULE_BRANCH}:${CMAKE_PREFIX_PATH}"
 		PATH="${ROOT}/install/${MODULE}/${MODULE_BRANCH}/bin:${PATH}"
@@ -64,13 +72,13 @@ function export_vars() {
 	done
 
 	export CMAKE_PREFIX_PATH="${CMAKE_PREFIX_PATH%:}"
-	export PATH="${JENKINS_SLAVE_HOME}:${ROOT}/install/${JOB_NAME_DIR}/${BRANCH}:${PATH%:}"
-	export LD_LIBRARY_PATH="${ROOT}/install/${JOB_NAME_DIR}/${BRANCH}/lib:${LD_LIBRARY_PATH%:}"
-	export PKG_CONFIG_PATH="${ROOT}/install/${JOB_NAME_DIR}/${BRANCH}:${PKG_CONFIG_PATH%:}"
-	export QT_PLUGIN_PATH="${ROOT}/install/${JOB_NAME_DIR}/${BRANCH}:${QT_PLUGIN_PATH%:}"
-	export XDG_DATA_DIRS="${ROOT}/install/${JOB_NAME_DIR}/${BRANCH}/share:${XDG_DATA_DIRS%:}:/usr/local/share/:/usr/share"
-	export XDG_CONFIG_DIRS="${ROOT}/install/${JOB_NAME_DIR}/${BRANCH}/etc/xdg:${XDG_CONFIG_DIRS%:}:/etc/xdg"
-	export KDEDIRS="${ROOT}/install/${JOB_NAME_DIR}/${BRANCH}:${KDEDIRS%:}"
+	export PATH="${JENKINS_SLAVE_HOME}:${ROOT}/install/${PROJECT}/${REAL_BRANCH}:${PATH%:}"
+	export LD_LIBRARY_PATH="${ROOT}/install/${PROJECT}/${REAL_BRANCH}/lib:${LD_LIBRARY_PATH%:}"
+	export PKG_CONFIG_PATH="${ROOT}/install/${PROJECT}/${REAL_BRANCH}:${PKG_CONFIG_PATH%:}"
+	export QT_PLUGIN_PATH="${ROOT}/install/${PROJECT}/${REAL_BRANCH}:${QT_PLUGIN_PATH%:}"
+	export XDG_DATA_DIRS="${ROOT}/install/${PROJECT}/${REAL_BRANCH}/share:${XDG_DATA_DIRS%:}:/usr/local/share/:/usr/share"
+	export XDG_CONFIG_DIRS="${ROOT}/install/${PROJECT}/${REAL_BRANCH}/etc/xdg:${XDG_CONFIG_DIRS%:}:/etc/xdg"
+	export KDEDIRS="${ROOT}/install/${PROJECT}/${REAL_BRANCH}:${KDEDIRS%:}"
 	export CMAKE_CMD_LINE="-DCMAKE_PREFIX_PATH=\"${CMAKE_PREFIX_PATH%:}\""
 }
 
@@ -95,7 +103,7 @@ function sync_from_master() {
 function sync_to_master() {
 	if [[ "${MASTER}" != "${LOCALHOST}" ]]; then
 		echo "=> Syncing changes with master (\"${MASTER}\")..."
-		rsync ${RSYNC_OPTS} "${ROOT}/install/${PROJECT}/${BRANCH}/" "${MASTER}:${ROOT}/install/${PROJECT}/${BRANCH}/"
+		rsync ${RSYNC_OPTS} "${ROOT}/install/${PROJECT}/${REAL_BRANCH}/" "${MASTER}:${ROOT}/install/${PROJECT}/${BRANCH}/"
 		echo "=> done"
 	else
 		echo "=> Running on master, skipping sync"
@@ -103,13 +111,13 @@ function sync_to_master() {
 }
 
 function save_results() {
-	echo -n "=> Removing old install dir (\"${ROOT}/install/${PROJECT}/${BRANCH}\")..."
-	rm -rf "${ROOT}/install/${PROJECT}/${BRANCH}"
+	echo -n "=> Removing old install dir (\"${ROOT}/install/${PROJECT}/${REAL_BRANCH}\")..."
+	rm -rf "${ROOT}/install/${PROJECT}/${REAL_BRANCH}"
 	echo " done"
-	basedir=`dirname "${ROOT}/install/${PROJECT}/${BRANCH}"`
-	echo -n "=> Moving new install to global location (\"${ROOT}/install/${PROJECT}/${BRANCH}\")..."
+	basedir=`dirname "${ROOT}/install/${PROJECT}/${REAL_BRANCH}"`
+	echo -n "=> Moving new install to global location (\"${ROOT}/install/${PROJECT}/${REAL_BRANCH}\")..."
 	mkdir -p "${basedir}"
-	mv "${WORKSPACE}/install/${ROOT}/install/${PROJECT}/${BRANCH}" "${ROOT}/install/${PROJECT}/${BRANCH}"
+	mv "${WORKSPACE}/install/${ROOT}/install/${PROJECT}/${REAL_BRANCH}" "${ROOT}/install/${PROJECT}/${BRANCH}"
 	echo " done"
 }
 
@@ -122,22 +130,59 @@ function set_revision() {
 	#fi
 }
 
+function update_repo() {
+
+	if [[ "$REPO_ADDRESS" =~ "git" ]]; then
+		echo "Sleeping for $POLL_DELAY seconds to allow mirrors to sync"
+		sleep $POLL_DELAY
+		update_git
+	#elif [[ "$REPO_ADDRESS" =~ "svn" ]]; then
+	#	update_svn
+	#elif [[ "REPO_ADDRESS" =~ "bzr" ]]; then
+	#	update_bzr
+	else
+		echo "=> Unknown repo type: $REPO_ADDRESS"
+		FAIL
+	fi
+}
+
+function update_git() {
+	if [ ! -d ".git" ]; then
+		git clone $REPO_ADDRESS .
+	fi
+
+	(
+		git fetch origin
+		git checkout $REAL_BRANCH
+		git merge --ff-only origin/$REAL_BRANCH
+		git log -1 HEAD
+	) || FAIL
+}
+
 JOB_NAME=${JOB_NAME/test-/}
 PROJECT="${JOB_NAME%%_*}"
-BRANCH="${JOB_NAME#*_}"
+BRANCH="${JOB_NAME##*_}"
 LOCALHOST=`hostname -f`
 
-echo "=> Building ${PROJECT}:${BRANCH}"
+echo "=> Building ${FULL_PROJECT}:${REAL_BRANCH}"
 
 rm -f environment-vars.sh
 
 case ${JOB_TYPE} in
 	build)
-		BRANCH=`${JENKINS_SLAVE_HOME}/projects.kde.org.py resolve ${PROJECT} ${BRANCH}`
-		${JENKINS_SLAVE_HOME}/build-deps-parser.py ${PROJECT} ${BRANCH}
+		pushd $JENKINS_SLAVE_HOME
+		REAL_BRANCH=`${JENKINS_SLAVE_HOME}/projects.kde.org.py resolve branch ${PROJECT} ${BRANCH}`
+		PROJECT_PATH=`${JENKINS_SLAVE_HOME}/projects.kde.org.py resolve path ${PROJECT}`
+		REPO_ADDRESS=`${JENKINS_SLAVE_HOME}/projects.kde.org.py resolve repo ${PROJECT}`
+		popd
+
+		update_repo
+		
+		${JENKINS_SLAVE_HOME}/build-deps-parser.py ${PROJECT_PATH} ${REAL_BRANCH}
 		source environment-vars.sh
 		sync_from_master
 		export_vars
+		
 		${JENKINS_SLAVE_HOME}/cmake.sh
 		${JENKINS_SLAVE_HOME}/make.sh
 		save_results
