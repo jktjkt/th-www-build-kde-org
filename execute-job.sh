@@ -49,15 +49,20 @@ function export_vars() {
 	unset KDEDIRS
 
 	for DEP in ${DEPS}; do
-		MODULE=${DEP%=*}
+		MODULE_PATH=${DEP%=*}
 		MODULE_BRANCH=${DEP#*=}
 
-		if [ "$MODULE" == "Qt" ]; then
+		if [ "$MODULE_PATH" == "Qt" ]; then
 			MODULE_BRANCH=$QT_STABLE_BRANCH
 		fi
 
 		if [ "$MODULE_BRANCH" == "*" ]; then
 			MODULE_BRANCH=$REAL_BRANCH
+		fi
+
+		MODULE=`${JENKINS_SLAVE_HOME}/projects.kde.org.py resolve identifier ${MODULE_PATH}`
+		if [ -n $MODULE ]; then
+			MODULE=$MODULE_PATH
 		fi
 
 		echo "=> Adding $MODULE ($MODULE_BRANCH) to env vars..."

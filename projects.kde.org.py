@@ -99,8 +99,6 @@ def resolveBranch(dom, project, branch):
 	if branch == 'master':
 		branch == 'trunk'
 
-	realBranch = ""
-
 	for repo in repos:
 		if repo.parentNode.getAttribute('identifier') == project:
 			for node in repo.childNodes:
@@ -108,10 +106,11 @@ def resolveBranch(dom, project, branch):
 					continue
 				try:
 					if node.tagName == 'branch' and node.getAttribute('i18n') == branch:
-						realBranch = node.childNodes[0].nodeValue
+						print node.childNodes[0].nodeValue
+						return
 				except IndexError:
 					continue
-	print realBranch
+	print "master"
 
 def resolvePath(dom, project):
 	repos = dom.getElementsByTagName('repo')
@@ -139,8 +138,20 @@ def resolveRepo(dom, project):
 					return
 	return
 
+def resolveIdentifier(dom, path):
+	repos = dom.getElementsByTagName('repo')
+
+	for repo in repos:
+		for node in repo.parentNode.childNodes:
+			if node.nodeType != xml.dom.Node.ELEMENT_NODE:
+				continue
+			if node.tagName == 'path' and node.childNodes[0].nodeValue == path:
+				print repo.parentNode.getAttribute('identifier')
+				return
+	return
+
 if __name__ in "__main__":
-	usage = "Usage: %s [resolve path <project>] [resolve branch <project> <branch>] [createjobs <template-file> [filter_path]]"%sys.argv[0]
+	usage = "Usage: %s [resolve identifier <project_path>] [resolve path <project>] [resolve branch <project> <branch>] [createjobs <template-file> [filter_path]]"%sys.argv[0]
 
 	project_file = "./project_file.xml"
 	if not os.path.exists(project_file):
@@ -161,6 +172,8 @@ if __name__ in "__main__":
 			resolvePath(dom, project)
 		elif sys.argv[2] == 'repo' and len(sys.argv) == 4:
 			resolveRepo(dom, project)
+		elif sys.argv[2] == 'identifier' and len(sys.argv) == 4:
+			resolveIdentifier(dom, project)
 		else:
 			print usage
 			sys.exit(1)

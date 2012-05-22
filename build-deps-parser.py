@@ -161,7 +161,8 @@ class Dependency_parser(object):
 		dependent_projects = projects[ project ].get_dependencies_for_branch( branch )
 		all_dependent_projects.update( dependent_projects )
 		for dependent_project in dependent_projects:
-			self.add_missing_dependencies(all_dependent_projects, dependent_project)
+			if dependent_project not in all_dependent_projects:
+				self.add_missing_dependencies(all_dependent_projects, dependent_project)
 
 	def find_deps_for_project_and_branch(self, project, branch):
 		print "Finding dependencies for %s:%s"%(project, branch)
