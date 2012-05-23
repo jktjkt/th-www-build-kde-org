@@ -21,4 +21,6 @@ fi
 
 # TODO: Detect number of CPUs and use that as a limit to make ex: make -j $(($CPU_COUNT +1)) -l $(($CPU_COUNT))
 
-DESTDIR=${WORKSPACE}/install make -l 4.0 "${@}"
+CPU_COUNT=`grep -c processor /proc/cpuinfo`
+
+DESTDIR=${WORKSPACE}/install make -l $CPU_COUNT -j $(($CPU_COUNT + 1)) "${@}"

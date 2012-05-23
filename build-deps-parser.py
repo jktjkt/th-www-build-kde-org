@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-import sys
+import sys,os
 import re
 import copy
 import pprint
@@ -161,7 +161,8 @@ class Dependency_parser(object):
 		dependent_projects = projects[ project ].get_dependencies_for_branch( branch )
 		all_dependent_projects.update( dependent_projects )
 		for dependent_project in dependent_projects:
-			self.add_missing_dependencies(all_dependent_projects, dependent_project)
+			if dependent_project not in all_dependent_projects:
+				self.add_missing_dependencies(all_dependent_projects, dependent_project)
 
 	def find_deps_for_project_and_branch(self, project, branch):
 		print "Finding dependencies for %s:%s"%(project, branch)
@@ -191,8 +192,8 @@ if __name__ in '__main__':
 	build_dir = os.getenv("WORKSPACE")
 	f = open( os.path.join( build_dir, "environment-vars.sh" ), 'w' )
 	f.write( "#!/bin/bash -x\n" )
-	f.write( "export MASTER=%s\n"%master )
-	f.write( "export ROOT=%s\n"%root )
+	#f.write( "export MASTER=%s\n"%master )
+	#f.write( "export ROOT=%s\n"%root )
 	f.write( 'export DEPS="' )
 
 	for dependency in dependencies:
