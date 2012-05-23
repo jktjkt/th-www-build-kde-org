@@ -60,8 +60,11 @@ function export_vars() {
 			MODULE_BRANCH=$REAL_BRANCH
 		fi
 
+		pushd ${JENKINS_SLAVE_HOME}
 		MODULE=`${JENKINS_SLAVE_HOME}/projects.kde.org.py resolve identifier ${MODULE_PATH}`
-		if [ -n $MODULE ]; then
+		popd
+
+		if [ -z $MODULE ]; then
 			MODULE=$MODULE_PATH
 		fi
 
@@ -169,7 +172,6 @@ PROJECT="${JOB_NAME%%_*}"
 BRANCH="${JOB_NAME##*_}"
 LOCALHOST=`hostname -f`
 
-echo "=> Building ${FULL_PROJECT}:${REAL_BRANCH}"
 
 rm -f environment-vars.sh
 
@@ -180,6 +182,8 @@ case ${JOB_TYPE} in
 		PROJECT_PATH=`${JENKINS_SLAVE_HOME}/projects.kde.org.py resolve path ${PROJECT}`
 		REPO_ADDRESS=`${JENKINS_SLAVE_HOME}/projects.kde.org.py resolve repo ${PROJECT}`
 		popd
+		
+		echo "=> Building ${FULL_PROJECT}:${REAL_BRANCH}"
 
 		update_repo
 		
@@ -187,12 +191,17 @@ case ${JOB_TYPE} in
 		source environment-vars.sh
 		sync_from_master
 		export_vars
-		
-		${JENKINS_SLAVE_HOME}/cmake.sh
+	
+		rm -rf $WORKSPACE/build
+		mkdir $WORKSPACE/build
+		pushd $WORKSPACE/build	
+		${JENKINS_SLAVE_HOME}/cmake.sh -DCMAKE_INSTALL_PREFIX=${ROOT}/install/${PROJECT}/${REAL_BRANCH} ..
 		${JENKINS_SLAVE_HOME}/make.sh
+		${JENKINS_SLAVE_HOME}/make.sh install
 		save_results
 		sync_to_master
 		${JENKINS_SLAVE_HOME}/ctest.sh
+		popd
 		;;
 	package)
 		set_revision
