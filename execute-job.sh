@@ -183,7 +183,7 @@ case ${JOB_TYPE} in
 		REPO_ADDRESS=`${JENKINS_SLAVE_HOME}/projects.kde.org.py resolve repo ${PROJECT}`
 		popd
 		
-		echo "=> Building ${FULL_PROJECT}:${REAL_BRANCH}"
+		echo "=> Building ${PROJECT}:${REAL_BRANCH}"
 
 		update_repo
 		

@@ -13,14 +13,16 @@ KDE_PROJECTS_URL="http://projects.kde.org/kde_projects.xml"
 CONFIG_ROOT="jobs"
 JENKINS_INSTANCE="http://build.kde.org"
 
-def saveConfig(values):
+def saveConfig(templateContent, values):
 	fileName = "%s/%s_%s.xml"%(CONFIG_ROOT, values['identifier'].replace('/', '-'), values['branchType'])
+	template = Template( templateContent )
 	config = template.substitute( name=values['name'], repourl=values['repourl'], cloneurl=values['cloneurl'], description=values['description'], path=values['path'], weburl=values['weburl'], branch=values['masterBranch'], identifier=values['identifier'] )
 	configFile = codecs.open( fileName, 'w', 'utf-8' )
 	configFile.write(config)
 	configFile.close
 
 def createJobs(dom, templateFile, filterPath):
+	print "Creating jobs matching '%s'"%filterPath
 	try:
 		os.makedirs( CONFIG_ROOT )
 	except OSError:
@@ -75,9 +77,8 @@ def createJobs(dom, templateFile, filterPath):
 			if not 'masterBranch' in values:
 				values['masterBranch'] = "master"
 
-			template = Template( templateContent )
 			values['branchType'] = 'master'
-			saveConfig(values)
+			saveConfig(templateContent, values)
 			scriptFile.write( "echo -n %s:%s...\n"%(values['identifier'], values['branchType'] ) )
 			scriptFile.write( "java -jar jenkins-cli.jar -s %s -i jenkins-private.key create-job %s_%s <%s"%(JENKINS_INSTANCE, values['identifier'].replace('/', '-'), values['branchType'], "%s/%s_%s.xml\n"%(CONFIG_ROOT, values['path'].replace('/', '-'), values['branchType'])) )
 			scriptFile.write( "echo Done\n" )
@@ -85,7 +86,7 @@ def createJobs(dom, templateFile, filterPath):
 
 			if 'stableBranch' in values:
 				values['branchType'] = 'stable'
-				saveConfig(values)
+				saveConfig(templateContent, values)
 				scriptFile.write( "echo -n %s:%s...\n"%(values['identifier'], values['branchType'] ) )
 				scriptFile.write( "java -jar jenkins-cli.jar -s %s -i jenkins-private.key create-job %s_%s <%s"%(JENKINS_INSTANCE, values['identifier'].replace('/', '-'), values['branchType'], "%s/%s_%s.xml\n"%(CONFIG_ROOT, values['path'].replace('/', '-'), values['branchType'])) )
 				scriptFile.write( "echo Done\n" )
@@ -151,9 +152,16 @@ def resolveIdentifier(dom, path):
 	return
 
 if __name__ in "__main__":
+
+	print "%s - %s"%(len(sys.argv),sys.argv)
 	usage = "Usage: %s [resolve identifier <project_path>] [resolve path <project>] [resolve branch <project> <branch>] [createjobs <template-file> [filter_path]]"%sys.argv[0]
 
 	project_file = "./project_file.xml"
+
+	if len(sys.argv) < 4:
+		print usage
+		sys.exit(1)
+
 	if not os.path.exists(project_file):
 		sys.stderr.write("=> Retrieving project listing from %s\n"%KDE_PROJECTS_URL)
 		urllib.urlretrieve(KDE_PROJECTS_URL, project_file)
@@ -179,7 +187,7 @@ if __name__ in "__main__":
 			sys.exit(1)
 	elif sys.argv[1] == 'createjobs' and len(sys.argv) <= 4:
 		templateFile = sys.argv[2]
-		if len(sys.argv) == 3:
+		if len(sys.argv) == 4:
 			filterPath = sys.argv[3]
 		else:
 			filterPath = ""
