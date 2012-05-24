@@ -153,7 +153,6 @@ def resolveIdentifier(dom, path):
 
 if __name__ in "__main__":
 
-	print "%s - %s"%(len(sys.argv),sys.argv)
 	usage = "Usage: %s [resolve identifier <project_path>] [resolve path <project>] [resolve branch <project> <branch>] [createjobs <template-file> [filter_path]]"%sys.argv[0]
 
 	project_file = "./project_file.xml"
