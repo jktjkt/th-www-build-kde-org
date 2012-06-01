@@ -174,8 +174,7 @@ class Dependency_parser(object):
 			for project in dependent_projects:
 				self.add_missing_dependencies(all_dependent_projects, project)
 			return all_dependent_projects
-		else:
-			
+
 
 if __name__ in '__main__':
 	if len(sys.argv) < 3:
