@@ -87,4 +87,4 @@ else
 	echo "=> done"
 fi
 
-touch JUnitTestResults.xml
+touch ${BUILD_DIR}/JUnitTestResults.xml
