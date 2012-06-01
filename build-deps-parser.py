@@ -89,12 +89,12 @@ class Dependency_parser(object):
 			\]
 		)?
 		""",re.X)
-	self.projects = {}
-	self.multi_dependencies = {}
 
 	def __init__(self, dependency_file = '/code/kde/src/kde-build-metadata/dependency-data', ignore_file = '/code/kde/src/kde-build-metadata/build-script-ignore' ):
 		self.ignore_file = ignore_file
 		self.dependency_file = dependency_file
+		self.projects = {}
+		self.multi_dependencies = {}
 
 	def parse(self):
 
@@ -135,31 +135,31 @@ class Dependency_parser(object):
 			if match.group('dependency_branch'):
 				dependency_branch = match.group('dependency_branch')
 
-			if not project in projects:
-				projects[ project ] = Project( project )
-			if not dependency in projects:
-				projects[ dependency ] = Project( dependency )
+			if not project in self.projects:
+				self.projects[ project ] = Project( project )
+			if not dependency in self.projects:
+				self.projects[ dependency ] = Project( dependency )
 
 			if match.group('ignore_dependency'):
-				projects[project].ignore_dependency( projects[dependency], project_branch )
+				self.projects[project].ignore_dependency( projects[dependency], project_branch )
 			else:
 				if project[-1] == '*':
 					if not project in multi_dependencies:
-						multi_dependencies[ project ] = projects[ project ]
-					multi_dependencies[project].add_dependency( projects[dependency], project_branch, dependency_branch )
+						self.multi_dependencies[ project ] = self.projects[ project ]
+					self.multi_dependencies[project].add_dependency( self.projects[dependency], project_branch, dependency_branch )
 				else:
-					projects[project].add_dependency( projects[dependency], project_branch, dependency_branch )
+					self.projects[project].add_dependency( self.projects[dependency], project_branch, dependency_branch )
 
 	def add_multi_dependencies(self):
 		print "=> Processing multi project dependencies..."
-		for multi_dependency in multi_dependencies:
-			for project in projects.values():
+		for multi_dependency in self.multi_dependencies:
+			for project in self.projects.values():
 				if project.is_under_path( multi_dependency ):
-					projects[project.name].add_multi_dependencies(projects[multi_dependency].dependencies)
-		return projects
+					self.projects[project.name].add_multi_dependencies(self.projects[multi_dependency].dependencies)
+		return self.projects
 
 	def add_missing_dependencies(self, all_dependent_projects, project):
-		dependent_projects = projects[ project ].get_dependencies_for_branch( branch )
+		dependent_projects = self.projects[ project ].get_dependencies_for_branch( branch )
 		all_dependent_projects.update( dependent_projects )
 		for dependent_project in dependent_projects:
 			if dependent_project not in all_dependent_projects:
@@ -168,8 +168,8 @@ class Dependency_parser(object):
 	def find_deps_for_project_and_branch(self, project, branch):
 		print "Finding dependencies for %s:%s"%(project, branch)
 
-		if project in projects:
-			all_dependent_projects = projects[ project ].get_dependencies_for_branch( branch )
+		if project in self.projects:
+			all_dependent_projects = self.projects[ project ].get_dependencies_for_branch( branch )
 			dependent_projects = copy.copy(all_dependent_projects)
 			for project in dependent_projects:
 				self.add_missing_dependencies(all_dependent_projects, project)
