@@ -80,7 +80,7 @@ def createJobs(dom, templateFile, filterPath):
 			values['branchType'] = 'master'
 			saveConfig(templateContent, values)
 			scriptFile.write( "echo -n %s:%s...\n"%(values['identifier'], values['branchType'] ) )
-			scriptFile.write( "java -jar jenkins-cli.jar -s %s -i jenkins-private.key create-job %s_%s <%s"%(JENKINS_INSTANCE, values['identifier'].replace('/', '-'), values['branchType'], "%s/%s_%s.xml\n"%(CONFIG_ROOT, values['path'].replace('/', '-'), values['branchType'])) )
+			scriptFile.write( "java -jar jenkins-cli.jar -s %s -i jenkins-private.key create-job %s_%s <%s"%(JENKINS_INSTANCE, values['identifier'].replace('/', '-'), values['branchType'], "%s/%s_%s.xml\n"%(CONFIG_ROOT, values['identifier'], values['branchType'])) )
 			scriptFile.write( "echo Done\n" )
 			scriptFile.write( "sleep 1\n" )
 
@@ -88,7 +88,7 @@ def createJobs(dom, templateFile, filterPath):
 				values['branchType'] = 'stable'
 				saveConfig(templateContent, values)
 				scriptFile.write( "echo -n %s:%s...\n"%(values['identifier'], values['branchType'] ) )
-				scriptFile.write( "java -jar jenkins-cli.jar -s %s -i jenkins-private.key create-job %s_%s <%s"%(JENKINS_INSTANCE, values['identifier'].replace('/', '-'), values['branchType'], "%s/%s_%s.xml\n"%(CONFIG_ROOT, values['path'].replace('/', '-'), values['branchType'])) )
+				scriptFile.write( "java -jar jenkins-cli.jar -s %s -i jenkins-private.key create-job %s_%s <%s"%(JENKINS_INSTANCE, values['identifier'].replace('/', '-'), values['branchType'], "%s/%s_%s.xml\n"%(CONFIG_ROOT, values['identifier'], values['branchType'])) )
 				scriptFile.write( "echo Done\n" )
 				scriptFile.write( "sleep 1\n" )
 

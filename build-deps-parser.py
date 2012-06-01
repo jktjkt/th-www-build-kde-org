@@ -89,6 +89,9 @@ class Dependency_parser(object):
 			\]
 		)?
 		""",re.X)
+	self.projects = {}
+	self.multi_dependencies = {}
+
 	def __init__(self, dependency_file = '/code/kde/src/kde-build-metadata/dependency-data', ignore_file = '/code/kde/src/kde-build-metadata/build-script-ignore' ):
 		self.ignore_file = ignore_file
 		self.dependency_file = dependency_file
@@ -108,9 +111,6 @@ class Dependency_parser(object):
 		dep_info = open( self.dependency_file )
 		lines = dep_info.readlines()
 		dep_info.close()
-
-		projects = {}
-		multi_dependencies = {}
 
 		for line in lines:
 			line = line.strip()
@@ -150,6 +150,7 @@ class Dependency_parser(object):
 				else:
 					projects[project].add_dependency( projects[dependency], project_branch, dependency_branch )
 
+	def add_multi_dependencies(self):
 		print "=> Processing multi project dependencies..."
 		for multi_dependency in multi_dependencies:
 			for project in projects.values():
@@ -167,11 +168,14 @@ class Dependency_parser(object):
 	def find_deps_for_project_and_branch(self, project, branch):
 		print "Finding dependencies for %s:%s"%(project, branch)
 
-		all_dependent_projects = projects[ project ].get_dependencies_for_branch( branch )
-		dependent_projects = copy.copy(all_dependent_projects)
-		for project in dependent_projects:
-			self.add_missing_dependencies(all_dependent_projects, project)
-		return all_dependent_projects
+		if project in projects:
+			all_dependent_projects = projects[ project ].get_dependencies_for_branch( branch )
+			dependent_projects = copy.copy(all_dependent_projects)
+			for project in dependent_projects:
+				self.add_missing_dependencies(all_dependent_projects, project)
+			return all_dependent_projects
+		else:
+			
 
 if __name__ in '__main__':
 	if len(sys.argv) < 3:
@@ -184,7 +188,10 @@ if __name__ in '__main__':
 	# 1: Find all dependencies
 	jenkins_slave_home = os.getenv('JENKINS_SLAVE_HOME')
 	dep_parser = Dependency_parser(dependency_file = jenkins_slave_home + '/dependencies/dependency-data', ignore_file = jenkins_slave_home + '/dependencies/build-script-ignore' )
-	projects = dep_parser.parse()
+	dep_parser.parse()
+	if not project in dep_parser.projects:
+		dep_parser.projects[project] = Project( project )
+	projects = dep_parser.add_multi_dependencies()
 
 	dependencies = dep_parser.find_deps_for_project_and_branch(project, branch)
 
