@@ -141,7 +141,7 @@ class Dependency_parser(object):
 				self.projects[ dependency ] = Project( dependency )
 
 			if match.group('ignore_dependency'):
-				self.projects[project].ignore_dependency( projects[dependency], project_branch )
+				self.projects[project].ignore_dependency( self.projects[dependency], project_branch )
 			else:
 				if project[-1] == '*':
 					if not project in self.multi_dependencies:
