@@ -26,6 +26,8 @@ fi
 RSYNC_OPTS="--recursive --links --perms --times --group --owner --devices \
             --specials --delete-during --update --checksum --human-readable --progress"
 
+COMMON_DEPS="/srv/install/deps/master"
+
 function FAIL {
 	# return if sourced and exit if executed
 	[ $0 ~= "bash" ] || return 1
@@ -80,12 +82,12 @@ function export_vars() {
 	done
 
 	export CMAKE_PREFIX_PATH="${CMAKE_PREFIX_PATH%:}"
-	export PATH="${JENKINS_SLAVE_HOME}:${ROOT}/install/${PROJECT}/${REAL_BRANCH}:${PATH%:}"
-	export LD_LIBRARY_PATH="${ROOT}/install/${PROJECT}/${REAL_BRANCH}/lib:${LD_LIBRARY_PATH%:}"
-	export PKG_CONFIG_PATH="${ROOT}/install/${PROJECT}/${REAL_BRANCH}:${PKG_CONFIG_PATH%:}"
-	export QT_PLUGIN_PATH="${ROOT}/install/${PROJECT}/${REAL_BRANCH}:${QT_PLUGIN_PATH%:}"
-	export XDG_DATA_DIRS="${ROOT}/install/${PROJECT}/${REAL_BRANCH}/share:${XDG_DATA_DIRS%:}:/usr/local/share/:/usr/share"
-	export XDG_CONFIG_DIRS="${ROOT}/install/${PROJECT}/${REAL_BRANCH}/etc/xdg:${XDG_CONFIG_DIRS%:}:/etc/xdg"
+	export PATH="${JENKINS_SLAVE_HOME}:${ROOT}/install/${PROJECT}/${REAL_BRANCH}:${PATH%:}:${COMMON_DEPS}/bin"
+	export LD_LIBRARY_PATH="${ROOT}/install/${PROJECT}/${REAL_BRANCH}/lib:${LD_LIBRARY_PATH%:}:${COMMON_DEPS}/lib"
+	export PKG_CONFIG_PATH="${ROOT}/install/${PROJECT}/${REAL_BRANCH}:${PKG_CONFIG_PATH%:}:${COMMON_DEPS}"
+	export QT_PLUGIN_PATH="${ROOT}/install/${PROJECT}/${REAL_BRANCH}:${QT_PLUGIN_PATH%:}:${COMMON_DEPS}"
+	export XDG_DATA_DIRS="${ROOT}/install/${PROJECT}/${REAL_BRANCH}/share:${XDG_DATA_DIRS%:}:/usr/local/share/:/usr/share:${COMMON_DEPS}/share"
+	export XDG_CONFIG_DIRS="${ROOT}/install/${PROJECT}/${REAL_BRANCH}/etc/xdg:${XDG_CONFIG_DIRS%:}:/etc/xdg:${COMMON_DEPS}/etc/xdg"
 	export KDEDIRS="${ROOT}/install/${PROJECT}/${REAL_BRANCH}:${KDEDIRS%:}"
 	export CMAKE_CMD_LINE="-DCMAKE_PREFIX_PATH=\"${CMAKE_PREFIX_PATH%:}\""
 }
