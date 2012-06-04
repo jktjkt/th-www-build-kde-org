@@ -184,7 +184,7 @@ case ${JOB_TYPE} in
 		PROJECT_PATH=`${JENKINS_SLAVE_HOME}/projects.kde.org.py resolve path ${PROJECT}`
 		REPO_ADDRESS=`${JENKINS_SLAVE_HOME}/projects.kde.org.py resolve repo ${PROJECT}`
 		popd
-		
+
 		echo "=> Building ${PROJECT}:${REAL_BRANCH}"
 
 		update_repo
@@ -204,11 +204,13 @@ case ${JOB_TYPE} in
 		save_results
 		sync_to_master
 		${JENKINS_SLAVE_HOME}/ctest.sh
-		touch $WORKSPACE/build/cppcheck.xml
+		if [[ ! -f $WORKSPACE/build/cppcheck.xml ]]; then
+			echo -e '<?xml version="1.0" encoding="UTF-8"?>\n<results>\n</results>' > $WORKSPACE/build/cppcheck.xml
+		fi
 		popd
 		;;
 	package)
-		set_revision
+		#set_revision
 		;;
 esac
 
