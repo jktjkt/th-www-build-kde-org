@@ -18,7 +18,6 @@ ctest -N | grep "Total Tests: 0"
 if [[ $? == 0 ]]; then
     echo "=> No tests found"
 else
-
 	echo "=> Getting running Xvfb instances"
 	pids=`pgrep Xvfb -U jenkins`
 	if [[ $? == 0 ]]; then

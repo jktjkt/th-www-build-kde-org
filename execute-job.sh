@@ -195,6 +195,7 @@ case ${JOB_TYPE} in
 		export_vars
 	
 		rm -rf $WORKSPACE/build
+		git clean -dnx
 		mkdir $WORKSPACE/build
 		pushd $WORKSPACE/build	
 		${JENKINS_SLAVE_HOME}/cmake.sh -DCMAKE_INSTALL_PREFIX=${ROOT}/install/${PROJECT}/${REAL_BRANCH} ..
@@ -203,6 +204,7 @@ case ${JOB_TYPE} in
 		save_results
 		sync_to_master
 		${JENKINS_SLAVE_HOME}/ctest.sh
+		touch $WORKSPACE/build/cppcheck.xml
 		popd
 		;;
 	package)
