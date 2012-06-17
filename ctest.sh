@@ -9,7 +9,6 @@ else
     source ${WORKSPACE}/environment-vars.sh
 fi
 
-BUILD_DIR="${WORKSPACE}/build"
 rm -f ${BUILD_DIR}/JUnitTestResults.xml
 rm -rf ${BUILD_DIR}/Testing
 pushd ${BUILD_DIR}

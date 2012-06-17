@@ -29,6 +29,7 @@ RSYNC_OPTS="--recursive --links --perms --times --group --owner --devices \
 COMMON_DEPS="/srv/install/deps/master"
 
 function FAIL {
+	echo $@
 	# return if sourced and exit if executed
 	[ $0 ~= "bash" ] || return 1
 	exit 1
@@ -41,6 +42,7 @@ function export_vars() {
 		echo "=>###############################"
 	fi
 
+	export BUILD_DIR=$WORKSPACE/build
 	unset CMAKE_PREFIX_PATH
 	unset CMAKE_INSTALL_PREFIX
 	unset QT_PLUGIN_PATH
@@ -102,7 +104,7 @@ function sync_from_master() {
 			#lock_dir ${ROOT}/install/${MODULE}/${MODULE_BRANCH}/
 			echo "Syncing $MODULE ($MODULE_BRANCH) with ${MASTER}..."
 			mkdir -p ${ROOT}/install/${MODULE}/${MODULE_BRANCH}
-			rsync ${RSYNC_OPTS} ${MASTER}:${ROOT}/install/${MODULE}/${MODULE_BRANCH}/ ${ROOT}/install/${MODULE}/${MODULE_BRANCH}/
+			/usr/bin/rsync ${RSYNC_OPTS} ${MASTER}:${ROOT}/install/${MODULE}/${MODULE_BRANCH}/ ${ROOT}/install/${MODULE}/${MODULE_BRANCH}/ || FAIL "Required dependency: $MODULE/$MODULE_BRANCH was not found on master"
 			#unlock_dir ${ROOT}/install/${MODULE}/${MODULE_BRANCH}/
 		done
 	else
@@ -113,7 +115,7 @@ function sync_from_master() {
 function sync_to_master() {
 	if [[ "${MASTER}" != "${LOCALHOST}" ]]; then
 		echo "=> Syncing changes with master (\"${MASTER}\")..."
-		rsync ${RSYNC_OPTS} "${ROOT}/install/${PROJECT}/${REAL_BRANCH}/" "${MASTER}:${ROOT}/install/${PROJECT}/${BRANCH}/"
+		/usr/bin/rsync ${RSYNC_OPTS} "${ROOT}/install/${PROJECT}/${REAL_BRANCH}/" "${MASTER}:${ROOT}/install/${PROJECT}/${BRANCH}/"
 		echo "=> done"
 	else
 		echo "=> Running on master, skipping sync"
@@ -142,12 +144,12 @@ function set_revision() {
 
 function update_repo() {
 
-	if [[ "$REPO_ADDRESS" =~ "git" ]]; then
+	if [[ "$REPO_ADDRESS" =~ "git.kde.org" ]]; then
 		echo "Sleeping for $POLL_DELAY seconds to allow mirrors to sync"
 		sleep $POLL_DELAY
 		update_git
-	#elif [[ "$REPO_ADDRESS" =~ "svn" ]]; then
-	#	update_svn
+	elif [[ "$REPO_ADDRESS" =~ "svn.kde.org" ]]; then
+		update_svn
 	#elif [[ "REPO_ADDRESS" =~ "bzr" ]]; then
 	#	update_bzr
 	else
@@ -169,6 +171,17 @@ function update_git() {
 	) || FAIL
 }
 
+function update_svn() {
+	if [ ! -d ".svn" ]; then
+		svn co $REPO_ADDRESS .
+	fi
+
+	(
+		svn up
+		svn log -1
+	) || FAIL
+}
+
 JOB_NAME=${JOB_NAME/test-/}
 PROJECT="${JOB_NAME%%_*}"
 BRANCH="${JOB_NAME##*_}"
@@ -185,10 +198,12 @@ case ${JOB_TYPE} in
 		REPO_ADDRESS=`${JENKINS_SLAVE_HOME}/projects.kde.org.py resolve repo ${PROJECT}`
 		popd
 
+		#Wait for building direct dependencies here?
+
 		echo "=> Building ${PROJECT}:${REAL_BRANCH}"
 
 		update_repo
-		
+
 		${JENKINS_SLAVE_HOME}/build-deps-parser.py ${PROJECT_PATH} ${REAL_BRANCH}
 		source environment-vars.sh
 		sync_from_master
@@ -197,7 +212,7 @@ case ${JOB_TYPE} in
 		rm -rf $WORKSPACE/build
 		git clean -dnx
 		mkdir $WORKSPACE/build
-		pushd $WORKSPACE/build	
+		pushd $WORKSPACE/build
 		${JENKINS_SLAVE_HOME}/cmake.sh -DCMAKE_INSTALL_PREFIX=${ROOT}/install/${PROJECT}/${REAL_BRANCH} ..
 		${JENKINS_SLAVE_HOME}/make.sh
 		${JENKINS_SLAVE_HOME}/make.sh install
@@ -210,7 +225,11 @@ case ${JOB_TYPE} in
 		popd
 		;;
 	package)
-		#set_revision
+		# 1: Package
+		# 2: Build and test the new package against the latest packaged dependencies.
+		#    Trigger a build with special options, real_branch set to version?
+		#    Do it here inline?
+		#    Do all packaging first then build all packages or one by one?
 		;;
 esac
 
