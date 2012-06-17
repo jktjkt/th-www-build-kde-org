@@ -104,7 +104,7 @@ function sync_from_master() {
 			#lock_dir ${ROOT}/install/${MODULE}/${MODULE_BRANCH}/
 			echo "Syncing $MODULE ($MODULE_BRANCH) with ${MASTER}..."
 			mkdir -p ${ROOT}/install/${MODULE}/${MODULE_BRANCH}
-			/usr/bin/rsync ${RSYNC_OPTS} ${MASTER}:${ROOT}/install/${MODULE}/${MODULE_BRANCH}/ ${ROOT}/install/${MODULE}/${MODULE_BRANCH}/ || FAIL "Required dependency: $MODULE/$MODULE_BRANCH was not found on master"
+			rsync ${RSYNC_OPTS} ${MASTER}:${ROOT}/install/${MODULE}/${MODULE_BRANCH}/ ${ROOT}/install/${MODULE}/${MODULE_BRANCH}/ || FAIL "Required dependency: $MODULE/$MODULE_BRANCH was not found on master"
 			#unlock_dir ${ROOT}/install/${MODULE}/${MODULE_BRANCH}/
 		done
 	else
@@ -115,7 +115,7 @@ function sync_from_master() {
 function sync_to_master() {
 	if [[ "${MASTER}" != "${LOCALHOST}" ]]; then
 		echo "=> Syncing changes with master (\"${MASTER}\")..."
-		/usr/bin/rsync ${RSYNC_OPTS} "${ROOT}/install/${PROJECT}/${REAL_BRANCH}/" "${MASTER}:${ROOT}/install/${PROJECT}/${BRANCH}/"
+		rsync ${RSYNC_OPTS} "${ROOT}/install/${PROJECT}/${REAL_BRANCH}/" "${MASTER}:${ROOT}/install/${PROJECT}/${BRANCH}/"
 		echo "=> done"
 	else
 		echo "=> Running on master, skipping sync"
