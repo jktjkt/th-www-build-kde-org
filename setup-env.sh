@@ -50,3 +50,5 @@ echo "=>Setting up dependency info..."
 	git log -1 HEAD
 ) || FAIL
 popd
+
+setup-branch.sh
