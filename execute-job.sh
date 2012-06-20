@@ -26,7 +26,7 @@ fi
 RSYNC_OPTS="--recursive --links --perms --times --group --owner --devices \
             --specials --delete-during --update --checksum --human-readable --progress"
 
-COMMON_DEPS="/srv/install/deps/master"
+COMMON_DEPS="/srv/install/deps"
 
 function FAIL {
 	echo $@
