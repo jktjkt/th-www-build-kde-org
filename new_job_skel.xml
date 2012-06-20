@@ -9,7 +9,43 @@
     <artifactNumToKeep>-1</artifactNumToKeep>
   </logRotator>
   <keepDependencies>false</keepDependencies>
-  <properties/>
+  <properties>
+    <org.jenkins.ci.plugins.html5__notifier.JobPropertyImpl>
+      <skip>false</skip>
+    </org.jenkins.ci.plugins.html5__notifier.JobPropertyImpl>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>BRANCH</name>
+          <description></description>
+          <choices class="java.util.Arrays$$ArrayList">
+            <a class="string-array">
+              <string>master</string>
+              <string>stable</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>JOB_TYPE</name>
+          <description></description>
+          <choices class="java.util.Arrays$$ArrayList">
+            <a class="string-array">
+              <string>build</string>
+              <string>package</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+    <hudson.plugins.throttleconcurrents.ThrottleJobProperty>
+      <maxConcurrentPerNode>0</maxConcurrentPerNode>
+      <maxConcurrentTotal>1</maxConcurrentTotal>
+      <throttleEnabled>true</throttleEnabled>
+      <throttleOption>project</throttleOption>
+    </hudson.plugins.throttleconcurrents.ThrottleJobProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>BUILDER</assignedNode>
   <scm class="hudson.plugins.git.GitSCM">
     <configVersion>2</configVersion>
     <userRemoteConfigs>
@@ -21,7 +57,7 @@
     </userRemoteConfigs>
     <branches>
       <hudson.plugins.git.BranchSpec>
-        <name>refs/remotes/origin/$branch</name>
+        <name>$branch</name>
       </hudson.plugins.git.BranchSpec>
     </branches>
     <disableSubmodules>false</disableSubmodules>
@@ -32,6 +68,7 @@
     <wipeOutWorkspace>false</wipeOutWorkspace>
     <pruneBranches>false</pruneBranches>
     <remotePoll>false</remotePoll>
+    <ignoreNotifyCommit>false</ignoreNotifyCommit>
     <buildChooser class="hudson.plugins.git.util.DefaultBuildChooser"/>
     <gitTool>Default</gitTool>
     <browser class="hudson.plugins.git.browser.RedmineWeb">
@@ -39,14 +76,16 @@
     </browser>
     <submoduleCfg class="list"/>
     <relativeTargetDir></relativeTargetDir>
+    <reference></reference>
     <excludedRegions></excludedRegions>
     <excludedUsers></excludedUsers>
     <gitConfigName></gitConfigName>
     <gitConfigEmail></gitConfigEmail>
-    <skipTag>false</skipTag>
+    <skipTag>true</skipTag>
+    <includedRegions></includedRegions>
     <scmName></scmName>
   </scm>
-  <canRoam>true</canRoam>
+  <canRoam>false</canRoam>
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
@@ -59,35 +98,8 @@
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command>env
-cd $${JENKINS_SLAVE_HOME}
-git pull
-./export-environment-vars.py</command>
-    </hudson.tasks.Shell>
-    <hudson.tasks.Shell>
-      <command>$${JENKINS_SLAVE_HOME}/pre-build.sh</command>
-    </hudson.tasks.Shell>
-    <hudson.plugins.cmake.CmakeBuilder>
-      <sourceDir>.</sourceDir>
-      <buildDir>./build</buildDir>
-      <installDir>$$ROOT/install/$path/$branch</installDir>
-      <buildType>Debug</buildType>
-      <otherBuildType></otherBuildType>
-      <generator>Unix Makefiles</generator>
-      <makeCommand>$$JENKINS_SLAVE_HOME/make.sh -j5</makeCommand>
-      <installCommand>$$JENKINS_SLAVE_HOME/make.sh -j5 install</installCommand>
-      <preloadScript></preloadScript>
-      <cmakeArgs>-DKDE4_BUILD_TESTS:BOOL=ON</cmakeArgs>
-      <projectCmakePath></projectCmakePath>
-      <cleanBuild>true</cleanBuild>
-      <cleanInstallDir>false</cleanInstallDir>
-      <builderImpl/>
-    </hudson.plugins.cmake.CmakeBuilder>
-    <hudson.tasks.Shell>
-      <command>cppcheck --xml -j5 --report-progress -ibuild . 2&gt; cppcheck.xml</command>
-    </hudson.tasks.Shell>
-    <hudson.tasks.Shell>
-      <command>$${JENKINS_SLAVE_HOME}/ctest.sh</command>
+      <command>$${JENKINS_SLAVE_HOME}/setup-env.sh
+$${JENKINS_SLAVE_HOME}/execute-job.sh</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>

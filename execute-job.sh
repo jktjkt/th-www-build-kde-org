@@ -203,7 +203,7 @@ case ${JOB_TYPE} in
 
 		echo "=> Building ${PROJECT}:${REAL_BRANCH}"
 
-		update_repo
+		#update_repo
 
 		${JENKINS_SLAVE_HOME}/build-deps-parser.py ${PROJECT_PATH} ${REAL_BRANCH}
 		source environment-vars.sh
