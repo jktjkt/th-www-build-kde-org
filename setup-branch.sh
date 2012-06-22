@@ -50,7 +50,8 @@ pushd ${WORKSPACE}
 if [ ! -d ".git" ]; then
 	git clone $REPO_ADDRESS .
 fi
-git branch -D ${WANTED_BRANCH}
+# If we are on the branch, this will not work...
+#git branch -D ${WANTED_BRANCH}
 git branch --track ${WANTED_BRANCH} origin/${RESOLVED_BRANCH}
 
 echo "=> Sleeping for $POLL_DELAY seconds to allow mirrors to sync"
