@@ -52,7 +52,7 @@ if [ ! -d ".git" ]; then
 fi
 # If we are on the branch, this will not work...
 #git branch -D ${WANTED_BRANCH}
-git branch --track ${WANTED_BRANCH} origin/${RESOLVED_BRANCH}
+git branch --set-upstream ${WANTED_BRANCH} origin/${RESOLVED_BRANCH}
 
 echo "=> Sleeping for $POLL_DELAY seconds to allow mirrors to sync"
 sleep $POLL_DELAY
