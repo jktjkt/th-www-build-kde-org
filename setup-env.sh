@@ -51,4 +51,4 @@ echo "=>Setting up dependency info..."
 ) || FAIL
 popd
 
-setup-branch.sh
+${JENKINS_SLAVE_HOME}/setup-branch.sh
