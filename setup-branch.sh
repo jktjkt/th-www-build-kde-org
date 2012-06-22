@@ -3,7 +3,7 @@
 function FAIL {
     echo $@
     # return if sourced and exit if executed
-    [ $0 ~= "bash" ] || return 1
+    [ $0 != "bash" ] || return 1
     exit 1
 }
 
@@ -12,8 +12,8 @@ if [ -z "${JOB_NAME}" ]; then
      FAIL
 fi
 
-if [ -z "${GIT_BRANCH}" ]; then
-     echo "GIT_BRANCH not set!"
+if [ -z "${BRANCH}" ]; then
+     echo "BRANCH not set!"
      FAIL
 fi
  
@@ -22,7 +22,7 @@ if [ -z "${JENKINS_SLAVE_HOME}" ]; then
      FAIL
 fi
 
-WANTED_BRANCH=${GIT_BRANCH}
+WANTED_BRANCH=${BRANCH}
 
 JOB_NAME=${JOB_NAME/test-/}
 PROJECT="${JOB_NAME%%_*}"
