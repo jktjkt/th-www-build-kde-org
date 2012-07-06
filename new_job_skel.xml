@@ -44,7 +44,6 @@
       <throttleOption>project</throttleOption>
     </hudson.plugins.throttleconcurrents.ThrottleJobProperty>
   </properties>
-  <scm class="hudson.scm.NullSCM"/>
   <assignedNode>BUILDER</assignedNode>
   <scm class="hudson.plugins.git.GitSCM">
     <configVersion>2</configVersion>
@@ -98,8 +97,7 @@
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command>$${JENKINS_SLAVE_HOME}/setup-env.sh
-$${JENKINS_SLAVE_HOME}/execute-job.sh</command>
+      <command>$${JENKINS_SLAVE_HOME}/execute-job.sh</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>
@@ -206,5 +204,13 @@ $${JENKINS_SLAVE_HOME}/execute-job.sh</command>
   </publishers>
   <buildWrappers>
     <hudson.plugins.timestamper.TimestamperBuildWrapper/>
+    <org.jenkinsci.plugins.preSCMbuildstep.PreSCMBuildStepsWrapper>
+      <buildSteps>
+        <hudson.tasks.Shell>
+          <command>$${JENKINS_SLAVE_HOME}/setup-env.sh
+$${JENKINS_SLAVE_HOME}/setup-branch.sh</command>
+        </hudson.tasks.Shell>
+      </buildSteps>
+    </org.jenkinsci.plugins.preSCMbuildstep.PreSCMBuildStepsWrapper>
   </buildWrappers>
 </project>

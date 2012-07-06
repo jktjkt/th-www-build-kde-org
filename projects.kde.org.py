@@ -11,7 +11,7 @@ import pprint
 
 KDE_PROJECTS_URL="http://projects.kde.org/kde_projects.xml"
 CONFIG_ROOT="jobs"
-JENKINS_INSTANCE="http://build.kde.org"
+JENKINS_INSTANCE="http://sandbox.build.kde.org"
 
 def saveConfig(templateContent, values):
 	fileName = "%s/%s_%s.xml"%(CONFIG_ROOT, values['identifier'].replace('/', '-'), values['branchType'])
@@ -81,6 +81,8 @@ def createJobs(dom, templateFile, filterPath):
 			saveConfig(templateContent, values)
 			scriptFile.write( "echo -n %s:%s...\n"%(values['identifier'], values['branchType'] ) )
 			scriptFile.write( "java -jar jenkins-cli.jar -s %s -i jenkins-private.key create-job %s_%s <%s"%(JENKINS_INSTANCE, values['identifier'].replace('/', '-'), values['branchType'], "%s/%s_%s.xml\n"%(CONFIG_ROOT, values['identifier'], values['branchType'])) )
+			#scriptFile.write( "ssh %s mkdir -p /var/lib/jenkins/jobs/%s_%s\n"%(JENKINS_INSTANCE, values['identifier'].replace('/', '-'), values['branchType'] ) )
+			#scriptFile.write( "scp %s %s:/var/lib/jenkins/jobs/%s_%s/config.xml\n"%("%s/%s_%s.xml\n"%(CONFIG_ROOT, values['identifier'], values['branchType']), JENKINS_INSTANCE, values['identifier'].replace('/', '-'), values['branchType'] ) )
 			scriptFile.write( "echo Done\n" )
 			scriptFile.write( "sleep 1\n" )
 
@@ -89,6 +91,8 @@ def createJobs(dom, templateFile, filterPath):
 				saveConfig(templateContent, values)
 				scriptFile.write( "echo -n %s:%s...\n"%(values['identifier'], values['branchType'] ) )
 				scriptFile.write( "java -jar jenkins-cli.jar -s %s -i jenkins-private.key create-job %s_%s <%s"%(JENKINS_INSTANCE, values['identifier'].replace('/', '-'), values['branchType'], "%s/%s_%s.xml\n"%(CONFIG_ROOT, values['identifier'], values['branchType'])) )
+				#scriptFile.write( "ssh %s mkdir -p /var/lib/jenkins/jobs/%s_%s\n"%(JENKINS_INSTANCE, values['identifier'].replace('/', '-'), values['branchType'] ) )
+				#scriptFile.write( "scp %s %s:/var/lib/jenkins/jobs/%s_%s/config.xml\n"%("%s/%s_%s.xml\n"%(CONFIG_ROOT, values['identifier'], values['branchType']), JENKINS_INSTANCE, values['identifier'].replace('/', '-'), values['branchType'] ) )
 				scriptFile.write( "echo Done\n" )
 				scriptFile.write( "sleep 1\n" )
 
