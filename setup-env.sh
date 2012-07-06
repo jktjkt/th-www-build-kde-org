@@ -29,6 +29,9 @@ fi
 echo "=>Setting up tools..."
 pushd ${JENKINS_SLAVE_HOME}
 (
+	if [ ! -d .git ]; then
+		git clone git://anongit.kde.org/websites/build-kde-org .
+	fi
 	git fetch origin
 	git checkout ${JENKINS_BRANCH}
 	git merge --ff-only origin/${JENKINS_BRANCH}

@@ -62,7 +62,7 @@ class Project(object):
 	def is_under_path(self, path):
 		if path[-1] == '*':
 			path = path[:-1]
-		return self.name.startswith( path )
+		return self.name.startswith( path ) or len(path) == 0
 
 	def __str__(self):
 		return "%s %s"%(self.name, self.dependencies.keys())
@@ -90,7 +90,7 @@ class Dependency_parser(object):
 		)?
 		""",re.X)
 
-	def __init__(self, dependency_file = '/code/kde/src/kde-build-metadata/dependency-data', ignore_file = '/code/kde/src/kde-build-metadata/build-script-ignore' ):
+	def __init__(self, dependency_file, ignore_file ):
 		self.ignore_file = ignore_file
 		self.dependency_file = dependency_file
 		self.projects = {}
@@ -185,10 +185,20 @@ if __name__ in '__main__':
 	branch = sys.argv[2]
 
 	# 1: Find all dependencies
+	dependency_file = ''
+	ignore_file = ''
 	jenkins_slave_home = os.getenv('JENKINS_SLAVE_HOME')
-	dep_parser = Dependency_parser(dependency_file = jenkins_slave_home + '/dependencies/dependency-data', ignore_file = jenkins_slave_home + '/dependencies/build-script-ignore' )
+	if jenkins_slave_home is None:
+		print "JENKINS_SLAVE_HOME environment variable not set"
+		sys.exit(1)
+	else:
+		dependency_file = jenkins_slave_home + '/dependencies/dependency-data'
+		ignore_file = jenkins_slave_home + '/dependencies/build-script-ignore'
+
+	dep_parser = Dependency_parser(dependency_file = dependency_file, ignore_file = ignore_file )
 	dep_parser.parse()
 	if not project in dep_parser.projects:
+		print project + " was not in dependency file, adding"
 		dep_parser.projects[project] = Project( project )
 	projects = dep_parser.add_multi_dependencies()
 
