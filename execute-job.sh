@@ -207,8 +207,8 @@ case ${JOB_TYPE} in
 
 		${JENKINS_SLAVE_HOME}/build-deps-parser.py ${PROJECT_PATH} ${REAL_BRANCH}
 		source environment-vars.sh
-		sync_from_master
 		export_vars
+		sync_from_master
 	
 		rm -rf $WORKSPACE/build
 		git clean -dnx
