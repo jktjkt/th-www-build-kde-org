@@ -52,6 +52,8 @@ function export_vars() {
 	#unset XDG_CONFIG_DIRS
 	unset KDEDIRS
 
+	local CLEAN_DEPS
+
 	for DEP in ${DEPS}; do
 		MODULE_PATH=${DEP%=*}
 		MODULE_BRANCH=${DEP#*=}
@@ -71,6 +73,8 @@ function export_vars() {
 		if [ -z $MODULE ]; then
 			MODULE=$MODULE_PATH
 		fi
+
+		CLEAN_DEPS="${CLEAN_DEPS} $MODULE_PATH=$MODULE_BRANCH"
 
 		echo "=> Adding $MODULE ($MODULE_BRANCH) to env vars..."
 		CMAKE_PREFIX_PATH="${ROOT}/install/${MODULE}/${MODULE_BRANCH}:${CMAKE_PREFIX_PATH}"
@@ -92,6 +96,8 @@ function export_vars() {
 	export XDG_CONFIG_DIRS="${ROOT}/install/${PROJECT}/${REAL_BRANCH}/etc/xdg:${XDG_CONFIG_DIRS%:}:/etc/xdg:${COMMON_DEPS}/etc/xdg"
 	export KDEDIRS="${ROOT}/install/${PROJECT}/${REAL_BRANCH}:${KDEDIRS%:}"
 	export CMAKE_CMD_LINE="-DCMAKE_PREFIX_PATH=\"${CMAKE_PREFIX_PATH%:}\""
+
+	DEPS=$CLEAN_DEPS
 }
 
 function sync_from_master() {
