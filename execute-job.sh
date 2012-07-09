@@ -27,6 +27,11 @@ RSYNC_OPTS="--recursive --links --perms --times --group --owner --devices \
             --specials --delete-during --update --checksum --human-readable --progress"
 
 COMMON_DEPS="/srv/jenkins/install/deps"
+JOB_NAME=${JOB_NAME/test-/}
+PROJECT="${JOB_NAME%%_*}"
+BRANCH="${JOB_NAME##*_}"
+LOCALHOST=`hostname -f`
+
 
 function FAIL {
 	echo $@
@@ -189,58 +194,56 @@ function update_svn() {
 	) || FAIL
 }
 
-JOB_NAME=${JOB_NAME/test-/}
-PROJECT="${JOB_NAME%%_*}"
-BRANCH="${JOB_NAME##*_}"
-LOCALHOST=`hostname -f`
+function main() {
+	rm -f environment-vars.sh
 
+	case ${JOB_TYPE} in
+		build)
+			pushd $JENKINS_SLAVE_HOME
+			REAL_BRANCH=`${JENKINS_SLAVE_HOME}/projects.kde.org.py resolve branch ${PROJECT} ${BRANCH}`
+			PROJECT_PATH=`${JENKINS_SLAVE_HOME}/projects.kde.org.py resolve path ${PROJECT}`
+			REPO_ADDRESS=`${JENKINS_SLAVE_HOME}/projects.kde.org.py resolve repo ${PROJECT}`
+			popd
 
-rm -f environment-vars.sh
+			#Wait for building direct dependencies here?
 
-case ${JOB_TYPE} in
-	build)
-		pushd $JENKINS_SLAVE_HOME
-		REAL_BRANCH=`${JENKINS_SLAVE_HOME}/projects.kde.org.py resolve branch ${PROJECT} ${BRANCH}`
-		PROJECT_PATH=`${JENKINS_SLAVE_HOME}/projects.kde.org.py resolve path ${PROJECT}`
-		REPO_ADDRESS=`${JENKINS_SLAVE_HOME}/projects.kde.org.py resolve repo ${PROJECT}`
-		popd
+			echo "=> Building ${PROJECT}:${REAL_BRANCH}"
 
-		#Wait for building direct dependencies here?
+			#update_repo
 
-		echo "=> Building ${PROJECT}:${REAL_BRANCH}"
+			${JENKINS_SLAVE_HOME}/build-deps-parser.py ${PROJECT_PATH} ${REAL_BRANCH}
+			source environment-vars.sh
+			export_vars
+			sync_from_master
 
-		#update_repo
+			rm -rf $WORKSPACE/build
+			git clean -dnx
+			mkdir $WORKSPACE/build
+			pushd $WORKSPACE/build
+			${JENKINS_SLAVE_HOME}/cmake.sh -DCMAKE_INSTALL_PREFIX=${ROOT}/install/${PROJECT}/${REAL_BRANCH} ..
+			${JENKINS_SLAVE_HOME}/make.sh
+			${JENKINS_SLAVE_HOME}/make.sh install
+			save_results
+			sync_to_master
+			${JENKINS_SLAVE_HOME}/ctest.sh
+			if [[ ! -f $WORKSPACE/build/cppcheck.xml ]]; then
+				echo -e '<?xml version="1.0" encoding="UTF-8"?>\n<results>\n</results>' > $WORKSPACE/build/cppcheck.xml
+			fi
+			popd
+			;;
+		package)
+			# 1: Package
+			# 2: Build and test the new package against the latest packaged dependencies.
+			#    Trigger a build with special options, real_branch set to version?
+			#    Do it here inline?
+			#    Do all packaging first then build all packages or one by one?
+			;;
+	esac
 
-		${JENKINS_SLAVE_HOME}/build-deps-parser.py ${PROJECT_PATH} ${REAL_BRANCH}
-		source environment-vars.sh
-		export_vars
-		sync_from_master
-	
-		rm -rf $WORKSPACE/build
-		git clean -dnx
-		mkdir $WORKSPACE/build
-		pushd $WORKSPACE/build
-		${JENKINS_SLAVE_HOME}/cmake.sh -DCMAKE_INSTALL_PREFIX=${ROOT}/install/${PROJECT}/${REAL_BRANCH} ..
-		${JENKINS_SLAVE_HOME}/make.sh
-		${JENKINS_SLAVE_HOME}/make.sh install
-		save_results
-		sync_to_master
-		${JENKINS_SLAVE_HOME}/ctest.sh
-		if [[ ! -f $WORKSPACE/build/cppcheck.xml ]]; then
-			echo -e '<?xml version="1.0" encoding="UTF-8"?>\n<results>\n</results>' > $WORKSPACE/build/cppcheck.xml
-		fi
-		popd
-		;;
-	package)
-		# 1: Package
-		# 2: Build and test the new package against the latest packaged dependencies.
-		#    Trigger a build with special options, real_branch set to version?
-		#    Do it here inline?
-		#    Do all packaging first then build all packages or one by one?
-		;;
-esac
+	# Apply any local patches
+	#for f in /srv/patches/${JOB_NAME_DIR}/*.patch; do
+	#	patch -p0 < ${f}
+	#done
+}
 
-# Apply any local patches
-#for f in /srv/patches/${JOB_NAME_DIR}/*.patch; do
-#	patch -p0 < ${f}
-#done
+[ $0 ~= "bash" ] && main
