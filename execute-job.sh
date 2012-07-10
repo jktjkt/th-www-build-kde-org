@@ -246,6 +246,6 @@ function main() {
 	#done
 }
 
-if ! [[ "$0" =~ "bash" ]]; then
+if [[ "$0" =~ "bash" ]]; then
 	main
 fi
