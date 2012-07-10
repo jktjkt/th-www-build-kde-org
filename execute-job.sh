@@ -36,7 +36,7 @@ LOCALHOST=`hostname -f`
 function FAIL {
 	echo $@
 	# return if sourced and exit if executed
-	[ $0 ~= "bash" ] || return 1
+	[[ "$0" ~= "bash" ]] || return 1
 	exit 1
 }
 
@@ -246,4 +246,6 @@ function main() {
 	#done
 }
 
-[ $0 ~= "bash" ] && main
+if [[ "$0" ~= "bash" ]]; then
+	main
+fi
