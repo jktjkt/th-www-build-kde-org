@@ -19,6 +19,10 @@ if [ -z "${CMAKE_CMD_LINE}" ]; then
     echo "CMAKE_CMD_LINE not set!"
 fi
 
+if [ -d /usr/lib/ccache ]; then
+    export PATH=/usr/lib/ccache:${PATH}
+fi
+
 echo "=> cmake ${CMAKE_CMD_LINE} ${@}"
 cmake ${CMAKE_CMD_LINE} "${@}"
 
