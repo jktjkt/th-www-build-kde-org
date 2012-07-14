@@ -92,17 +92,25 @@ function export_vars() {
 		KDEDIRS="${ROOT}/install/${MODULE}/${MODULE_BRANCH}:${KDEDIRS}"
 	done
 
-	export CMAKE_PREFIX_PATH="${CMAKE_PREFIX_PATH%:}"
-	export PATH="${JENKINS_SLAVE_HOME}:${ROOT}/install/${PROJECT}/${REAL_BRANCH}:${PATH%:}:${COMMON_DEPS}/bin"
-	export LD_LIBRARY_PATH="${ROOT}/install/${PROJECT}/${REAL_BRANCH}/lib:${LD_LIBRARY_PATH%:}:${COMMON_DEPS}/lib"
-	export PKG_CONFIG_PATH="${ROOT}/install/${PROJECT}/${REAL_BRANCH}:${PKG_CONFIG_PATH%:}:${COMMON_DEPS}"
-	export QT_PLUGIN_PATH="${ROOT}/install/${PROJECT}/${REAL_BRANCH}:${QT_PLUGIN_PATH%:}:${COMMON_DEPS}"
-	export XDG_DATA_DIRS="${ROOT}/install/${PROJECT}/${REAL_BRANCH}/share:${XDG_DATA_DIRS%:}:/usr/local/share/:/usr/share:${COMMON_DEPS}/share"
-	export XDG_CONFIG_DIRS="${ROOT}/install/${PROJECT}/${REAL_BRANCH}/etc/xdg:${XDG_CONFIG_DIRS%:}:/etc/xdg:${COMMON_DEPS}/etc/xdg"
-	export KDEDIRS="${ROOT}/install/${PROJECT}/${REAL_BRANCH}:${KDEDIRS%:}"
-	export CMAKE_CMD_LINE="-DCMAKE_PREFIX_PATH=\"${CMAKE_PREFIX_PATH%:}\""
+	export_var CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH%:}"
+	export_var PATH "${JENKINS_SLAVE_HOME}:${ROOT}/install/${PROJECT}/${REAL_BRANCH}:${PATH%:}:${COMMON_DEPS}/bin"
+	export_var LD_LIBRARY_PATH "${ROOT}/install/${PROJECT}/${REAL_BRANCH}/lib:${LD_LIBRARY_PATH%:}:${COMMON_DEPS}/lib"
+	export_var PKG_CONFIG_PATH "${ROOT}/install/${PROJECT}/${REAL_BRANCH}:${PKG_CONFIG_PATH%:}:${COMMON_DEPS}"
+	export_var QT_PLUGIN_PATH "${ROOT}/install/${PROJECT}/${REAL_BRANCH}:${QT_PLUGIN_PATH%:}:${COMMON_DEPS}"
+	export_var XDG_DATA_DIRS "${ROOT}/install/${PROJECT}/${REAL_BRANCH}/share:${XDG_DATA_DIRS%:}:/usr/local/share/:/usr/share:${COMMON_DEPS}/share"
+	export_var XDG_CONFIG_DIRS "${ROOT}/install/${PROJECT}/${REAL_BRANCH}/etc/xdg:${XDG_CONFIG_DIRS%:}:/etc/xdg:${COMMON_DEPS}/etc/xdg"
+	export_var KDEDIRS "${ROOT}/install/${PROJECT}/${REAL_BRANCH}:${KDEDIRS%:}"
+	export_var CMAKE_CMD_LINE "-DCMAKE_PREFIX_PATH=\"${CMAKE_PREFIX_PATH%:}\""
 
 	DEPS=$CLEAN_DEPS
+}
+
+function export_var() {
+	VAR=$1
+	VALUE=$2
+
+	export $VAR=$VALUE
+	echo "export $VAR=$VALUE" >> ${WORKSPACE}/exported-vars.sh
 }
 
 function sync_from_master() {
