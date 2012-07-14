@@ -217,6 +217,7 @@ function main() {
 
 			echo "=> Building ${PROJECT}:${REAL_BRANCH}"
 
+			git clean -dfx
 			#update_repo
 
 			${JENKINS_SLAVE_HOME}/build-deps-parser.py ${PROJECT_PATH} ${REAL_BRANCH}
@@ -225,7 +226,6 @@ function main() {
 			sync_from_master
 
 			rm -rf $WORKSPACE/build
-			git clean -dnx
 			mkdir $WORKSPACE/build
 			pushd $WORKSPACE/build
 			${JENKINS_SLAVE_HOME}/cmake.sh -DCMAKE_INSTALL_PREFIX=${ROOT}/install/${PROJECT}/${REAL_BRANCH} ..
