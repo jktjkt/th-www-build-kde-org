@@ -92,15 +92,17 @@ function export_vars() {
 		KDEDIRS="${ROOT}/install/${MODULE}/${MODULE_BRANCH}:${KDEDIRS}"
 	done
 
-	export CMAKE_PREFIX_PATH="${CMAKE_PREFIX_PATH%:}"
-	export PATH="${JENKINS_SLAVE_HOME}:${ROOT}/install/${PROJECT}/${REAL_BRANCH}:${PATH%:}:${COMMON_DEPS}/bin"
-	export LD_LIBRARY_PATH="${ROOT}/install/${PROJECT}/${REAL_BRANCH}/lib:${LD_LIBRARY_PATH%:}:${COMMON_DEPS}/lib"
-	export PKG_CONFIG_PATH="${ROOT}/install/${PROJECT}/${REAL_BRANCH}:${PKG_CONFIG_PATH%:}:${COMMON_DEPS}"
-	export QT_PLUGIN_PATH="${ROOT}/install/${PROJECT}/${REAL_BRANCH}:${QT_PLUGIN_PATH%:}:${COMMON_DEPS}"
-	export XDG_DATA_DIRS="${ROOT}/install/${PROJECT}/${REAL_BRANCH}/share:${XDG_DATA_DIRS%:}:/usr/local/share/:/usr/share:${COMMON_DEPS}/share"
-	export XDG_CONFIG_DIRS="${ROOT}/install/${PROJECT}/${REAL_BRANCH}/etc/xdg:${XDG_CONFIG_DIRS%:}:/etc/xdg:${COMMON_DEPS}/etc/xdg"
-	export KDEDIRS="${ROOT}/install/${PROJECT}/${REAL_BRANCH}:${KDEDIRS%:}"
-	export CMAKE_CMD_LINE="-DCMAKE_PREFIX_PATH=\"${CMAKE_PREFIX_PATH%:}\""
+	echo export CMAKE_PREFIX_PATH="${CMAKE_PREFIX_PATH%:}" > ${WORKSPACE}/exported-vars.sh
+	echo export PATH="${JENKINS_SLAVE_HOME}:${ROOT}/install/${PROJECT}/${REAL_BRANCH}:${PATH%:}:${COMMON_DEPS}/bin" >> ${WORKSPACE}/exported-vars.sh
+	echo export LD_LIBRARY_PATH="${ROOT}/install/${PROJECT}/${REAL_BRANCH}/lib:${LD_LIBRARY_PATH%:}:${COMMON_DEPS}/lib" >> ${WORKSPACE}/exported-vars.sh
+	echo export PKG_CONFIG_PATH="${ROOT}/install/${PROJECT}/${REAL_BRANCH}:${PKG_CONFIG_PATH%:}:${COMMON_DEPS}" >> ${WORKSPACE}/exported-vars.sh
+	echo export QT_PLUGIN_PATH="${ROOT}/install/${PROJECT}/${REAL_BRANCH}:${QT_PLUGIN_PATH%:}:${COMMON_DEPS}" >> ${WORKSPACE}/exported-vars.sh
+	echo export XDG_DATA_DIRS="${ROOT}/install/${PROJECT}/${REAL_BRANCH}/share:${XDG_DATA_DIRS%:}:/usr/local/share/:/usr/share:${COMMON_DEPS}/share" >> ${WORKSPACE}/exported-vars.sh
+	echo export XDG_CONFIG_DIRS="${ROOT}/install/${PROJECT}/${REAL_BRANCH}/etc/xdg:${XDG_CONFIG_DIRS%:}:/etc/xdg:${COMMON_DEPS}/etc/xdg" >> ${WORKSPACE}/exported-vars.sh
+	echo export KDEDIRS="${ROOT}/install/${PROJECT}/${REAL_BRANCH}:${KDEDIRS%:}" >> ${WORKSPACE}/exported-vars.sh
+	echo export CMAKE_CMD_LINE="-DCMAKE_PREFIX_PATH=\"${CMAKE_PREFIX_PATH%:}\"" >> ${WORKSPACE}/exported-vars.sh
+
+	source ${WORKSPACE}/exported-vars.sh
 
 	DEPS=$CLEAN_DEPS
 }
@@ -217,8 +219,8 @@ function main() {
 			sync_from_master
 
 			rm -rf $WORKSPACE/build
-			git clean -dnx
-			mkdir $WORKSPACE/build
+			git clean -fdx
+			mkdir -p $WORKSPACE/build
 			pushd $WORKSPACE/build
 			${JENKINS_SLAVE_HOME}/cmake.sh -DCMAKE_INSTALL_PREFIX=${ROOT}/install/${PROJECT}/${REAL_BRANCH} ..
 			${JENKINS_SLAVE_HOME}/make.sh
