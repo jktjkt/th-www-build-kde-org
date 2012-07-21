@@ -40,7 +40,18 @@ function FAIL {
 	exit 1
 }
 
+function debug() {
+	if [[ -n "${DEBUG}" ]]; then
+		if [[ "${DEBUG}" =~ "${1}" ]] || [[ "${DEBUG}" == "*" ]]; then
+			echo "DEBUG: $2"
+		fi
+	fi
+}
+
 function export_vars() {
+	local ENV=`env`
+	debug "env" "Pre export env: ${ENV}"
+
 	if [ -z "${DEPS}" ]; then
 		echo "=>###############################"
 		echo "=> WARN: No deps listed!"
@@ -52,9 +63,9 @@ function export_vars() {
 	unset CMAKE_INSTALL_PREFIX
 	unset QT_PLUGIN_PATH
 	unset XDG_DATA_HOME
-	#unset XDG_DATA_DIRS
+	unset XDG_DATA_DIRS
 	unset XDG_CONFIG_HOME
-	#unset XDG_CONFIG_DIRS
+	unset XDG_CONFIG_DIRS
 	unset KDEDIRS
 
 	local CLEAN_DEPS
@@ -103,6 +114,8 @@ function export_vars() {
 	export_var CMAKE_CMD_LINE "-DCMAKE_PREFIX_PATH=\"${CMAKE_PREFIX_PATH%:}\""
 
 	DEPS=$CLEAN_DEPS
+	ENV=`env`
+	debug "env" "Post export ${ENV}"
 }
 
 function export_var() {
@@ -111,6 +124,7 @@ function export_var() {
 
 	export $VAR=$VALUE
 	echo "export $VAR=$VALUE" >> ${WORKSPACE}/exported-vars.sh
+	debug "env" "export $VAR=$VALUE"
 }
 
 function sync_from_master() {
@@ -214,11 +228,17 @@ function main() {
 			popd
 
 			#Wait for building direct dependencies here?
+			#For unmet dep schedule a new build (Jenkins handles nested deps)
+			#Reschedule this build again (will be built after the deps)
 
 			echo "=> Building ${PROJECT}:${REAL_BRANCH}"
 
 			git clean -dfx
-			#update_repo
+
+			# Apply any local patches
+			#for f in ${ROOT}/patches/${JOB_NAME_DIR}/*.patch; do
+			#	patch -p0 < ${f}
+			#done
 
 			${JENKINS_SLAVE_HOME}/build-deps-parser.py ${PROJECT_PATH} ${REAL_BRANCH}
 			source environment-vars.sh
@@ -228,16 +248,24 @@ function main() {
 			rm -rf $WORKSPACE/build
 			mkdir $WORKSPACE/build
 			pushd $WORKSPACE/build
+
+			local ENV=`env`
+			debug "env" "Build env: ${ENV}"
+
 			${JENKINS_SLAVE_HOME}/cmake.sh -DCMAKE_INSTALL_PREFIX=${ROOT}/install/${PROJECT}/${REAL_BRANCH} ..
 			${JENKINS_SLAVE_HOME}/make.sh
 			${JENKINS_SLAVE_HOME}/make.sh install
+
 			save_results
 			sync_to_master
+
 			${JENKINS_SLAVE_HOME}/ctest.sh
 			if [[ ! -f $WORKSPACE/build/cppcheck.xml ]]; then
+				debug "test" "No cppcheck result found, faking an empty one"
 				echo -e '<?xml version="1.0" encoding="UTF-8"?>\n<results>\n</results>' > $WORKSPACE/build/cppcheck.xml
 			fi
 			popd
+
 			;;
 		package)
 			# 1: Package
@@ -247,11 +275,6 @@ function main() {
 			#    Do all packaging first then build all packages or one by one?
 			;;
 	esac
-
-	# Apply any local patches
-	#for f in /srv/patches/${JOB_NAME_DIR}/*.patch; do
-	#	patch -p0 < ${f}
-	#done
 }
 
 if [ -z "$1" ]; then
