@@ -252,7 +252,11 @@ function main() {
 			local ENV=`env`
 			debug "env" "Build env: ${ENV}"
 
-			${JENKINS_SLAVE_HOME}/cmake.sh -DCMAKE_INSTALL_PREFIX=${ROOT}/install/${PROJECT}/${REAL_BRANCH} ..
+			local EXTRA_VARS=""
+			if [[ -n "${DEBUG}" ]] && [[ "${DEBUG}" =~ "make" ]]; then
+				EXTRA_VARS="--debug-output"
+			fi
+			${JENKINS_SLAVE_HOME}/cmake.sh ${EXTRA_VARS} -DCMAKE_INSTALL_PREFIX=${ROOT}/install/${PROJECT}/${REAL_BRANCH} ..
 			${JENKINS_SLAVE_HOME}/make.sh
 			${JENKINS_SLAVE_HOME}/make.sh install
 
