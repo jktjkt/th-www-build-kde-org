@@ -136,7 +136,7 @@ function sync_from_master() {
 
 			#lock_dir ${ROOT}/install/${MODULE}/${MODULE_BRANCH}/
 			echo "Syncing $MODULE ($MODULE_BRANCH) with ${MASTER}..."
-			mkdir -p ${ROOT}/install/${MODULE}/${MODULE_BRANCH}
+			mkdir -p ${ROOT}/install/${MODULE_PATH}/${MODULE_BRANCH}
 			rsync ${RSYNC_OPTS} ${MASTER}:${ROOT}/install/${MODULE}/${MODULE_BRANCH}/ ${ROOT}/install/${MODULE}/${MODULE_BRANCH}/ || FAIL "Required dependency: $MODULE/$MODULE_BRANCH was not found on master"
 			#unlock_dir ${ROOT}/install/${MODULE}/${MODULE_BRANCH}/
 		done
