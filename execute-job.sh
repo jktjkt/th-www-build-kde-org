@@ -136,8 +136,10 @@ function sync_from_master() {
 
 			#lock_dir ${ROOT}/install/${MODULE}/${MODULE_BRANCH}/
 			echo "Syncing $MODULE ($MODULE_BRANCH) with ${MASTER}..."
-			mkdir -p ${ROOT}/install/${MODULE_PATH}/${MODULE_BRANCH}
-			rsync ${RSYNC_OPTS} ${MASTER}:${ROOT}/install/${MODULE}/${MODULE_BRANCH}/ ${ROOT}/install/${MODULE}/${MODULE_BRANCH}/ || FAIL "Required dependency: $MODULE/$MODULE_BRANCH was not found on master"
+			if [[ -z "${FAKE_EXECUTION}" ]] || [[ "${FAKE_EXECUTION}" == "false" ]]; then
+				mkdir -p ${ROOT}/install/${MODULE}/${MODULE_BRANCH}
+				rsync ${RSYNC_OPTS} ${MASTER}:${ROOT}/install/${MODULE}/${MODULE_BRANCH}/ ${ROOT}/install/${MODULE}/${MODULE_BRANCH}/ || FAIL "Required dependency: $MODULE/$MODULE_BRANCH was not found on master"
+			fi
 			#unlock_dir ${ROOT}/install/${MODULE}/${MODULE_BRANCH}/
 		done
 	else
@@ -148,8 +150,10 @@ function sync_from_master() {
 function sync_to_master() {
 	if [[ "${MASTER}" != "${LOCALHOST}" ]]; then
 		echo "=> Syncing changes with master (\"${MASTER}\")..."
-		ssh ${MASTER} mkdir -p "${ROOT}/install/${PROJECT}/${BRANCH}"
-		rsync ${RSYNC_OPTS} "${ROOT}/install/${PROJECT}/${REAL_BRANCH}/" "${MASTER}:${ROOT}/install/${PROJECT_PATH}/${BRANCH}/"
+		if [[ -z "${FAKE_EXECUTION}" ]] || [[ "${FAKE_EXECUTION}" == "false" ]]; then
+			ssh ${MASTER} mkdir -p "${ROOT}/install/${PROJECT}/${BRANCH}"
+			rsync ${RSYNC_OPTS} "${ROOT}/install/${PROJECT}/${REAL_BRANCH}/" "${MASTER}:${ROOT}/install/${PROJECT_PATH}/${BRANCH}/"
+		fi
 		echo "=> done"
 	else
 		echo "=> Running on master, skipping sync"
@@ -158,12 +162,17 @@ function sync_to_master() {
 
 function save_results() {
 	echo -n "=> Removing old install dir (\"${ROOT}/install/${PROJECT}/${REAL_BRANCH}\")..."
-	rm -rf "${ROOT}/install/${PROJECT}/${REAL_BRANCH}"
+	if [[ -z "${FAKE_EXECUTION}" ]] || [[ "${FAKE_EXECUTION}" == "false" ]]; then
+		rm -rf "${ROOT}/install/${PROJECT}/${REAL_BRANCH}"
+	fi
 	echo " done"
+
 	basedir=`dirname "${ROOT}/install/${PROJECT}/${REAL_BRANCH}"`
 	echo -n "=> Moving new install to global location (\"${ROOT}/install/${PROJECT}/${REAL_BRANCH}\")..."
-	mkdir -p "${basedir}"
-	mv "${WORKSPACE}/install/${ROOT}/install/${PROJECT}/${REAL_BRANCH}" "${ROOT}/install/${PROJECT}/${BRANCH}"
+	if [[ -z "${FAKE_EXECUTION}" ]] || [[ "${FAKE_EXECUTION}" == "false" ]]; then
+		mkdir -p "${basedir}"
+		mv "${WORKSPACE}/install/${ROOT}/install/${PROJECT}/${REAL_BRANCH}" "${ROOT}/install/${PROJECT}/${BRANCH}"
+	fi
 	echo " done"
 }
 
@@ -256,17 +265,22 @@ function main() {
 			if [[ -n "${DEBUG}" ]] && [[ "${DEBUG}" =~ "make" ]]; then
 				EXTRA_VARS="--debug-output"
 			fi
-			${JENKINS_SLAVE_HOME}/cmake.sh ${EXTRA_VARS} -DCMAKE_INSTALL_PREFIX=${ROOT}/install/${PROJECT}/${REAL_BRANCH} ..
-			${JENKINS_SLAVE_HOME}/make.sh
-			${JENKINS_SLAVE_HOME}/make.sh install
+
+			if [[ -z "${FAKE_EXECUTION}" ]] || [[ "${FAKE_EXECUTION}" == "false" ]]; then
+				${JENKINS_SLAVE_HOME}/cmake.sh ${EXTRA_VARS} -DCMAKE_INSTALL_PREFIX=${ROOT}/install/${PROJECT}/${REAL_BRANCH} ..
+				${JENKINS_SLAVE_HOME}/make.sh
+				${JENKINS_SLAVE_HOME}/make.sh install
+			fi
 
 			save_results
 			sync_to_master
 
-			${JENKINS_SLAVE_HOME}/ctest.sh
-			if [[ ! -f $WORKSPACE/build/cppcheck.xml ]]; then
-				debug "test" "No cppcheck result found, faking an empty one"
-				echo -e '<?xml version="1.0" encoding="UTF-8"?>\n<results>\n</results>' > $WORKSPACE/build/cppcheck.xml
+			if [[ -z "${FAKE_EXECUTION}" ]] || [[ "${FAKE_EXECUTION}" == "false" ]]; then
+				${JENKINS_SLAVE_HOME}/ctest.sh
+				if [[ ! -f $WORKSPACE/build/cppcheck.xml ]]; then
+					debug "test" "No cppcheck result found, faking an empty one"
+					echo -e '<?xml version="1.0" encoding="UTF-8"?>\n<results>\n</results>' > $WORKSPACE/build/cppcheck.xml
+				fi
 			fi
 			popd
 
