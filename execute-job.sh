@@ -149,7 +149,7 @@ function sync_to_master() {
 	if [[ "${MASTER}" != "${LOCALHOST}" ]]; then
 		echo "=> Syncing changes with master (\"${MASTER}\")..."
 		ssh ${MASTER} mkdir -p "${ROOT}/install/${PROJECT}/${BRANCH}"
-		rsync ${RSYNC_OPTS} "${ROOT}/install/${PROJECT}/${REAL_BRANCH}/" "${MASTER}:${ROOT}/install/${PROJECT}/${BRANCH}/"
+		rsync ${RSYNC_OPTS} "${ROOT}/install/${PROJECT}/${REAL_BRANCH}/" "${MASTER}:${ROOT}/install/${PROJECT_PATH}/${BRANCH}/"
 		echo "=> done"
 	else
 		echo "=> Running on master, skipping sync"
