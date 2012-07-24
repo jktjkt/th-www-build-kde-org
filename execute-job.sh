@@ -151,8 +151,8 @@ function sync_to_master() {
 	if [[ "${MASTER}" != "${LOCALHOST}" ]]; then
 		echo "=> Syncing changes with master (\"${MASTER}\")..."
 		if [[ -z "${FAKE_EXECUTION}" ]] || [[ "${FAKE_EXECUTION}" == "false" ]]; then
-			ssh ${MASTER} mkdir -p "${ROOT}/install/${PROJECT}/${BRANCH}"
-			rsync ${RSYNC_OPTS} "${ROOT}/install/${PROJECT}/${REAL_BRANCH}/" "${MASTER}:${ROOT}/install/${PROJECT_PATH}/${BRANCH}/"
+			ssh ${MASTER} mkdir -p "${ROOT}/install/${PROJECT_PATH}/${BRANCH}"
+			rsync ${RSYNC_OPTS} "${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH}/" "${MASTER}:${ROOT}/install/${PROJECT_PATH}/${BRANCH}/"
 		fi
 		echo "=> done"
 	else
@@ -267,7 +267,7 @@ function main() {
 			fi
 
 			if [[ -z "${FAKE_EXECUTION}" ]] || [[ "${FAKE_EXECUTION}" == "false" ]]; then
-				${JENKINS_SLAVE_HOME}/cmake.sh ${EXTRA_VARS} -DCMAKE_INSTALL_PREFIX=${ROOT}/install/${PROJECT}/${REAL_BRANCH} ..
+				${JENKINS_SLAVE_HOME}/cmake.sh ${EXTRA_VARS} -DCMAKE_INSTALL_PREFIX=${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH} ..
 				${JENKINS_SLAVE_HOME}/make.sh
 				${JENKINS_SLAVE_HOME}/make.sh install
 			fi
