@@ -161,17 +161,17 @@ function sync_to_master() {
 }
 
 function save_results() {
-	echo -n "=> Removing old install dir (\"${ROOT}/install/${PROJECT}/${REAL_BRANCH}\")..."
+	echo -n "=> Removing old install dir (\"${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH}\")..."
 	if [[ -z "${FAKE_EXECUTION}" ]] || [[ "${FAKE_EXECUTION}" == "false" ]]; then
-		rm -rf "${ROOT}/install/${PROJECT}/${REAL_BRANCH}"
+		rm -rf "${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH}"
 	fi
 	echo " done"
 
-	basedir=`dirname "${ROOT}/install/${PROJECT}/${REAL_BRANCH}"`
-	echo -n "=> Moving new install to global location (\"${ROOT}/install/${PROJECT}/${REAL_BRANCH}\")..."
+	basedir=`dirname "${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH}"`
+	echo -n "=> Moving new install to global location (\"${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH}\")..."
 	if [[ -z "${FAKE_EXECUTION}" ]] || [[ "${FAKE_EXECUTION}" == "false" ]]; then
 		mkdir -p "${basedir}"
-		mv "${WORKSPACE}/install/${ROOT}/install/${PROJECT}/${REAL_BRANCH}" "${ROOT}/install/${PROJECT}/${BRANCH}"
+		mv "${WORKSPACE}/install/${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH}" "${ROOT}/install/${PROJECT_PATH}/${BRANCH}"
 	fi
 	echo " done"
 }
