@@ -71,6 +71,12 @@ function export_vars() {
 
 	local CLEAN_DEPS
 
+	echo -e "\n=> Dependencies:\n"
+	for DEP in ${DEPS}; do
+		echo "=> Dep: ${DEP%=*}:${DEP#*=}"
+	done
+	echo -e "\n"
+
 	for DEP in ${DEPS}; do
 		MODULE_PATH=${DEP%=*}
 		MODULE_BRANCH=${DEP#*=}
