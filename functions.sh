@@ -49,6 +49,7 @@ function debug() {
 }
 
 function export_vars() {
+	echo -e "\n=> export_vars\n"
 	local ENV=`env`
 	debug "env" "Pre export env: ${ENV}"
 
@@ -136,6 +137,7 @@ function export_var() {
 }
 
 function sync_from_master() {
+	echo -e "\n=> sync_from_master\n"
 	if [[ "${MASTER}" != "${LOCALHOST}" ]]; then
 		echo "=> Syncing..."
 		for DEP in ${DEPS}; do
@@ -156,6 +158,8 @@ function sync_from_master() {
 }
 
 function sync_to_master() {
+	echo -e "\n=> sync_to_master\n"
+
 	if [[ "${MASTER}" != "${LOCALHOST}" ]]; then
 		echo "=> Syncing changes with master (\"${MASTER}\")..."
 		if [[ -z "${FAKE_EXECUTION}" ]] || [[ "${FAKE_EXECUTION}" == "false" ]]; then
@@ -169,6 +173,8 @@ function sync_to_master() {
 }
 
 function save_results() {
+	echo -e "\n=> save_results\n"
+
 	echo -n "=> Removing old install dir (\"${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH}\")..."
 	if [[ -z "${FAKE_EXECUTION}" ]] || [[ "${FAKE_EXECUTION}" == "false" ]]; then
 		rm -rf "${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH}"
@@ -194,6 +200,7 @@ function set_revision() {
 }
 
 function update_repo() {
+	echo -e "\n=> update_repo\n"
 
 	if [[ "$REPO_ADDRESS" =~ "git.kde.org" ]]; then
 		echo "Sleeping for $POLL_DELAY seconds to allow mirrors to sync"
@@ -210,6 +217,8 @@ function update_repo() {
 }
 
 function update_git() {
+	echo -e "\n=> update_git\n"
+
 	if [ ! -d ".git" ]; then
 		git clone $REPO_ADDRESS .
 	fi
@@ -223,6 +232,8 @@ function update_git() {
 }
 
 function update_svn() {
+	echo -e "\n=> update_svn\n"
+
 	if [ ! -d ".svn" ]; then
 		svn co $REPO_ADDRESS .
 	fi

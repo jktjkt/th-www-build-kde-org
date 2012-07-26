@@ -8,6 +8,8 @@ rm -f environment-vars.sh
 
 case ${JOB_TYPE} in
 	build)
+			echo -e "\n=> Build mode\n"
+
 		pushd $JENKINS_SLAVE_HOME
 		REAL_BRANCH=`${JENKINS_SLAVE_HOME}/projects.kde.org.py resolve branch ${PROJECT} ${BRANCH}`
 		PROJECT_PATH=`${JENKINS_SLAVE_HOME}/projects.kde.org.py resolve path ${PROJECT}`
@@ -20,19 +22,22 @@ case ${JOB_TYPE} in
 
 		echo "=> Building ${PROJECT}:${REAL_BRANCH}"
 
+		echo "=> Clean workspace"
 		git clean -dfx
+		rm -rf $WORKSPACE/build
 
 		# Apply any local patches
+		#echo "=> Apply local patches"
 		#for f in ${ROOT}/patches/${JOB_NAME_DIR}/*.patch; do
 		#	patch -p0 < ${f}
 		#done
 
+		echo "=> Calculate dependencies"
 		${JENKINS_SLAVE_HOME}/build-deps-parser.py ${PROJECT_PATH} ${REAL_BRANCH}
 		source environment-vars.sh
 		export_vars
 		sync_from_master
 
-		rm -rf $WORKSPACE/build
 		mkdir $WORKSPACE/build
 		pushd $WORKSPACE/build
 
@@ -44,11 +49,14 @@ case ${JOB_TYPE} in
 			EXTRA_VARS="--debug-output"
 		fi
 
+		echo "=> Building..."
 		if [[ -z "${FAKE_EXECUTION}" ]] || [[ "${FAKE_EXECUTION}" == "false" ]]; then
 			${JENKINS_SLAVE_HOME}/cmake.sh ${EXTRA_VARS} -DCMAKE_INSTALL_PREFIX=${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH} ..
 			${JENKINS_SLAVE_HOME}/make.sh
 			${JENKINS_SLAVE_HOME}/make.sh install
 		fi
+
+		echo "=> Building done"
 
 		save_results
 		sync_to_master
