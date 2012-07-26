@@ -101,6 +101,10 @@ function export_vars() {
 		XDG_DATA_DIRS="${ROOT}/install/${MODULE}/${MODULE_BRANCH}/share:${XDG_DATA_DIRS}"
 		XDG_CONFIG_DIRS="${ROOT}/install/${MODULE}/${MODULE_BRANCH}/etc/xdg:${XDG_CONFIG_DIRS}"
 		KDEDIRS="${ROOT}/install/${MODULE}/${MODULE_BRANCH}:${KDEDIRS}"
+
+		QML_IMPORT_PATH="${ROOT}/install/${MODULE}/${MODULE_BRANCH}/lib/qt4/imports:${QML_IMPORT_PATH}"
+		QMAKEPATH="${ROOT}/install/${MODULE}/${MODULE_BRANCH}/share/qt4/mkspecs/modules:${QMAKEPATH}"
+		QT_PLUGIN_PATH="${ROOT}/install/${MODULE}/${MODULE_BRANCH}/lib/qt4/plugins/designer:${QT_PLUGIN_PATH}"
 	done
 
 	export_var CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH%:}"
@@ -112,6 +116,10 @@ function export_vars() {
 	export_var XDG_CONFIG_DIRS "${ROOT}/install/${PROJECT}/${REAL_BRANCH}/etc/xdg:${XDG_CONFIG_DIRS%:}:/etc/xdg:${COMMON_DEPS}/etc/xdg"
 	export_var KDEDIRS "${ROOT}/install/${PROJECT}/${REAL_BRANCH}:${KDEDIRS%:}"
 	export_var CMAKE_CMD_LINE "-DCMAKE_PREFIX_PATH=\"${CMAKE_PREFIX_PATH%:}\""
+
+	export_var QML_IMPORT_PATH
+	export_var QMAKEPATH
+	export_var QT_PLUGIN_PATH
 
 	DEPS=$CLEAN_DEPS
 	ENV=`env`
