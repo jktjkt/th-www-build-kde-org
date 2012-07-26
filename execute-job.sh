@@ -2,7 +2,7 @@
 
 echo -e "\n=> execute-job.sh\n"
 
-source functions.sh
+source ${JENKINS_SLAVE_HOME}/functions.sh
 
 rm -f environment-vars.sh
 
