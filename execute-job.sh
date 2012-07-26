@@ -1,5 +1,7 @@
 #!/bin/bash -ex
 
+echo "=> execute-job.sh: $@"
+
 if [ -z ${JOB_TYPE} ]; then
 	echo "=> JOB_TYPE not set!"
 	FAIL
