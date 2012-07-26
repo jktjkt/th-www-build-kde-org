@@ -109,7 +109,12 @@ function export_vars() {
 	done
 
 	export_var CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH%:}"
+
+	if [[ -d "/usr/lib/ccache/" ]]; then
+		PATH="/usr/lib/ccache/:${PATH}"
+	fi
 	export_var PATH "${JENKINS_SLAVE_HOME}:${ROOT}/install/${PROJECT}/${REAL_BRANCH}:${PATH%:}:${COMMON_DEPS}/bin"
+
 	export_var LD_LIBRARY_PATH "${ROOT}/install/${PROJECT}/${REAL_BRANCH}/lib:${LD_LIBRARY_PATH%:}:${COMMON_DEPS}/lib"
 	export_var PKG_CONFIG_PATH "${ROOT}/install/${PROJECT}/${REAL_BRANCH}:${PKG_CONFIG_PATH%:}:${COMMON_DEPS}"
 	export_var QT_PLUGIN_PATH "${ROOT}/install/${PROJECT}/${REAL_BRANCH}:${QT_PLUGIN_PATH%:}:${COMMON_DEPS}"
