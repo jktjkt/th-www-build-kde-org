@@ -41,7 +41,7 @@ case ${JOB_TYPE} in
 		mkdir $WORKSPACE/build
 		pushd $WORKSPACE/build
 
-		local ENV=`env`
+		ENV=`env`
 		debug "env" "Build env: ${ENV}"
 
 		local EXTRA_VARS=""
