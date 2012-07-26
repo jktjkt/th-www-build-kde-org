@@ -44,7 +44,7 @@ case ${JOB_TYPE} in
 		ENV=`env`
 		debug "env" "Build env: ${ENV}"
 
-		local EXTRA_VARS=""
+		EXTRA_VARS=""
 		if [[ -n "${DEBUG}" ]] && [[ "${DEBUG}" =~ "make" ]]; then
 			EXTRA_VARS="--debug-output"
 		fi
