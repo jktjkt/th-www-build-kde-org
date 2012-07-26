@@ -8,7 +8,7 @@ rm -f environment-vars.sh
 
 case ${JOB_TYPE} in
 	build)
-			echo -e "\n=> Build mode\n"
+		echo -e "\n=> Build mode\n"
 
 		pushd $JENKINS_SLAVE_HOME
 		REAL_BRANCH=`${JENKINS_SLAVE_HOME}/projects.kde.org.py resolve branch ${PROJECT} ${BRANCH}`

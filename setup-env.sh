@@ -49,7 +49,6 @@ echo "=>Setting up dependency info..."
 	git fetch origin
 	git checkout ${JENKINS_DEPENDENCY_BRANCH}
 	git merge --ff-only origin/${JENKINS_DEPENDENCY_BRANCH}
-	git merge --ff-only origin/master
 	git log -1 HEAD
 ) || FAIL
 popd

@@ -208,8 +208,6 @@ function update_repo() {
 	echo -e "\n=> update_repo\n"
 
 	if [[ "$REPO_ADDRESS" =~ "git.kde.org" ]]; then
-		echo "Sleeping for $POLL_DELAY seconds to allow mirrors to sync"
-		sleep $POLL_DELAY
 		update_git
 	elif [[ "$REPO_ADDRESS" =~ "svn.kde.org" ]]; then
 		update_svn
