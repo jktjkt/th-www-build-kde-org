@@ -1,8 +1,10 @@
 import hudson.model.*
 
-def view = Hudson.instance.getView("External")
+def view = Hudson.instance.getView("External_Deps")
 
-for(item in view.getItems())
-{
-    println("$item.name")
+if( view != null ) {
+	for(item in view.getItems())
+	{
+		println("$item.name")
+	}
 }
