@@ -16,6 +16,13 @@ pushd ${BUILD_DIR}
 ctest -N | grep "Total Tests: 0"
 if [[ $? == 0 ]]; then
     echo "=> No tests found"
+cat <<EOB > ${BUILD_DIR}/JUnitTestResults.xml
+<?xml version="1.0"?>
+<testsuite>
+  <properties>
+  </properties>
+</testsuite>
+EOB
 else
 	echo "=> Getting running Xvfb instances"
 	pids=`pgrep Xvfb -U jenkins`
