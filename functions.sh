@@ -1,8 +1,9 @@
 #!/bin/bash -ex
 
 if [ -z ${JOB_TYPE} ]; then
-	echo "=> JOB_TYPE not set!"
-	FAIL
+	echo -e "\n=> JOB_TYPE not set!\n"
+	echo -e "=> Defaulting to build\n"
+	JOB_TYPE="build"
 fi
 
 if [ -z "${MASTER}" ]; then
