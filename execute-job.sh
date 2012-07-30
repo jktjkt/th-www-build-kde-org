@@ -12,7 +12,11 @@ case ${JOB_TYPE} in
 
 		pushd $JENKINS_SLAVE_HOME
 		REAL_BRANCH=`${JENKINS_SLAVE_HOME}/projects.kde.org.py resolve branch ${PROJECT} ${BRANCH}`
-		PROJECT_PATH=`${JENKINS_SLAVE_HOME}/projects.kde.org.py resolve path ${PROJECT}`
+		if [[ ${KDE_PROJECT} ]]; then
+			PROJECT_PATH=`${JENKINS_SLAVE_HOME}/projects.kde.org.py resolve path ${PROJECT}`
+		else
+			PROJECT_PATH=deps
+		fi
 		REPO_ADDRESS=`${JENKINS_SLAVE_HOME}/projects.kde.org.py resolve repo ${PROJECT}`
 		popd
 
