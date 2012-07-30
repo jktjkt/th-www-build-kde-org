@@ -23,7 +23,9 @@ case ${JOB_TYPE} in
 		echo "=> Building ${PROJECT}:${REAL_BRANCH}"
 
 		echo "=> Clean workspace"
-		git clean -dfx
+		if [[ -d ".git" ]]; then
+			git clean -dfx
+		fi
 		rm -rf $WORKSPACE/build
 
 		# Apply any local patches
