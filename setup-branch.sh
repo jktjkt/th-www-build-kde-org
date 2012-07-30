@@ -42,6 +42,7 @@ if [[ "${PROJECT}" == "Qt" ]]; then
 		FAIL "Unknown Qt branch ${WANTED_BRANCH}"
 	fi
 else
+	pushd ${JENKINS_SLAVE_HOME}
 	rm -f jenkins-cli.jar
 	wget http://sandbox.build.kde.org/jnlpJars/jenkins-cli.jar
 	EXTERNAL_JOBS=`java -jar ./jenkins-cli.jar -i jenkins-private.key -s http://sandbox.build.kde.org groovy external_jobs.groovy`
@@ -49,10 +50,9 @@ else
 		KDE_PROJECT=0
 		unset BRANCH
 	else
-		pushd ${JENKINS_SLAVE_HOME}
 		RESOLVED_BRANCH=`${JENKINS_SLAVE_HOME}/projects.kde.org.py resolve branch ${PROJECT} ${WANTED_BRANCH}`
-		popd
 	fi
+	popd
 fi
 
 if [[ ${KDE_PROJECT} ]]; then
