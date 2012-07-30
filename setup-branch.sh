@@ -13,8 +13,9 @@ if [ -z "${JOB_NAME}" ]; then
 fi
 
 if [ -z "${BRANCH}" ]; then
-     echo "BRANCH not set!"
-     FAIL
+     echo -e "\n=> BRANCH not set!"
+     echo -e "=> Defaulting to master"
+     BRANCH="master"
 fi
  
 if [ -z "${JENKINS_SLAVE_HOME}" ]; then
@@ -44,6 +45,7 @@ else
 	EXTERNAL_JOBS=`java -jar ./jenkins-cli.jar -i jenkins-private.key -s http://sandbox.build.kde.org groovy external_jobs.groovy`
 	if `echo ${EXTERNAL_JOBS} | grep ${PROJECT}`; then
 		KDE_PROJECT=0
+		unset BRANCH
 	else
 		pushd ${JENKINS_SLAVE_HOME}
 		RESOLVED_BRANCH=`${JENKINS_SLAVE_HOME}/projects.kde.org.py resolve branch ${PROJECT} ${WANTED_BRANCH}`
