@@ -29,7 +29,7 @@ JOB_NAME=${JOB_NAME/test-/}
 PROJECT="${JOB_NAME%%_*}"
 #WANTED_BRANCH="${JOB_NAME##*_}"
 
-KDE_PROJECT=1
+KDE_PROJECT="true"
 
 if [[ "${PROJECT}" == "Qt" ]]; then
 	if [[ "$WANTED_BRANCH" == "stable" ]]; then
@@ -47,7 +47,7 @@ else
 	wget http://sandbox.build.kde.org/jnlpJars/jenkins-cli.jar
 	EXTERNAL_JOBS=`java -jar ./jenkins-cli.jar -i jenkins-private.key -s http://sandbox.build.kde.org groovy external_jobs.groovy`
 	if `echo "\"${EXTERNAL_JOBS}\"" | grep ${PROJECT}`; then
-		KDE_PROJECT=0
+		KDE_PROJECT="false"
 		unset BRANCH
 	else
 		RESOLVED_BRANCH=`${JENKINS_SLAVE_HOME}/projects.kde.org.py resolve branch ${PROJECT} ${WANTED_BRANCH}`
@@ -55,7 +55,7 @@ else
 	popd
 fi
 
-if [[ ${KDE_PROJECT} ]]; then
+if [[ "${KDE_PROJECT}" == "true" ]]; then
 	REPO_ADDRESS=`${JENKINS_SLAVE_HOME}/projects.kde.org.py resolve repo ${PROJECT}`
 
 	pushd ${WORKSPACE}

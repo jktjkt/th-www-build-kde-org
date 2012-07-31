@@ -12,7 +12,7 @@ case ${JOB_TYPE} in
 
 		pushd $JENKINS_SLAVE_HOME
 		REAL_BRANCH=`${JENKINS_SLAVE_HOME}/projects.kde.org.py resolve branch ${PROJECT} ${BRANCH}`
-		if [[ ${KDE_PROJECT} ]]; then
+		if [[ "${KDE_PROJECT}" == "true" ]]; then
 			PROJECT_PATH=`${JENKINS_SLAVE_HOME}/projects.kde.org.py resolve path ${PROJECT}`
 		else
 			PROJECT_PATH=deps
@@ -41,7 +41,7 @@ case ${JOB_TYPE} in
 		echo "=> Calculate dependencies"
 		${JENKINS_SLAVE_HOME}/build-deps-parser.py ${PROJECT_PATH} ${REAL_BRANCH}
 		source environment-vars.sh
-		if [[ ${KDE_PROJECT} ]]; then
+		if [[ "${KDE_PROJECT}" == "true" ]]; then
 			unset REAL_BRANCH
 		fi
 		export_vars
