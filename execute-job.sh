@@ -41,6 +41,9 @@ case ${JOB_TYPE} in
 		echo "=> Calculate dependencies"
 		${JENKINS_SLAVE_HOME}/build-deps-parser.py ${PROJECT_PATH} ${REAL_BRANCH}
 		source environment-vars.sh
+		if [[ ${KDE_PROJECT} ]]; then
+			unset REAL_BRANCH
+		fi
 		export_vars
 		sync_from_master
 

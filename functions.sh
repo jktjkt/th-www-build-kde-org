@@ -175,9 +175,6 @@ function sync_to_master() {
 
 	if [[ "${MASTER}" != "${LOCALHOST}" ]]; then
 		echo "=> Syncing changes with master (\"${MASTER}\")..."
-		if [[ "${PROJECT_PATH}" == "deps" ]]; then
-			unset REAL_BRANCH
-		fi
 		if [[ -z "${FAKE_EXECUTION}" ]] || [[ "${FAKE_EXECUTION}" == "false" ]]; then
 			ssh ${MASTER} mkdir -p "${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH}"
 			rsync ${RSYNC_OPTS} "${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH}/" "${MASTER}:${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH}/"
