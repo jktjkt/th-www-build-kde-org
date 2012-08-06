@@ -5,6 +5,8 @@ def view = Hudson.instance.getView("External_Deps")
 if( view != null ) {
 	for(item in view.getItems())
 	{
-		print("$item.name ")
+		println("$item.name")
 	}
+} else {
+	println("View not found")
 }
