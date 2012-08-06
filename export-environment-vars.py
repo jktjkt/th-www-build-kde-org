@@ -89,7 +89,7 @@ def write_export_file( export_str ):
 		master = master[7:]
 	if master.count(":") > 0:
 		master = master[:master.rfind(":")]
-	f = open( os.path.join( build_dir, "environment-vars.sh" ), 'w' )
+	f = open( os.path.join( build_dir, "build-kde-org.environment" ), 'w' )
 	f.write( "#!/bin/bash -x\n" )
 	f.write( export_str + "\n" )
 	f.write( "export MASTER=%s\n"%master )

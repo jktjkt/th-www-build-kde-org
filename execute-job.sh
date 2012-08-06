@@ -4,8 +4,6 @@ echo -e "\n=> execute-job.sh\n"
 
 source ${JENKINS_SLAVE_HOME}/functions.sh
 
-rm -f environment-vars.sh
-
 case ${JOB_TYPE} in
 	build)
 		echo -e "\n=> Build mode\n"
@@ -26,11 +24,7 @@ case ${JOB_TYPE} in
 
 		echo "=> Building ${PROJECT}:${REAL_BRANCH}"
 
-		echo "=> Clean workspace"
-		if [[ -d ".git" ]]; then
-			git clean -dfx
-		fi
-		rm -rf $WORKSPACE/build
+		clean_workspace
 
 		# Apply any local patches
 		#echo "=> Apply local patches"
@@ -40,7 +34,7 @@ case ${JOB_TYPE} in
 
 		echo "=> Calculate dependencies"
 		${JENKINS_SLAVE_HOME}/build-deps-parser.py ${PROJECT_PATH} ${REAL_BRANCH}
-		source environment-vars.sh
+
 		if [[ "${KDE_PROJECT}" == "false" ]]; then
 			unset REAL_BRANCH
 		fi

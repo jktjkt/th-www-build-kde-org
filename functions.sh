@@ -33,6 +33,7 @@ PROJECT="${JOB_NAME%%_*}"
 BRANCH="${JOB_NAME##*_}"
 LOCALHOST=`hostname -f`
 
+source ${WORKSPACE}/build-kde-org.environment
 
 function FAIL {
 	echo $@
@@ -135,6 +136,8 @@ function export_vars() {
 	export_var QMAKEPATH
 	export_var QT_PLUGIN_PATH
 
+	export_var KDE_PROJECT
+
 	DEPS=$CLEAN_DEPS
 	ENV=`env`
 	debug "env" "Post export ${ENV}"
@@ -145,7 +148,8 @@ function export_var() {
 	VALUE=$2
 
 	export $VAR=$VALUE
-	echo "export $VAR=$VALUE" >> ${WORKSPACE}/exported-vars.sh
+	echo "export $VAR=$VALUE" >> ${WORKSPACE}/build-kde-org.environment
+
 	debug "env" "export $VAR=$VALUE"
 }
 
@@ -253,4 +257,15 @@ function update_svn() {
 		svn up
 		svn log -1
 	) || FAIL
+}
+
+function clean_workspace() {
+	echo "=> Clean workspace"
+	pushd ${WORKSPACE}
+	rm -f ${WORKSPACE}/build-kde-org.environment
+	rm -rf ${WORKSPACE}/build
+	if [[ -d ".git" ]]; then
+		git clean -dfx
+	fi
+	popd
 }

@@ -47,9 +47,11 @@ else
 	wget http://sandbox.build.kde.org/jnlpJars/jenkins-cli.jar
 	EXTERNAL_JOBS=`java -jar ./jenkins-cli.jar -i jenkins-private.key -s http://sandbox.build.kde.org groovy external_jobs.groovy`
 	if `echo "${EXTERNAL_JOBS}" | grep ${PROJECT}`; then
+		echo "=> Non KDE project"
 		KDE_PROJECT="false"
 		unset BRANCH
 	else
+		echo "=> KDE project"
 		RESOLVED_BRANCH=`${JENKINS_SLAVE_HOME}/projects.kde.org.py resolve branch ${PROJECT} ${WANTED_BRANCH}`
 	fi
 	popd
@@ -70,3 +72,5 @@ if [[ "${KDE_PROJECT}" == "true" ]]; then
 	sleep $POLL_DELAY
 	echo "=> Handing over to Jenkins"
 fi
+
+echo KDE_PROJECT=${KDE_PROJECT} >> ${WORKSPACE}/build-kde-org.environment
