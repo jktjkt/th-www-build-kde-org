@@ -145,10 +145,10 @@ function export_vars() {
 
 function export_var() {
 	VAR=$1
-	VALUE=$2
+	VALUE="$2"
 
-	export $VAR=$VALUE
-	echo "export $VAR=$VALUE" >> ${WORKSPACE}/build-kde-org.environment
+	export $VAR="$VALUE"
+	echo "export $VAR=\"$VALUE\"" >> ${WORKSPACE}/build-kde-org.environment
 
 	debug "env" "export $VAR=$VALUE"
 }

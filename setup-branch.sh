@@ -1,27 +1,6 @@
 #!/bin/bash -ex
 
-function FAIL {
-    echo $@
-    # return if sourced and exit if executed
-    [ $0 != "bash" ] || return 1
-    exit 1
-}
-
-if [ -z "${JOB_NAME}" ]; then
-     echo "JOB_NAME not set!"
-     FAIL
-fi
-
-if [ -z "${BRANCH}" ]; then
-     echo -e "\n=> BRANCH not set!"
-     echo -e "=> Defaulting to master"
-     BRANCH="master"
-fi
- 
-if [ -z "${JENKINS_SLAVE_HOME}" ]; then
-     echo "JENKINS_SLAVE_HOME not set!"
-     FAIL
-fi
+source ${WORKSPACE}/functions.sh
 
 WANTED_BRANCH=${BRANCH}
 
@@ -73,4 +52,4 @@ if [[ "${KDE_PROJECT}" == "true" ]]; then
 	echo "=> Handing over to Jenkins"
 fi
 
-echo KDE_PROJECT=${KDE_PROJECT} >> ${WORKSPACE}/build-kde-org.environment
+export_var KDE_PROJECT
