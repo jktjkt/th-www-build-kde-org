@@ -33,7 +33,7 @@ PROJECT="${JOB_NAME%%_*}"
 BRANCH="${JOB_NAME##*_}"
 LOCALHOST=`hostname -f`
 
-source ${WORKSPACE}/build-kde-org.environment
+source ${JENKINS_SLAVE_HOME}/build-kde-org.environment
 
 function FAIL {
 	echo $@
