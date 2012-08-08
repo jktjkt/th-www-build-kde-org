@@ -1,6 +1,6 @@
 #!/bin/bash -ex
 
-source ${WORKSPACE}/functions.sh
+source ${JENKINS_SLAVE_HOME}/functions.sh
 
 WANTED_BRANCH=${BRANCH}
 
