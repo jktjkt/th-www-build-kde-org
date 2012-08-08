@@ -132,11 +132,11 @@ function export_vars() {
 	export_var KDEDIRS "${ROOT}/install/${PROJECT}/${REAL_BRANCH}:${KDEDIRS%:}"
 	export_var CMAKE_CMD_LINE "-DCMAKE_PREFIX_PATH=\"${CMAKE_PREFIX_PATH%:}\""
 
-	export_var QML_IMPORT_PATH
-	export_var QMAKEPATH
-	export_var QT_PLUGIN_PATH
+	export_var QML_IMPORT_PATH ${QML_IMPORT_PATH}
+	export_var QMAKEPATH ${QMAKEPATH}
+	export_var QT_PLUGIN_PATH ${QT_PLUGIN_PATH}
 
-	export_var KDE_PROJECT
+	export_var KDE_PROJECT ${KDE_PROJECT}
 
 	DEPS=$CLEAN_DEPS
 	ENV=`env`
