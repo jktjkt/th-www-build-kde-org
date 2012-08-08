@@ -52,4 +52,4 @@ if [[ "${KDE_PROJECT}" == "true" ]]; then
 	echo "=> Handing over to Jenkins"
 fi
 
-export_var KDE_PROJECT
+export_var KDE_PROJECT ${KDE_PROJECT}
