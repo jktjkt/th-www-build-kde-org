@@ -174,6 +174,10 @@ if __name__ in "__main__":
 
 	dom = xml.dom.minidom.parse(project_file)
 
+	if len(dom.getElementsByTagName('repo')) == 0:
+		sys.stderr.write("=> No projects found in project listing, check if %s returns a vaild xml file\n"%KDE_PROJECTS_URL)
+		sys.exit(1)
+
 	if sys.argv[1] == 'resolve':
 		project = sys.argv[3]
 		if sys.argv[2] == 'branch' and len(sys.argv) == 5:
