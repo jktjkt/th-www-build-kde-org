@@ -1,4 +1,4 @@
-#!/bin/bash -ex
+#!/bin/bash -e
 
 echo -e "\n=> execute-job.sh\n"
 
@@ -34,6 +34,7 @@ case ${JOB_TYPE} in
 
 		echo "=> Calculate dependencies"
 		${JENKINS_SLAVE_HOME}/build-deps-parser.py ${PROJECT_PATH} ${REAL_BRANCH}
+		source ${WORKSPACE}/build-kde-org.dependencies
 
 		if [[ "${KDE_PROJECT}" == "false" ]]; then
 			unset REAL_BRANCH

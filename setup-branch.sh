@@ -1,4 +1,4 @@
-#!/bin/bash -ex
+#!/bin/bash -e
 
 source ${JENKINS_SLAVE_HOME}/functions.sh
 

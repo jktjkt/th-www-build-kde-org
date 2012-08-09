@@ -205,8 +205,8 @@ if __name__ in '__main__':
 	dependencies = dep_parser.find_deps_for_project_and_branch(project, branch)
 
 	# 2: Add dependencies to environment
-	build_dir = os.getenv("WORKSPACE")
-	f = open( os.path.join( build_dir, "environment-vars.sh" ), 'w' )
+	workspace = os.getenv("WORKSPACE")
+	f = open( os.path.join( workspace, "build-kde-org.dependencies" ), 'w' )
 	f.write( "#!/bin/bash -x\n" )
 	#f.write( "export MASTER=%s\n"%master )
 	#f.write( "export ROOT=%s\n"%root )

@@ -1,4 +1,4 @@
-#!/bin/bash -ex
+#!/bin/bash -e
 
 if [ -z ${JOB_TYPE} ]; then
 	echo -e "\n=> JOB_TYPE not set!\n"
@@ -34,7 +34,9 @@ BRANCH="${JOB_NAME##*_}"
 LOCALHOST=`hostname -f`
 
 if [[ -f ${WORKSPACE}/build-kde-org.environment ]]; then
+	echo -n "=> Loading build environment..."
 	source ${WORKSPACE}/build-kde-org.environment
+	echo " done"
 fi
 
 function FAIL {
@@ -54,8 +56,6 @@ function debug() {
 
 function export_vars() {
 	echo -e "\n=> export_vars\n"
-	local ENV=`env`
-	debug "env" "Pre export env: ${ENV}"
 
 	if [ -z "${DEPS}" ]; then
 		echo "=>###############################"
@@ -140,19 +140,18 @@ function export_vars() {
 
 	export_var KDE_PROJECT ${KDE_PROJECT}
 
-	DEPS=$CLEAN_DEPS
-	ENV=`env`
-	debug "env" "Post export ${ENV}"
+	export_var DEPS "${CLEAN_DEPS}"
 }
 
 function export_var() {
 	VAR=$1
-	VALUE="$2"
+	shift
+	VALUE="$@"
 
 	export $VAR="$VALUE"
 	echo "export $VAR=\"$VALUE\"" >> ${WORKSPACE}/build-kde-org.environment
 
-	debug "env" "export $VAR=$VALUE"
+	echo "=> Exporting: $VAR=$VALUE"
 }
 
 function sync_from_master() {
