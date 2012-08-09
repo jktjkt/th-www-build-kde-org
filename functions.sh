@@ -193,11 +193,15 @@ function sync_to_master() {
 function save_results() {
 	echo -e "\n=> save_results\n"
 
-	echo -n "=> Removing old install dir (\"${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH}\")..."
-	if [[ -z "${FAKE_EXECUTION}" ]] || [[ "${FAKE_EXECUTION}" == "false" ]]; then
-		rm -rf "${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH}"
+	if [[ "${PROJECT_PATH}" != "deps" ]]; then
+		echo -n "=> Removing old install dir (\"${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH}\")..."
+		if [[ -z "${FAKE_EXECUTION}" ]] || [[ "${FAKE_EXECUTION}" == "false" ]]; then
+			rm -rf "${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH}"
+		fi
+		echo " done"
+	else
+		echo "=> Dependency build, will not remove old install dir"
 	fi
-	echo " done"
 
 	basedir=`dirname "${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH}"`
 	echo -n "=> Moving new install to global location (\"${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH}\")..."

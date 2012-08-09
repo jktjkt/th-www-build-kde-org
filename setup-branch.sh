@@ -25,7 +25,8 @@ else
 	rm -f jenkins-cli.jar
 	wget http://sandbox.build.kde.org/jnlpJars/jenkins-cli.jar
 	EXTERNAL_JOBS=`java -jar ./jenkins-cli.jar -i jenkins-private.key -s http://sandbox.build.kde.org groovy external_jobs.groovy`
-	if `echo "${EXTERNAL_JOBS}" | grep ${PROJECT}`; then
+	echo "=> External projects: ${EXTERNAL_JOBS}"
+	if `echo "${EXTERNAL_JOBS}" | grep -q -- "${PROJECT}"`; then
 		echo "=> Non KDE project"
 		KDE_PROJECT="false"
 		unset BRANCH
