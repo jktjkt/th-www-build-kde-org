@@ -1,4 +1,4 @@
-#!/bin/bash -ex
+#!/bin/bash -e
 
 function FAIL {
 	# return if sourced and exit if executed
@@ -26,7 +26,7 @@ if [ -z "${JENKINS_SLAVE_HOME}" ]; then
     FAIL
 fi
 
-echo "=>Setting up tools..."
+echo -n "=>Setting up tools..."
 pushd ${JENKINS_SLAVE_HOME}
 (
 	if [ ! -d .git ]; then
@@ -38,10 +38,11 @@ pushd ${JENKINS_SLAVE_HOME}
 	git log -1 HEAD
 ) || FAIL
 popd
+echo "done"
 
+echo -n "=>Setting up dependency info..."
 mkdir -p ${JENKINS_SLAVE_HOME}/dependencies
 pushd ${JENKINS_SLAVE_HOME}/dependencies
-echo "=>Setting up dependency info..."
 (
 	if [ ! -d ".git" ]; then
 		git clone git://anongit.kde.org/kde-build-metadata .
@@ -52,5 +53,6 @@ echo "=>Setting up dependency info..."
 	git log -1 HEAD
 ) || FAIL
 popd
+echo "done"
 
 ${JENKINS_SLAVE_HOME}/setup-branch.sh
