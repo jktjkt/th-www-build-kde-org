@@ -2,11 +2,14 @@
 
 source ${JENKINS_SLAVE_HOME}/functions.sh
 
-WANTED_BRANCH=${BRANCH}
+if [[ -n ${BRANCH} ]]; then
+	WANTED_BRANCH=${BRANCH}
+else
+	WANTED_BRANCH="${JOB_NAME##*_}"
+fi
 
 JOB_NAME=${JOB_NAME/test-/}
 PROJECT="${JOB_NAME%%_*}"
-#WANTED_BRANCH="${JOB_NAME##*_}"
 
 KDE_PROJECT="true"
 

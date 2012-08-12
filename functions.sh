@@ -30,7 +30,11 @@ RSYNC_OPTS="--recursive --links --perms --times --group --owner --devices \
 COMMON_DEPS="/srv/jenkins/install/deps"
 JOB_NAME=${JOB_NAME/test-/}
 PROJECT="${JOB_NAME%%_*}"
-BRANCH="${JOB_NAME##*_}"
+if [[ -n ${BRANCH} ]]; then
+	WANTED_BRANCH=${BRANCH}
+else
+	WANTED_BRANCH="${JOB_NAME##*_}"
+fi
 LOCALHOST=`hostname -f`
 
 if [[ -f ${WORKSPACE}/build-kde-org.environment ]]; then
