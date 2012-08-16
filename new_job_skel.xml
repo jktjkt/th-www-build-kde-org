@@ -20,7 +20,6 @@
       <throttleOption>project</throttleOption>
     </hudson.plugins.throttleconcurrents.ThrottleJobProperty>
   </properties>
-  <assignedNode>BUILDER</assignedNode>
   <scm class="hudson.plugins.git.GitSCM">
     <configVersion>2</configVersion>
     <userRemoteConfigs>
@@ -32,7 +31,7 @@
     </userRemoteConfigs>
     <branches>
       <hudson.plugins.git.BranchSpec>
-		<name>refs/heads/jenkins</name>
+        <name>refs/heads/jenkins</name>
       </hudson.plugins.git.BranchSpec>
     </branches>
     <disableSubmodules>false</disableSubmodules>
@@ -60,6 +59,7 @@
     <includedRegions></includedRegions>
     <scmName></scmName>
   </scm>
+  <assignedNode>BUILDER</assignedNode>
   <canRoam>false</canRoam>
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
@@ -106,20 +106,23 @@
       <shouldDetectModules>false</shouldDetectModules>
       <dontComputeNew>false</dontComputeNew>
       <parserConfigurations/>
-      <consoleLogParsers>
-        <string>GNU compiler 4 (ld)</string>
-        <string>GNU compiler 4 (gcc)</string>
-      </consoleLogParsers>
+      <consoleParsers>
+        <hudson.plugins.warnings.ConsoleParser>
+          <parserName>GNU Compiler 4 (gcc)</parserName>
+        </hudson.plugins.warnings.ConsoleParser>
+        <hudson.plugins.warnings.ConsoleParser>
+          <parserName>Missing dependencies</parserName>
+        </hudson.plugins.warnings.ConsoleParser>
+      </consoleParsers>
     </hudson.plugins.warnings.WarningsPublisher>
-	<hudson.plugins.postbuildtask.PostbuildTask/>
     <hudson.tasks.junit.JUnitResultArchiver>
-	  <testResults>build/JUnitTestResults.xml</testResults>
+      <testResults>build/JUnitTestResults.xml</testResults>
       <keepLongStdio>true</keepLongStdio>
       <testDataPublishers/>
     </hudson.tasks.junit.JUnitResultArchiver>
     <org.jenkinsci.plugins.cppcheck.CppcheckPublisher>
       <cppcheckConfig>
-		<pattern>build/cppcheck.xml</pattern>
+        <pattern>build/cppcheck.xml</pattern>
         <ignoreBlankFiles>true</ignoreBlankFiles>
         <configSeverityEvaluation>
           <threshold></threshold>
@@ -150,7 +153,6 @@
       <targets>
         <hudson.plugins.im.GroupChatIMMessageTarget>
           <name>#kde-builds</name>
-          <password></password>
           <notificationOnly>false</notificationOnly>
         </hudson.plugins.im.GroupChatIMMessageTarget>
       </targets>
@@ -162,6 +164,7 @@
       <notifyUpstreamCommitters>false</notifyUpstreamCommitters>
       <buildToChatNotifier class="hudson.plugins.im.build_notify.DefaultBuildToChatNotifier"/>
       <matrixMultiplier>ONLY_CONFIGURATIONS</matrixMultiplier>
+      <channels/>
     </hudson.plugins.ircbot.IrcPublisher>
   </publishers>
   <buildWrappers>
