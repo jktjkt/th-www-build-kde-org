@@ -6,6 +6,9 @@ function FAIL {
 	exit 1
 }
 
+echo -e "\n=====================\n=> Setting up build environment\n====================="
+
+
 if [ -z ${JENKINS_BRANCH} ]; then
 	echo "=> JENKINS_BRANCH not set!"
 	export JENKINS_BRANCH="master"
@@ -26,7 +29,7 @@ if [ -z "${JENKINS_SLAVE_HOME}" ]; then
     FAIL
 fi
 
-echo -n "=>Setting up tools..."
+echo "=>Setting up tools..."
 pushd ${JENKINS_SLAVE_HOME}
 (
 	if [ ! -d .git ]; then
@@ -38,9 +41,9 @@ pushd ${JENKINS_SLAVE_HOME}
 	git log -1 HEAD
 ) || FAIL
 popd
-echo "done"
+echo "=>Setting up tools... done"
 
-echo -n "=>Setting up dependency info..."
+echo "=>Setting up dependency info..."
 mkdir -p ${JENKINS_SLAVE_HOME}/dependencies
 pushd ${JENKINS_SLAVE_HOME}/dependencies
 (
@@ -53,6 +56,6 @@ pushd ${JENKINS_SLAVE_HOME}/dependencies
 	git log -1 HEAD
 ) || FAIL
 popd
-echo "done"
+echo "=>Setting up dependency info... done"
 
 ${JENKINS_SLAVE_HOME}/setup-branch.sh

@@ -1,5 +1,7 @@
 #!/bin/bash -e
 
+echo -e "\n=====================\n=> Setting up branch\n====================="
+
 source ${JENKINS_SLAVE_HOME}/functions.sh
 
 if [[ -n ${BRANCH} ]]; then
@@ -13,6 +15,7 @@ PROJECT="${JOB_NAME%%_*}"
 
 KDE_PROJECT="true"
 
+echo "=> Resolving branch..."
 if [[ "${PROJECT}" == "Qt" ]]; then
 	if [[ "$WANTED_BRANCH" == "stable" ]]; then
 		RESOLVED_BRANCH=${QT_STABLE_BRANCH}
@@ -39,21 +42,27 @@ else
 	fi
 	popd
 fi
+echo "=> Resolving branch... ${RESOLVED_BRANCH}"
 
 if [[ "${KDE_PROJECT}" == "true" ]]; then
+	echo "=> Setting up git..."
+	pushd ${JENKINS_SLAVE_HOME}	
 	REPO_ADDRESS=`${JENKINS_SLAVE_HOME}/projects.kde.org.py resolve repo ${PROJECT}`
+	popd
+	echo "=> Setting up git... done"
 
-	pushd ${WORKSPACE}
 	if [ ! -d ".git" ]; then
 		git clone $REPO_ADDRESS .
 	fi
 	# If we are on the branch, this will not work...
 	#git branch -D ${WANTED_BRANCH}
-	git branch --set-upstream ${WANTED_BRANCH} origin/${RESOLVED_BRANCH}
+	echo "=> Using branch ${RESOLVED_BRANCH}"
+	git branch --set-upstream --force jenkins origin/${RESOLVED_BRANCH}
 
 	echo "=> Sleeping for $POLL_DELAY seconds to allow mirrors to sync"
 	sleep $POLL_DELAY
-	echo "=> Handing over to Jenkins"
 fi
 
 export_var KDE_PROJECT ${KDE_PROJECT}
+
+echo -e "=> Handing over to Jenkins\n====================="

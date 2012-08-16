@@ -1,13 +1,14 @@
 #!/bin/bash -e
 
-echo -e "\n=> execute-job.sh\n"
+echo -e "\n=====================\n=> Executing job...\n====================="
 
 source ${JENKINS_SLAVE_HOME}/functions.sh
 
 case ${JOB_TYPE} in
 	build)
-		echo -e "\n=> Build mode\n"
+		echo "=> Build mode"
 
+		echo "=> Resolving project path..."
 		pushd $JENKINS_SLAVE_HOME
 		REAL_BRANCH=`${JENKINS_SLAVE_HOME}/projects.kde.org.py resolve branch ${PROJECT} ${WANTED_BRANCH}`
 		if [[ "${KDE_PROJECT}" == "true" ]]; then
@@ -17,6 +18,7 @@ case ${JOB_TYPE} in
 		fi
 		REPO_ADDRESS=`${JENKINS_SLAVE_HOME}/projects.kde.org.py resolve repo ${PROJECT}`
 		popd
+		echo "=> Resolving project path... ${PROJECT_PATH}"
 
 		#Wait for building direct dependencies here?
 		#For unmet dep schedule a new build (Jenkins handles nested deps)
@@ -83,3 +85,4 @@ case ${JOB_TYPE} in
 		#    Do all packaging first then build all packages or one by one?
 		;;
 esac
+echo -e "\n=====================\n=> Executing job... done\n====================="
