@@ -36,7 +36,11 @@ def createJobs(dom, templateFile, filterPath):
 	repos = dom.getElementsByTagName('repo')
 
 	scriptFile = open( 'send_configs_to_jenkins.sh', 'w' )
-	scriptFile.write( "#!/bin/bash -e\n\n" )
+	scriptFile.write( "#!/bin/bash\n\n" )
+	scriptFile.write( "if [[ -z ${JENKINS_USER} ]] || [[ -z ${JENKINS_PASSWORD} ]]; then\n" )
+	scriptFile.write( "	echo 'JENKINS_USER and JENKINS_PASSWORD must be set'\n" )
+	scriptFile.write( "	exit 1\n" )
+	scriptFile.write( "fi\n\n" )
 	scriptFile.write( "rm jenkins-cli.jar\n" )
 	scriptFile.write( "wget %s/jnlpJars/jenkins-cli.jar\n\n"%JENKINS_INSTANCE )
 
@@ -74,6 +78,7 @@ def createJobs(dom, templateFile, filterPath):
 				continue
 
 		if values['path'].startswith( filterPath ):
+			print "Exporting '%s'\n"%values['path']
 			if not 'masterBranch' in values:
 				values['masterBranch'] = "master"
 
@@ -81,8 +86,10 @@ def createJobs(dom, templateFile, filterPath):
 			saveConfig(templateContent, values)
 			scriptFile.write( "echo -n %s:%s...\n"%(values['identifier'], values['branchType'] ) )
 			scriptFile.write( "java -jar jenkins-cli.jar -s %s -i jenkins-private.key create-job %s_%s <%s"%(JENKINS_INSTANCE, values['identifier'].replace('/', '-'), values['branchType'], "%s/%s_%s.xml\n"%(CONFIG_ROOT, values['identifier'], values['branchType'])) )
-			#scriptFile.write( "ssh %s mkdir -p /var/lib/jenkins/jobs/%s_%s\n"%(JENKINS_INSTANCE, values['identifier'].replace('/', '-'), values['branchType'] ) )
-			#scriptFile.write( "scp %s %s:/var/lib/jenkins/jobs/%s_%s/config.xml\n"%("%s/%s_%s.xml\n"%(CONFIG_ROOT, values['identifier'], values['branchType']), JENKINS_INSTANCE, values['identifier'].replace('/', '-'), values['branchType'] ) )
+			scriptFile.write( "if [[ $? -ne 0 ]]; then\n" )
+			scriptFile.write( "    java -jar jenkins-cli.jar -s %s -i jenkins-private.key update-job %s_%s <%s"%(JENKINS_INSTANCE, values['identifier'].replace('/', '-'), values['branchType'], "%s/%s_%s.xml\n"%(CONFIG_ROOT, values['identifier'], values['branchType'])) )
+			scriptFile.write( "fi\n" )
+			scriptFile.write( "wget --auth-no-challenge --http-user=${JENKINS_USER} --http-password=${JENKINS_PASSWORD} --post-data='name=%s_%s' %s/view/%s/addJobToView\n"%(values['identifier'], values['branchType'], JENKINS_INSTANCE, values['path'][:values['path'].find('/')]) )
 			scriptFile.write( "echo Done\n" )
 			scriptFile.write( "sleep 1\n" )
 
@@ -91,8 +98,10 @@ def createJobs(dom, templateFile, filterPath):
 				saveConfig(templateContent, values)
 				scriptFile.write( "echo -n %s:%s...\n"%(values['identifier'], values['branchType'] ) )
 				scriptFile.write( "java -jar jenkins-cli.jar -s %s -i jenkins-private.key create-job %s_%s <%s"%(JENKINS_INSTANCE, values['identifier'].replace('/', '-'), values['branchType'], "%s/%s_%s.xml\n"%(CONFIG_ROOT, values['identifier'], values['branchType'])) )
-				#scriptFile.write( "ssh %s mkdir -p /var/lib/jenkins/jobs/%s_%s\n"%(JENKINS_INSTANCE, values['identifier'].replace('/', '-'), values['branchType'] ) )
-				#scriptFile.write( "scp %s %s:/var/lib/jenkins/jobs/%s_%s/config.xml\n"%("%s/%s_%s.xml\n"%(CONFIG_ROOT, values['identifier'], values['branchType']), JENKINS_INSTANCE, values['identifier'].replace('/', '-'), values['branchType'] ) )
+				scriptFile.write( "if [[ $? -ne 0 ]]; then\n" )
+				scriptFile.write( "    java -jar jenkins-cli.jar -s %s -i jenkins-private.key update-job %s_%s <%s"%(JENKINS_INSTANCE, values['identifier'].replace('/', '-'), values['branchType'], "%s/%s_%s.xml\n"%(CONFIG_ROOT, values['identifier'], values['branchType'])) )
+				scriptFile.write( "fi\n" )
+				scriptFile.write( "wget --auth-no-challenge --http-user=${JENKINS_USER} --http-password=${JENKINS_PASSWORD} --post-data='name=%s_%s' %s/view/%s/addJobToView\n"%(values['identifier'], values['branchType'], JENKINS_INSTANCE, values['path'][:values['path'].find('/')]) )
 				scriptFile.write( "echo Done\n" )
 				scriptFile.write( "sleep 1\n" )
 
@@ -161,7 +170,7 @@ if __name__ in "__main__":
 
 	project_file = "./project_file.xml"
 
-	if len(sys.argv) < 4:
+	if len(sys.argv) < 3:
 		print usage
 		sys.exit(1)
 
