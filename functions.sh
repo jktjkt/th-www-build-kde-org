@@ -42,7 +42,7 @@ if [[ -f ${WORKSPACE}/build-kde-org.environment ]]; then
 fi
 
 function FAIL {
-	echo $@
+	echo -e "\n=====================\n$@\n====================="
 	# return if sourced and exit if executed
 	[[ "$0" =~ "bash" ]] && return 1
 	exit 1
@@ -57,7 +57,7 @@ function debug() {
 }
 
 function export_vars() {
-	echo -e "\n=> export_vars\n"
+	echo -e "=====================\n=> Exporting environment for later build steps\n====================="
 
 	if [ -z "${DEPS}" ]; then
 		echo "=>###############################"
@@ -77,11 +77,10 @@ function export_vars() {
 
 	local CLEAN_DEPS
 
-	echo -e "\n=> Dependencies:\n"
+	echo "=> Dependencies:"
 	for DEP in ${DEPS}; do
 		echo "=> Dep: ${DEP%=*}:${DEP#*=}"
 	done
-	echo -e "\n"
 
 	for DEP in ${DEPS}; do
 		MODULE_PATH=${DEP%=*}
@@ -157,19 +156,29 @@ function export_var() {
 }
 
 function sync_from_master() {
-	echo -e "\n=> sync_from_master\n"
+	local BUILD_DEPS_AND_WAIT=$1
+	echo -e "=====================\n=> Syncing dependencies from master\n====================="
+
 	if [[ "${MASTER}" != "${LOCALHOST}" ]]; then
-		echo "=> Syncing..."
 		for DEP in ${DEPS}; do
 			MODULE=${DEP%=*}
 			MODULE_BRANCH=${DEP#*=}
 
 			#lock_dir ${ROOT}/install/${MODULE}/${MODULE_BRANCH}/
-			echo "Syncing $MODULE ($MODULE_BRANCH) with ${MASTER}..."
+			echo "Syncing $MODULE ($MODULE_BRANCH)..."
 			if [[ -z "${FAKE_EXECUTION}" ]] || [[ "${FAKE_EXECUTION}" == "false" ]]; then
 				mkdir -p ${ROOT}/install/${MODULE}/${MODULE_BRANCH}
-				rsync ${RSYNC_OPTS} ${MASTER}:${ROOT}/install/${MODULE}/${MODULE_BRANCH}/ ${ROOT}/install/${MODULE}/${MODULE_BRANCH}/ || FAIL "Required dependency: $MODULE/$MODULE_BRANCH was not found on master"
+				rsync ${RSYNC_OPTS} ${MASTER}:${ROOT}/install/${MODULE}/${MODULE_BRANCH}/ ${ROOT}/install/${MODULE}/${MODULE_BRANCH}/
+				if [[ $? -ne 0 ]]; then
+					echo -e "\n=====================\n=> Missing dependency: ${MODULE}:${MODULE_BRANCH}, scheduling a build"
+					if [[ -n ${BUILD_DEPS_AND_WAIT} ]] && [[ "${BUILD_DEPS_AND_WAIT}" == "true" ]]; then
+						schedule_build ${MODULE} ${MODULE_BRANCH}
+					else
+						FAIL "Missing dependency"
+					fi
+				fi
 			fi
+			echo "Syncing $MODULE ($MODULE_BRANCH)... done"
 			#unlock_dir ${ROOT}/install/${MODULE}/${MODULE_BRANCH}/
 		done
 	else
@@ -178,22 +187,20 @@ function sync_from_master() {
 }
 
 function sync_to_master() {
-	echo -e "\n=> sync_to_master\n"
+	echo -e "=====================\n=> Syncronizing build with master\n====================="
 
 	if [[ "${MASTER}" != "${LOCALHOST}" ]]; then
-		echo "=> Syncing changes with master (\"${MASTER}\")..."
 		if [[ -z "${FAKE_EXECUTION}" ]] || [[ "${FAKE_EXECUTION}" == "false" ]]; then
 			ssh ${MASTER} mkdir -p "${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH}"
 			rsync ${RSYNC_OPTS} "${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH}/" "${MASTER}:${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH}/"
 		fi
-		echo "=> done"
 	else
 		echo "=> Running on master, skipping sync"
 	fi
 }
 
 function save_results() {
-	echo -e "\n=> save_results\n"
+	echo -e "=====================\n=> Saving build to install location\n====================="
 
 	if [[ "${PROJECT_PATH}" != "deps" ]]; then
 		echo -n "=> Removing old install dir (\"${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH}\")..."
@@ -221,6 +228,22 @@ function set_revision() {
 	#elif [ -d .svn ]; then
 	#	svn co ${REPO_URL}
 	#fi
+}
+
+function schedule_build() {
+	local MODULE
+	local MODULE_BRANCH
+	MODULE=$1
+	MODULE_BRANCH=$2
+
+	echo -e "=====================\n=> Scheduling a build of ${MODULE}_${MODULE_BRANCH}\n====================="
+
+	pushd ${JENKINS_SLAVE_HOME}
+	if [[ ! -f "jenkins-cli.jar" ]]; then
+		wget http://sandbox.build.kde.org/jnlpJars/jenkins-cli.jar
+	fi
+	java -jar ./jenkins-cli.jar -i jenkins-private.key -s http://sandbox.build.kde.org build -s ${MODULE}_${MODULE_BRANCH} || FAIL "Dependency build failed"
+	popd
 }
 
 function update_repo() {
@@ -267,7 +290,7 @@ function update_svn() {
 }
 
 function clean_workspace() {
-	echo "=> Clean workspace"
+	echo -e "=====================\n=> Cleaning workspace\n====================="
 	pushd ${WORKSPACE}
 	rm -f ${WORKSPACE}/build-kde-org.environment
 	rm -rf ${WORKSPACE}/build

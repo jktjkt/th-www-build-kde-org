@@ -20,10 +20,6 @@ case ${JOB_TYPE} in
 		popd
 		echo "=> Resolving project path... ${PROJECT_PATH}"
 
-		#Wait for building direct dependencies here?
-		#For unmet dep schedule a new build (Jenkins handles nested deps)
-		#Reschedule this build again (will be built after the deps)
-
 		echo "=> Building ${PROJECT}:${REAL_BRANCH}"
 
 		clean_workspace
@@ -42,7 +38,7 @@ case ${JOB_TYPE} in
 			unset REAL_BRANCH
 		fi
 		export_vars
-		sync_from_master
+		sync_from_master #"true" #Try and build any missing dependencies
 
 		mkdir $WORKSPACE/build
 		pushd $WORKSPACE/build
