@@ -6,7 +6,7 @@ echo "=> JENKINS_SLAVE_HOME=${JENKINS_SLAVE_HOME}"
 if [ -z "${WORKSPACE}" ]; then
     echo "\$WORKSPACE not set!"
 else
-    source ${WORKSPACE}/environment-vars.sh
+	source ${WORKSPACE}/build-kde-org.environment
 fi
 
 rm -f ${BUILD_DIR}/JUnitTestResults.xml
