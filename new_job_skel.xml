@@ -13,30 +13,6 @@
     <org.jenkins.ci.plugins.html5__notifier.JobPropertyImpl>
       <skip>false</skip>
     </org.jenkins.ci.plugins.html5__notifier.JobPropertyImpl>
-    <hudson.model.ParametersDefinitionProperty>
-      <parameterDefinitions>
-        <hudson.model.ChoiceParameterDefinition>
-          <name>BRANCH</name>
-          <description></description>
-          <choices class="java.util.Arrays$$ArrayList">
-            <a class="string-array">
-              <string>master</string>
-              <string>stable</string>
-            </a>
-          </choices>
-        </hudson.model.ChoiceParameterDefinition>
-        <hudson.model.ChoiceParameterDefinition>
-          <name>JOB_TYPE</name>
-          <description></description>
-          <choices class="java.util.Arrays$$ArrayList">
-            <a class="string-array">
-              <string>build</string>
-              <string>package</string>
-            </a>
-          </choices>
-        </hudson.model.ChoiceParameterDefinition>
-      </parameterDefinitions>
-    </hudson.model.ParametersDefinitionProperty>
     <hudson.plugins.throttleconcurrents.ThrottleJobProperty>
       <maxConcurrentPerNode>0</maxConcurrentPerNode>
       <maxConcurrentTotal>1</maxConcurrentTotal>
@@ -56,7 +32,7 @@
     </userRemoteConfigs>
     <branches>
       <hudson.plugins.git.BranchSpec>
-        <name>$branch</name>
+		<name>refs/heads/jenkins</name>
       </hudson.plugins.git.BranchSpec>
     </branches>
     <disableSubmodules>false</disableSubmodules>
@@ -193,8 +169,7 @@
     <org.jenkinsci.plugins.preSCMbuildstep.PreSCMBuildStepsWrapper>
       <buildSteps>
         <hudson.tasks.Shell>
-          <command>$${JENKINS_SLAVE_HOME}/setup-env.sh
-$${JENKINS_SLAVE_HOME}/setup-branch.sh</command>
+          <command>$${JENKINS_SLAVE_HOME}/setup-env.sh</command>
         </hudson.tasks.Shell>
       </buildSteps>
     </org.jenkinsci.plugins.preSCMbuildstep.PreSCMBuildStepsWrapper>
