@@ -30,7 +30,7 @@ case ${JOB_TYPE} in
 		#	patch -p0 < ${f}
 		#done
 
-		echo "=> Calculate dependencies"
+		echo -e "=====================\n=> Calculate dependencies\n====================="
 		${JENKINS_SLAVE_HOME}/build-deps-parser.py ${PROJECT_PATH} ${REAL_BRANCH}
 		source ${WORKSPACE}/build-kde-org.dependencies
 
