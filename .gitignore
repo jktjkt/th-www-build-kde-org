@@ -21,8 +21,7 @@ htmlreports
 .lesshst
 .owner
 .vim*
-jobs/*/last*
-jobs/*/next*
+jobs
 updates/
 war/
 .ssh
@@ -32,3 +31,5 @@ war/
 *.log.*
 install
 source
+*~
+*.[0-9]+
