@@ -65,4 +65,4 @@ fi
 
 export_var KDE_PROJECT ${KDE_PROJECT}
 
-echo -e "=> Handing over to Jenkins\n====================="
+echo -e "=====================\n=> Handing over to Jenkins\n=====================\n"
