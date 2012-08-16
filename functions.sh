@@ -1,8 +1,6 @@
 #!/bin/bash -e
 
 if [ -z ${JOB_TYPE} ]; then
-	echo -e "\n=> JOB_TYPE not set!\n"
-	echo -e "=> Defaulting to build\n"
 	JOB_TYPE="build"
 fi
 
