@@ -188,7 +188,7 @@ if __name__ in "__main__":
 		sys.exit(1)
 
 	if sys.argv[1] == 'resolve':
-		project = sys.argv[3]
+		project = sys.argv[3].lower()
 		if sys.argv[2] == 'branch' and len(sys.argv) == 5:
 			branch = sys.argv[4]
 			resolveBranch(dom, project, branch)

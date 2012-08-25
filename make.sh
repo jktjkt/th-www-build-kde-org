@@ -23,4 +23,4 @@ fi
 
 CPU_COUNT=`grep -c processor /proc/cpuinfo`
 
-DESTDIR=${WORKSPACE}/install make -l $CPU_COUNT -j $(($CPU_COUNT + 1)) "${@}"
+DESTDIR=${WORKSPACE}/install INSTALL_ROOT=${WORKSPACE}/install make -l $CPU_COUNT -j $(($CPU_COUNT + 1)) "${@}"

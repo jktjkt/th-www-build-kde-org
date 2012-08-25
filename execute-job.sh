@@ -4,14 +4,32 @@ echo -e "\n=====================\n=> Executing job...\n====================="
 
 source ${JENKINS_SLAVE_HOME}/functions.sh
 
+QT_CONFIG_OPTIONS="-fast -debug -separate-debug-info -system-zlib -system-libpng \
+                   -system-libjpeg -dbus -webkit -plugin-sql-mysql -nomake examples \
+                   -nomake demos -no-phonon -confirm-license -opensource"
+
 case ${JOB_TYPE} in
 	build)
 		echo "=> Build mode"
 
 		echo "=> Resolving project path..."
 		pushd $JENKINS_SLAVE_HOME
-		REAL_BRANCH=`${JENKINS_SLAVE_HOME}/projects.kde.org.py resolve branch ${PROJECT} ${WANTED_BRANCH}`
-		if [[ "${KDE_PROJECT}" == "true" ]]; then
+		if [[ "${PROJECT}" == "Qt" ]]; then
+			if [[ "$WANTED_BRANCH" == "stable" ]]; then
+				REAL_BRANCH=${QT_STABLE_BRANCH}
+			elif [[ "$WANTED_BRANCH" == "master" ]]; then
+				REAL_BRANCH=${QT_FUTURE_BRANCH}
+			elif [[ "${WANTED_BRANCH}" == "legacy" ]]; then
+				REAL_BRANCH=${QT_LEGACY_BRANCH}
+			else
+				FAIL "Unknown Qt branch ${WANTED_BRANCH}"
+			fi
+		else
+			REAL_BRANCH=`${JENKINS_SLAVE_HOME}/projects.kde.org.py resolve branch ${PROJECT} ${WANTED_BRANCH}`
+		fi
+		if [[ "${PROJECT}" == "Qt" ]]; then
+			PROJECT_PATH='Qt'
+		elif [[ "${KDE_PROJECT}" == "true" ]]; then
 			PROJECT_PATH=`${JENKINS_SLAVE_HOME}/projects.kde.org.py resolve path ${PROJECT}`
 		else
 			PROJECT_PATH=deps
@@ -53,7 +71,14 @@ case ${JOB_TYPE} in
 
 		echo "=> Building..."
 		if [[ -z "${FAKE_EXECUTION}" ]] || [[ "${FAKE_EXECUTION}" == "false" ]]; then
-			${JENKINS_SLAVE_HOME}/cmake.sh ${EXTRA_VARS} -DCMAKE_INSTALL_PREFIX=${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH} ..
+			if [[ "${PROJECT}" == "cmake" ]]; then
+				${WORKSPACE}/bootstrap --prefix="${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH}"
+			elif [[ "${PROJECT}" == "Qt" ]]; then
+				cd ${WORKSPACE}
+				./configure ${QT_CONFIG_OPTIONS} -prefix "${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH}"
+			else
+				${JENKINS_SLAVE_HOME}/cmake.sh ${EXTRA_VARS} -DCMAKE_INSTALL_PREFIX=${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH} ..
+			fi
 			${JENKINS_SLAVE_HOME}/make.sh
 			${JENKINS_SLAVE_HOME}/make.sh install
 		fi

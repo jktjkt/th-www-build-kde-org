@@ -46,7 +46,7 @@ echo "=> Resolving branch... ${RESOLVED_BRANCH}"
 
 if [[ "${KDE_PROJECT}" == "true" ]]; then
 	echo "=> Setting up git..."
-	pushd ${JENKINS_SLAVE_HOME}	
+	pushd ${JENKINS_SLAVE_HOME}
 	REPO_ADDRESS=`${JENKINS_SLAVE_HOME}/projects.kde.org.py resolve repo ${PROJECT}`
 	popd
 	echo "=> Setting up git... done"

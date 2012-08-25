@@ -86,7 +86,7 @@ function export_vars() {
 		MODULE_PATH=${DEP%=*}
 		MODULE_BRANCH=${DEP#*=}
 
-		if [ "$MODULE_PATH" == "Qt" ]; then
+		if [ "$MODULE_PATH" == "qt" ]; then
 			MODULE_BRANCH=$QT_STABLE_BRANCH
 		fi
 
