@@ -86,7 +86,7 @@ function export_vars() {
 		MODULE_PATH=${DEP%=*}
 		MODULE_BRANCH=${DEP#*=}
 
-		if [ "$MODULE_PATH" == "qt" ]; then
+		if [ "$MODULE_PATH" == "Qt" ]; then
 			MODULE_BRANCH=$QT_STABLE_BRANCH
 		fi
 
@@ -216,7 +216,7 @@ function save_results() {
 	echo -n "=> Moving new install to global location (\"${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH}\")..."
 	if [[ -z "${FAKE_EXECUTION}" ]] || [[ "${FAKE_EXECUTION}" == "false" ]]; then
 		mkdir -p "${basedir}"
-		rsync -rlptgoD --checksum "${WORKSPACE}/install/${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH}" "${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH}"
+		rsync -rlptgoD --checksum "${WORKSPACE}/install/${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH}/" "${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH}"
 		rm -rf "${WORKSPACE}/install/${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH}"
 	fi
 	echo " done"

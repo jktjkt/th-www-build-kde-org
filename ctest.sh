@@ -21,6 +21,8 @@ cat <<EOB > ${BUILD_DIR}/JUnitTestResults.xml
 <testsuite>
   <properties>
   </properties>
+  <testcase name="successful-build-no-tests-found" classname="TestSuite" time="0.0121629"/>
+  <system-out></system-out>
 </testsuite>
 EOB
 else
