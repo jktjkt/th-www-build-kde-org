@@ -216,7 +216,8 @@ function save_results() {
 	echo -n "=> Moving new install to global location (\"${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH}\")..."
 	if [[ -z "${FAKE_EXECUTION}" ]] || [[ "${FAKE_EXECUTION}" == "false" ]]; then
 		mkdir -p "${basedir}"
-		mv "${WORKSPACE}/install/${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH}" "${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH}"
+		rsync -rlptgoD --checksum "${WORKSPACE}/install/${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH}" "${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH}"
+		rm -rf "${WORKSPACE}/install/${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH}"
 	fi
 	echo " done"
 }
