@@ -2,6 +2,7 @@
 # coding: utf-8
 
 import sys,io,os,time
+import re
 from string import Template
 import xml.dom.minidom
 import urllib
@@ -23,6 +24,7 @@ def saveConfig(templateContent, values):
 
 def createJobs(dom, templateFile, filterPath):
 	print "Creating jobs matching '%s'"%filterPath
+	pathFilter = re.compile(filterPath)
 	try:
 		os.makedirs( CONFIG_ROOT )
 	except OSError:
@@ -77,19 +79,24 @@ def createJobs(dom, templateFile, filterPath):
 			except IndexError:
 				continue
 
-		if values['path'].startswith( filterPath ):
-			print "Exporting '%s'\n"%values['path']
+		if pathFilter.match(values['path']) is not None:
+			print "Exporting '%s'"%values['path']
 			if not 'masterBranch' in values:
 				values['masterBranch'] = "master"
 
 			values['branchType'] = 'master'
 			saveConfig(templateContent, values)
+
+			viewName = values['path'][:values['path'].find('/')]
+			if viewName == 'kde':
+				viewName = values['path'][4:values['path'].find('/', 4)]
+
 			scriptFile.write( "echo -n %s:%s...\n"%(values['identifier'], values['branchType'] ) )
 			scriptFile.write( "java -jar jenkins-cli.jar -s %s -i jenkins-private.key create-job %s_%s <%s"%(JENKINS_INSTANCE, values['identifier'].replace('/', '-'), values['branchType'], "%s/%s_%s.xml\n"%(CONFIG_ROOT, values['identifier'], values['branchType'])) )
 			scriptFile.write( "if [[ $? -ne 0 ]]; then\n" )
 			scriptFile.write( "    java -jar jenkins-cli.jar -s %s -i jenkins-private.key update-job %s_%s <%s"%(JENKINS_INSTANCE, values['identifier'].replace('/', '-'), values['branchType'], "%s/%s_%s.xml\n"%(CONFIG_ROOT, values['identifier'], values['branchType'])) )
 			scriptFile.write( "fi\n" )
-			scriptFile.write( "wget --auth-no-challenge --http-user=${JENKINS_USER} --http-password=${JENKINS_PASSWORD} --post-data='name=%s_%s' %s/view/%s/addJobToView\n"%(values['identifier'], values['branchType'], JENKINS_INSTANCE, values['path'][:values['path'].find('/')]) )
+			scriptFile.write( "wget --auth-no-challenge --http-user=${JENKINS_USER} --http-password=${JENKINS_PASSWORD} --post-data='name=%s_%s' %s/view/%s/addJobToView\n"%(values['identifier'], values['branchType'], JENKINS_INSTANCE, viewName) )
 			scriptFile.write( "echo Done\n" )
 			scriptFile.write( "sleep 1\n" )
 
@@ -101,7 +108,7 @@ def createJobs(dom, templateFile, filterPath):
 				scriptFile.write( "if [[ $? -ne 0 ]]; then\n" )
 				scriptFile.write( "    java -jar jenkins-cli.jar -s %s -i jenkins-private.key update-job %s_%s <%s"%(JENKINS_INSTANCE, values['identifier'].replace('/', '-'), values['branchType'], "%s/%s_%s.xml\n"%(CONFIG_ROOT, values['identifier'], values['branchType'])) )
 				scriptFile.write( "fi\n" )
-				scriptFile.write( "wget --auth-no-challenge --http-user=${JENKINS_USER} --http-password=${JENKINS_PASSWORD} --post-data='name=%s_%s' %s/view/%s/addJobToView\n"%(values['identifier'], values['branchType'], JENKINS_INSTANCE, values['path'][:values['path'].find('/')]) )
+				scriptFile.write( "wget --auth-no-challenge --http-user=${JENKINS_USER} --http-password=${JENKINS_PASSWORD} --post-data='name=%s_%s' %s/view/%s/addJobToView\n"%(values['identifier'], values['branchType'], JENKINS_INSTANCE, viewName) )
 				scriptFile.write( "echo Done\n" )
 				scriptFile.write( "sleep 1\n" )
 
