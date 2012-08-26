@@ -46,6 +46,9 @@ fi
 echo "=> Resolving branch... ${RESOLVED_BRANCH}"
 
 if [[ "${KDE_PROJECT}" == "true" ]]; then
+	echo "=> Sleeping for $POLL_DELAY seconds to allow mirrors to sync"
+	sleep $POLL_DELAY
+
 	echo "=> Setting up git..."
 	pushd ${JENKINS_SLAVE_HOME}
 	REPO_ADDRESS=`${JENKINS_SLAVE_HOME}/projects.kde.org.py resolve repo ${PROJECT}`
@@ -60,9 +63,6 @@ if [[ "${KDE_PROJECT}" == "true" ]]; then
 	#git branch -D ${WANTED_BRANCH}
 	echo "=> Using branch ${RESOLVED_BRANCH}"
 	git branch --set-upstream --force jenkins origin/${RESOLVED_BRANCH}
-
-	echo "=> Sleeping for $POLL_DELAY seconds to allow mirrors to sync"
-	sleep $POLL_DELAY
 fi
 
 export_var KDE_PROJECT ${KDE_PROJECT}
