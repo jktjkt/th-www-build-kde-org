@@ -55,6 +55,7 @@ if [[ "${KDE_PROJECT}" == "true" ]]; then
 	if [ ! -d ".git" ]; then
 		git clone $REPO_ADDRESS .
 	fi
+	git fetch
 	# If we are on the branch, this will not work...
 	#git branch -D ${WANTED_BRANCH}
 	echo "=> Using branch ${RESOLVED_BRANCH}"
