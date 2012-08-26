@@ -49,7 +49,11 @@ case ${JOB_TYPE} in
 		#done
 
 		echo -e "=====================\n=> Calculate dependencies\n====================="
-		${JENKINS_SLAVE_HOME}/build-deps-parser.py ${PROJECT_PATH} ${REAL_BRANCH}
+		if [[ "${KDE_PROJECT}" == "true" ]]; then
+			${JENKINS_SLAVE_HOME}/build-deps-parser.py ${PROJECT_PATH} ${REAL_BRANCH}
+		else
+			${JENKINS_SLAVE_HOME}/build-deps-parser.py ${PROJECT} ${REAL_BRANCH}
+		fi
 		source ${WORKSPACE}/build-kde-org.dependencies
 
 		if [[ "${KDE_PROJECT}" == "false" ]]; then
@@ -77,7 +81,7 @@ case ${JOB_TYPE} in
 				cd ${WORKSPACE}
 				./configure ${QT_CONFIG_OPTIONS} -prefix "${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH}"
 			else
-				${JENKINS_SLAVE_HOME}/cmake.sh ${EXTRA_VARS} -DCMAKE_INSTALL_PREFIX=${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH} ..
+				${JENKINS_SLAVE_HOME}/cmake.sh ${EXTRA_VARS} -DKDE4_BUILD_TESTS=ON -DLIB_SUFFIX=64 -DCMAKE_INSTALL_PREFIX=${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH} ..
 			fi
 			${JENKINS_SLAVE_HOME}/make.sh
 			${JENKINS_SLAVE_HOME}/make.sh install

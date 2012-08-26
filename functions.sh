@@ -85,12 +85,16 @@ function export_vars() {
 	for DEP in ${DEPS}; do
 		MODULE_PATH=${DEP%=*}
 		MODULE_BRANCH=${DEP#*=}
+		LIBPREFIX="64"
 
 		if [ "$MODULE_PATH" == "Qt" ]; then
 			MODULE_BRANCH=$QT_STABLE_BRANCH
+			LIBPREFIX=""
 		fi
 
-		if [ "$MODULE_BRANCH" == "*" ]; then
+		if [ "$MODULE_BRANCH" == "*" ] && [[ "${KDE_PROJECT}" == "false" ]]; then
+			MODULE_BRANCH="master"
+		elif [ "$MODULE_BRANCH" == "*" ]; then
 			MODULE_BRANCH=$REAL_BRANCH
 		fi
 
@@ -103,19 +107,20 @@ function export_vars() {
 		fi
 
 		CLEAN_DEPS="${CLEAN_DEPS} $MODULE_PATH=$MODULE_BRANCH"
+		PREFIX="${ROOT}/install/${MODULE_PATH}/${MODULE_BRANCH}"
 
 		echo "=> Adding $MODULE ($MODULE_PATH:$MODULE_BRANCH) to env vars..."
-		CMAKE_PREFIX_PATH="${ROOT}/install/${MODULE_PATH}/${MODULE_BRANCH}:${CMAKE_PREFIX_PATH}"
-		PATH="${ROOT}/install/${MODULE_PATH}/${MODULE_BRANCH}/bin:${PATH}"
-		LD_LIBRARY_PATH="${ROOT}/install/${MODULE_PATH}/${MODULE_BRANCH}/lib:${LD_LIBRARY_PATH}"
-		PKG_CONFIG_PATH="${ROOT}/install/${MODULE_PATH}/${MODULE_BRANCH}:${PKG_CONFIG_PATH}"
-		QT_PLUGIN_PATH="${ROOT}/install/${MODULE_PATH}/${MODULE_BRANCH}:${QT_PLUGIN_PATH}"
-		XDG_DATA_DIRS="${ROOT}/install/${MODULE_PAHT}/${MODULE_BRANCH}/share:${XDG_DATA_DIRS}"
-		XDG_CONFIG_DIRS="${ROOT}/install/${MODULE_PATH}/${MODULE_BRANCH}/etc/xdg:${XDG_CONFIG_DIRS}"
-		KDEDIRS="${ROOT}/install/${MODULE_PATH}/${MODULE_BRANCH}:${KDEDIRS}"
+		CMAKE_PREFIX_PATH="${PREFIX}:${CMAKE_PREFIX_PATH}"
+		PATH="${PREFIX}/bin:${PATH}"
+		LD_LIBRARY_PATH="${PREFIX}/lib$LIBPREFIX:${LD_LIBRARY_PATH}"
+		PKG_CONFIG_PATH="${PREFIX}/share/pkgconfig:${PREFIX}/lib$LIBPREFIX/pkgconfig:${PKG_CONFIG_PATH}"
+		QT_PLUGIN_PATH="${PREFIX}:${QT_PLUGIN_PATH}"
+		XDG_DATA_DIRS="${PREFIX}/share:${XDG_DATA_DIRS}"
+		XDG_CONFIG_DIRS="${PREFIX}/etc/xdg:${XDG_CONFIG_DIRS}"
+		KDEDIRS="${PREFIX}:${KDEDIRS}"
 
-		QML_IMPORT_PATH="${ROOT}/install/${MODULE_PATH}/${MODULE_BRANCH}/lib/qt4/imports:${QML_IMPORT_PATH}"
-		QMAKEPATH="${ROOT}/install/${MODULE_PATH}/${MODULE_BRANCH}/share/qt4/mkspecs/modules:${QMAKEPATH}"
+		QML_IMPORT_PATH="${ROOT}/install/${MODULE_PATH}/${MODULE_BRANCH}/lib$LIBPREFIX/qt4/imports:${QML_IMPORT_PATH}"
+		#QMAKEPATH="${ROOT}/install/${MODULE_PATH}/${MODULE_BRANCH}/share/qt4/mkspecs/modules:${QMAKEPATH}"
 		QT_PLUGIN_PATH="${ROOT}/install/${MODULE_PATH}/${MODULE_BRANCH}/lib/qt4/plugins/designer:${QT_PLUGIN_PATH}"
 	done
 
@@ -125,9 +130,9 @@ function export_vars() {
 		PATH="/usr/lib/ccache/:${PATH}"
 		ccache -M 10G
 	fi
-	export_var PATH "${JENKINS_SLAVE_HOME}:${ROOT}/install/${PROJECT}/${REAL_BRANCH}:${PATH%:}:${COMMON_DEPS}/bin"
+	export_var PATH "${JENKINS_SLAVE_HOME}:${ROOT}/install/${PROJECT}/${REAL_BRANCH}/bin:${PATH%:}:${COMMON_DEPS}/bin"
 
-	export_var LD_LIBRARY_PATH "${ROOT}/install/${PROJECT}/${REAL_BRANCH}/lib:${LD_LIBRARY_PATH%:}:${COMMON_DEPS}/lib"
+	export_var LD_LIBRARY_PATH "${ROOT}/install/${PROJECT}/${REAL_BRANCH}/lib64:${LD_LIBRARY_PATH%:}:${COMMON_DEPS}/lib64"
 	export_var PKG_CONFIG_PATH "${ROOT}/install/${PROJECT}/${REAL_BRANCH}:${PKG_CONFIG_PATH%:}:${COMMON_DEPS}"
 	export_var QT_PLUGIN_PATH "${ROOT}/install/${PROJECT}/${REAL_BRANCH}:${QT_PLUGIN_PATH%:}:${COMMON_DEPS}"
 	export_var XDG_DATA_DIRS "${ROOT}/install/${PROJECT}/${REAL_BRANCH}/share:${XDG_DATA_DIRS%:}:/usr/local/share/:/usr/share:${COMMON_DEPS}/share"
@@ -136,7 +141,7 @@ function export_vars() {
 	export_var CMAKE_CMD_LINE "-DCMAKE_PREFIX_PATH=\"${CMAKE_PREFIX_PATH%:}\""
 
 	export_var QML_IMPORT_PATH ${QML_IMPORT_PATH}
-	export_var QMAKEPATH ${QMAKEPATH}
+	#export_var QMAKEPATH ${QMAKEPATH}
 	export_var QT_PLUGIN_PATH ${QT_PLUGIN_PATH}
 
 	export_var KDE_PROJECT ${KDE_PROJECT}

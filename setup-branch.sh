@@ -2,6 +2,7 @@
 
 echo -e "\n=====================\n=> Setting up branch\n====================="
 
+rm -f ${WORKSPACE}/build-kde-org.environment
 source ${JENKINS_SLAVE_HOME}/functions.sh
 
 if [[ -n ${BRANCH} ]]; then
