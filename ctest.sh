@@ -44,6 +44,26 @@ else
 	fi
 	echo "=> Done"
 	
+	echo "=> Setting up runtime environment"
+	RUNTIME_BRANCH=`echo $DEPS | sed -e "s,.*kde/kdelibs=\([A-Z|a-z|\/|0-9|\.]*\).*,\1,g"`
+	if [[ "${RUNTIME_BRANCH}" != '' ]]; then
+		PREFIX="${ROOT}/install/kde/kde-runtime/${RUNTIME_BRANCH}"
+		
+		export CMAKE_PREFIX_PATH="${PREFIX}:${CMAKE_PREFIX_PATH}"
+		export PATH="${PREFIX}/bin:${PATH}"
+		export LD_LIBRARY_PATH="${PREFIX}/lib64:${LD_LIBRARY_PATH}"
+		export PKG_CONFIG_PATH="${PREFIX}/share/pkgconfig:${PREFIX}/lib64/pkgconfig:${PKG_CONFIG_PATH}"
+		export QT_PLUGIN_PATH="${PREFIX}:${QT_PLUGIN_PATH}"
+		export XDG_DATA_DIRS="${PREFIX}/share:${XDG_DATA_DIRS}"
+		export XDG_CONFIG_DIRS="${PREFIX}/etc/xdg:${XDG_CONFIG_DIRS}"
+		export KDEDIRS="${PREFIX}:${KDEDIRS}"
+
+		export QML_IMPORT_PATH="${PREFIX}/lib64/qt4/imports:${QML_IMPORT_PATH}"
+		export QT_PLUGIN_PATH="${PREFIX}/lib/qt4/plugins/designer:${QT_PLUGIN_PATH}"
+		export PYTHONPATH="${PREFIX}/lib64/python2.7/site-packages/:${PREFIX}/share/sip/:${PYTHONPATH}"
+	fi
+	echo "=> Done: $KDEDIRS"
+	
 	echo "=> Starting Xvfb"
 	export DISPLAY=:99
 	Xvfb :99 -ac &
