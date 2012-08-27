@@ -84,6 +84,10 @@ case ${JOB_TYPE} in
 			elif [[ "${PROJECT}" == "pyqt4" ]]; then
 				cd ${WORKSPACE}
 				python configure.py --confirm-license -u --bindir="${INSTPREFIX}/bin" --destdir="${INSTPREFIX}/lib64/python2.7/site-packages" --sipdir="${INSTPREFIX}/share/sip"
+			elif [[ "${PROJECT}" == "gmock" ]]; then
+				cd ${WORKSPACE}
+				autoreconf -fvi
+				./configure --prefix="${INSTPREFIX}"
 			else
 				${JENKINS_SLAVE_HOME}/cmake.sh ${EXTRA_VARS} -DKDE4_BUILD_TESTS=ON -DLIB_SUFFIX=64 -DSIP_DEFAULT_SIP_DIR=${INSTPREFIX}/share/sip/ -DCMAKE_INSTALL_PREFIX=${INSTPREFIX} ..
 			fi
