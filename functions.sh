@@ -114,22 +114,17 @@ function export_vars() {
 		PATH="${PREFIX}/bin:${PATH}"
 		LD_LIBRARY_PATH="${PREFIX}/lib$LIBPREFIX:${LD_LIBRARY_PATH}"
 		PKG_CONFIG_PATH="${PREFIX}/share/pkgconfig:${PREFIX}/lib$LIBPREFIX/pkgconfig:${PKG_CONFIG_PATH}"
-		QT_PLUGIN_PATH="${PREFIX}:${QT_PLUGIN_PATH}"
+		QT_PLUGIN_PATH="${PREFIX}/lib$LIBPREFIX/qt4/plugins:${PREFIX}/lib$LIBPREFIX/kde4/plugins:${QT_PLUGIN_PATH}"
 		XDG_DATA_DIRS="${PREFIX}/share:${XDG_DATA_DIRS}"
 		XDG_CONFIG_DIRS="${PREFIX}/etc/xdg:${XDG_CONFIG_DIRS}"
 		KDEDIRS="${PREFIX}:${KDEDIRS}"
 
 		QML_IMPORT_PATH="${PREFIX}/lib$LIBPREFIX/qt4/imports:${QML_IMPORT_PATH}"
-		QT_PLUGIN_PATH="${PREFIX}/lib/qt4/plugins/designer:${QT_PLUGIN_PATH}"
 		PYTHONPATH="${PREFIX}/lib64/python2.7/site-packages/:${PREFIX}/share/sip/:${PYTHONPATH}"
 	done
 
 	export_var CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH%:}"
 
-	if [[ -d "/usr/lib/ccache/" ]]; then
-		PATH="/usr/lib/ccache/:${PATH}"
-		ccache -M 10G
-	fi
 	export_var PATH "${JENKINS_SLAVE_HOME}:${ROOT}/install/${PROJECT}/${REAL_BRANCH}/bin:${PATH%:}:${COMMON_DEPS}/bin"
 
 	export_var LD_LIBRARY_PATH "${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH}/lib64:${LD_LIBRARY_PATH%:}:${COMMON_DEPS}/lib64"
