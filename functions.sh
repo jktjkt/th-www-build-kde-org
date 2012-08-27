@@ -123,20 +123,20 @@ function export_vars() {
 		PYTHONPATH="${PREFIX}/lib64/python2.7/site-packages/:${PREFIX}/share/sip/:${PYTHONPATH}"
 	done
 
+	PREFIX="${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH}"
+
 	export_var CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH%:}"
 
-	export_var PATH "${JENKINS_SLAVE_HOME}:${ROOT}/install/${PROJECT}/${REAL_BRANCH}/bin:${PATH%:}:${COMMON_DEPS}/bin"
-
-	export_var LD_LIBRARY_PATH "${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH}/lib64:${LD_LIBRARY_PATH%:}:${COMMON_DEPS}/lib64"
-	export_var PKG_CONFIG_PATH "${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH}:${PKG_CONFIG_PATH%:}:${COMMON_DEPS}"
-	export_var QT_PLUGIN_PATH "${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH}:${QT_PLUGIN_PATH%:}:${COMMON_DEPS}"
-	export_var XDG_DATA_DIRS "${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH}/share:${XDG_DATA_DIRS%:}:/usr/local/share/:/usr/share:${COMMON_DEPS}/share"
-	export_var XDG_CONFIG_DIRS "${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH}/etc/xdg:${XDG_CONFIG_DIRS%:}:/etc/xdg:${COMMON_DEPS}/etc/xdg"
-	export_var KDEDIRS "${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH}:${KDEDIRS%:}"
+	export_var PATH "${JENKINS_SLAVE_HOME}:${PREFIX}/bin:${PATH%:}:${COMMON_DEPS}/bin"
+	export_var LD_LIBRARY_PATH "${PREFIX}/lib64:${LD_LIBRARY_PATH%:}:${COMMON_DEPS}/lib64"
+	export_var PKG_CONFIG_PATH "${PREFIX}/share/pkgconfig:${PREFIX}/lib64/pkgconfig:${PKG_CONFIG_PATH%:}:${COMMON_DEPS}/share/pkgconfig:${COMMON_DEPS}/lib64/pkgconfig"
+	export_var QT_PLUGIN_PATH "${PREFIX}/lib64/qt4/plugins:${PREFIX}/lib64/kde4/plugins:${QT_PLUGIN_PATH%:}:${COMMON_DEPS}"
+	export_var XDG_DATA_DIRS "${PREFIX}/share:${XDG_DATA_DIRS%:}:/usr/local/share/:/usr/share:${COMMON_DEPS}/share"
+	export_var XDG_CONFIG_DIRS "${PREFIX}/etc/xdg:${XDG_CONFIG_DIRS%:}:/etc/xdg:${COMMON_DEPS}/etc/xdg"
+	export_var KDEDIRS "${PREFIX}:${KDEDIRS%:}"
 	export_var CMAKE_CMD_LINE "-DCMAKE_PREFIX_PATH=\"${CMAKE_PREFIX_PATH%:}\""
 
 	export_var QML_IMPORT_PATH ${QML_IMPORT_PATH}
-	export_var QT_PLUGIN_PATH ${QT_PLUGIN_PATH}
 	export_var PYTHONPATH "${PYTHONPATH}:${COMMON_DEPS}/lib64/python2.7/site-packages:${COMMON_DEPS}/share/sip/"
 
 	export_var KDE_PROJECT ${KDE_PROJECT}
