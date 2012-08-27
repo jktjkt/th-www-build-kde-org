@@ -119,9 +119,9 @@ function export_vars() {
 		XDG_CONFIG_DIRS="${PREFIX}/etc/xdg:${XDG_CONFIG_DIRS}"
 		KDEDIRS="${PREFIX}:${KDEDIRS}"
 
-		QML_IMPORT_PATH="${ROOT}/install/${MODULE_PATH}/${MODULE_BRANCH}/lib$LIBPREFIX/qt4/imports:${QML_IMPORT_PATH}"
-		#QMAKEPATH="${ROOT}/install/${MODULE_PATH}/${MODULE_BRANCH}/share/qt4/mkspecs/modules:${QMAKEPATH}"
-		QT_PLUGIN_PATH="${ROOT}/install/${MODULE_PATH}/${MODULE_BRANCH}/lib/qt4/plugins/designer:${QT_PLUGIN_PATH}"
+		QML_IMPORT_PATH="${PREFIX}/lib$LIBPREFIX/qt4/imports:${QML_IMPORT_PATH}"
+		QT_PLUGIN_PATH="${PREFIX}/lib/qt4/plugins/designer:${QT_PLUGIN_PATH}"
+		PYTHONPATH="${PREFIX}/lib64/python2.7/site-packages/:${PREFIX}/share/sip/:${PYTHONPATH}"
 	done
 
 	export_var CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH%:}"
@@ -141,8 +141,8 @@ function export_vars() {
 	export_var CMAKE_CMD_LINE "-DCMAKE_PREFIX_PATH=\"${CMAKE_PREFIX_PATH%:}\""
 
 	export_var QML_IMPORT_PATH ${QML_IMPORT_PATH}
-	#export_var QMAKEPATH ${QMAKEPATH}
 	export_var QT_PLUGIN_PATH ${QT_PLUGIN_PATH}
+	export_var PYTHONPATH "${PYTHONPATH}:${COMMON_DEPS}/lib64/python2.7/site-packages:${COMMON_DEPS}/share/sip/"
 
 	export_var KDE_PROJECT ${KDE_PROJECT}
 

@@ -75,13 +75,17 @@ case ${JOB_TYPE} in
 
 		echo "=> Building..."
 		if [[ -z "${FAKE_EXECUTION}" ]] || [[ "${FAKE_EXECUTION}" == "false" ]]; then
+			INSTPREFIX="${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH}"
 			if [[ "${PROJECT}" == "cmake" ]]; then
-				${WORKSPACE}/bootstrap --prefix="${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH}"
+				${WORKSPACE}/bootstrap --prefix="${INSTPREFIX}"
 			elif [[ "${PROJECT}" == "Qt" ]]; then
 				cd ${WORKSPACE}
-				./configure ${QT_CONFIG_OPTIONS} -prefix "${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH}"
+				./configure ${QT_CONFIG_OPTIONS} -prefix "${INSTPREFIX}"
+			elif [[ "${PROJECT}" == "pyqt4" ]]; then
+				cd ${WORKSPACE}
+				python configure.py --confirm-license -u --bindir="${INSTPREFIX}/bin" --destdir="${INSTPREFIX}/lib64/python2.7/site-packages" --sipdir="${INSTPREFIX}/share/sip"
 			else
-				${JENKINS_SLAVE_HOME}/cmake.sh ${EXTRA_VARS} -DKDE4_BUILD_TESTS=ON -DLIB_SUFFIX=64 -DCMAKE_INSTALL_PREFIX=${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH} ..
+				${JENKINS_SLAVE_HOME}/cmake.sh ${EXTRA_VARS} -DKDE4_BUILD_TESTS=ON -DLIB_SUFFIX=64 -DSIP_DEFAULT_SIP_DIR=${INSTPREFIX}/share/sip/ -DCMAKE_INSTALL_PREFIX=${INSTPREFIX} ..
 			fi
 			${JENKINS_SLAVE_HOME}/make.sh
 			${JENKINS_SLAVE_HOME}/make.sh install
