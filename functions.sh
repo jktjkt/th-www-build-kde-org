@@ -132,12 +132,12 @@ function export_vars() {
 	fi
 	export_var PATH "${JENKINS_SLAVE_HOME}:${ROOT}/install/${PROJECT}/${REAL_BRANCH}/bin:${PATH%:}:${COMMON_DEPS}/bin"
 
-	export_var LD_LIBRARY_PATH "${ROOT}/install/${PROJECT}/${REAL_BRANCH}/lib64:${LD_LIBRARY_PATH%:}:${COMMON_DEPS}/lib64"
-	export_var PKG_CONFIG_PATH "${ROOT}/install/${PROJECT}/${REAL_BRANCH}:${PKG_CONFIG_PATH%:}:${COMMON_DEPS}"
-	export_var QT_PLUGIN_PATH "${ROOT}/install/${PROJECT}/${REAL_BRANCH}:${QT_PLUGIN_PATH%:}:${COMMON_DEPS}"
-	export_var XDG_DATA_DIRS "${ROOT}/install/${PROJECT}/${REAL_BRANCH}/share:${XDG_DATA_DIRS%:}:/usr/local/share/:/usr/share:${COMMON_DEPS}/share"
-	export_var XDG_CONFIG_DIRS "${ROOT}/install/${PROJECT}/${REAL_BRANCH}/etc/xdg:${XDG_CONFIG_DIRS%:}:/etc/xdg:${COMMON_DEPS}/etc/xdg"
-	export_var KDEDIRS "${ROOT}/install/${PROJECT}/${REAL_BRANCH}:${KDEDIRS%:}"
+	export_var LD_LIBRARY_PATH "${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH}/lib64:${LD_LIBRARY_PATH%:}:${COMMON_DEPS}/lib64"
+	export_var PKG_CONFIG_PATH "${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH}:${PKG_CONFIG_PATH%:}:${COMMON_DEPS}"
+	export_var QT_PLUGIN_PATH "${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH}:${QT_PLUGIN_PATH%:}:${COMMON_DEPS}"
+	export_var XDG_DATA_DIRS "${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH}/share:${XDG_DATA_DIRS%:}:/usr/local/share/:/usr/share:${COMMON_DEPS}/share"
+	export_var XDG_CONFIG_DIRS "${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH}/etc/xdg:${XDG_CONFIG_DIRS%:}:/etc/xdg:${COMMON_DEPS}/etc/xdg"
+	export_var KDEDIRS "${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH}:${KDEDIRS%:}"
 	export_var CMAKE_CMD_LINE "-DCMAKE_PREFIX_PATH=\"${CMAKE_PREFIX_PATH%:}\""
 
 	export_var QML_IMPORT_PATH ${QML_IMPORT_PATH}
