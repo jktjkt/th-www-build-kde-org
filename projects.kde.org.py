@@ -118,7 +118,7 @@ def resolveBranch(dom, project, branch):
 	repos = dom.getElementsByTagName('repo')
 
 	if branch == 'master':
-		branch == 'trunk'
+		branch = 'trunk'
 
 	for repo in repos:
 		if repo.parentNode.getAttribute('identifier') == project:
