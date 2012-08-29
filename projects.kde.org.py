@@ -119,6 +119,10 @@ def resolveBranch(dom, project, branch):
 
 	if branch == 'master':
 		branch = 'trunk'
+	
+	if branch == 'frameworks':
+		print branch
+		return
 
 	for repo in repos:
 		if repo.parentNode.getAttribute('identifier') == project:
