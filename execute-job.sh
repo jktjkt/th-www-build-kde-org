@@ -72,6 +72,9 @@ case ${JOB_TYPE} in
 		if [[ -n "${DEBUG}" ]] && [[ "${DEBUG}" =~ "make" ]]; then
 			EXTRA_VARS="--debug-output"
 		fi
+		if [[ "${PROJECT}" == "poppler" ]]; then
+			EXTRA_VARS="${EXTRA_VARS} -DENABLE_XPDF_HEADERS=ON"
+		fi
 
 		echo "=> Building..."
 		if [[ -z "${FAKE_EXECUTION}" ]] || [[ "${FAKE_EXECUTION}" == "false" ]]; then
