@@ -89,7 +89,7 @@ else
 
 	kbuildsycoca4 --noincremental
 
-	sed -ie 's/TimeOut: .*/TimeOut: 20/' DartConfiguration.tcl
+	sed -ie 's/TimeOut: .*/TimeOut: 120/' DartConfiguration.tcl
 
 	echo "==> TEST is using the following env."
 	env
