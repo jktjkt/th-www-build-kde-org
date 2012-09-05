@@ -75,6 +75,9 @@ case ${JOB_TYPE} in
 		if [[ "${PROJECT}" == "poppler" ]]; then
 			EXTRA_VARS="${EXTRA_VARS} -DENABLE_XPDF_HEADERS=ON"
 		fi
+		if [[ "${PROJECT}" == "kdelibs" ]]; then
+			EXTRA_VARS="${EXTRA_VARS} -DECMATEST_BASEDIR=${JENKINS_SLAVE_HOME}/ecma262"
+		fi
 
 		echo "=> Building..."
 		if [[ -z "${FAKE_EXECUTION}" ]] || [[ "${FAKE_EXECUTION}" == "false" ]]; then

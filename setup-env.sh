@@ -58,4 +58,16 @@ pushd ${JENKINS_SLAVE_HOME}/dependencies
 popd
 echo "=>Setting up dependency info... done"
 
+echo "=> Setting up ECMA 262 test data"
+mkdir -p ${JENKINS_SLAVE_HOME}/ecma262
+pushd ${JENKINS_SLAVE_HOME}/ecma262
+(
+	if [ ! -d ".hg" ]; then
+		hg clone http://hg.ecmascript.org/tests/test262/ .
+	fi
+	hg pull -u
+)
+popd
+echo "=> Setting up ECMA 262 test data... done"
+
 ${JENKINS_SLAVE_HOME}/setup-branch.sh
