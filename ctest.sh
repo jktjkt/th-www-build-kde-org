@@ -26,21 +26,13 @@ cat <<EOB > ${BUILD_DIR}/JUnitTestResults.xml
 </testsuite>
 EOB
 else
-	echo "=> Getting running Xvfb instances"
+	echo "=> Making sure Xvfb is up..."
+	export DISPLAY=:99
 	pids=`pgrep Xvfb -U jenkins`
-	if [[ $? == 0 ]]; then
-	    echo "==> Pids found, killing"
-	    echo "${pids}"
-	    killall -u jenkins Xvfb
+	if [[ $? != 0 ]]; then
+	    echo "==> Xvfb not running, starting..."
 	    rm -f /tmp/.X99-lock
-	fi
-	echo "=> Done"
-	echo "=> Getting running dbus instances"
-	pids=`pgrep dbus-daemon -U jenkins`
-	if [[ $? == 0 ]]; then
-	    echo "==> Pids found, killing"
-	    echo "${pids}"
-	    killall -u jenkins dbus-daemon
+            Xvfb :99 -ac &
 	fi
 	echo "=> Done"
 	
@@ -63,10 +55,6 @@ else
 		export PYTHONPATH="${PREFIX}/lib64/python2.7/site-packages/:${PREFIX}/share/sip/:${PYTHONPATH}"
 	fi
 	echo "=> Done: $KDEDIRS"
-	
-	echo "=> Starting Xvfb"
-	export DISPLAY=:99
-	Xvfb :99 -ac &
 	
 	echo "=> Starting dbus"
 	DBUS_LAUNCH=`which dbus-launch`
@@ -102,7 +90,7 @@ else
 
 	echo "=> Testing completed, shutting down processes..."
 	qdbus org.kde.NepomukServer /nepomukserver quit
-	killall -u jenkins kdeinit4 kded4 klauncher knotify4
+	#killall -u jenkins kdeinit4 kded4 klauncher knotify4
 
 	echo "=> Waiting for KDE processes to shutdown..."
 	sleep 30s
