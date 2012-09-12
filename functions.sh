@@ -82,6 +82,8 @@ function export_vars() {
 		echo "=> Dep: ${DEP%=*}:${DEP#*=}"
 	done
 
+	pushd ${JENKINS_SLAVE_HOME}
+
 	for DEP in ${DEPS}; do
 		MODULE_PATH=${DEP%=*}
 		MODULE_BRANCH=${DEP#*=}
@@ -98,9 +100,7 @@ function export_vars() {
 			MODULE_BRANCH=$REAL_BRANCH
 		fi
 
-		pushd ${JENKINS_SLAVE_HOME}
 		MODULE=`${JENKINS_SLAVE_HOME}/projects.kde.org.py resolve identifier ${MODULE_PATH}`
-		popd
 
 		if [ -z $MODULE ]; then
 			MODULE=$MODULE_PATH
@@ -122,6 +122,8 @@ function export_vars() {
 		QML_IMPORT_PATH="${PREFIX}/lib$LIBPREFIX/qt4/imports:${QML_IMPORT_PATH}"
 		PYTHONPATH="${PREFIX}/lib64/python2.7/site-packages/:${PREFIX}/share/sip/:${PYTHONPATH}"
 	done
+
+	popd
 
 	PREFIX="${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH}"
 
