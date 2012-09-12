@@ -101,10 +101,14 @@ function export_vars() {
 		fi
 
 		MODULE=`${JENKINS_SLAVE_HOME}/projects.kde.org.py resolve identifier ${MODULE_PATH}`
-		#MODULE_BRANCH=`${JENKINS_SLAVE_HOME}/projects.kde.org.py resolve branch ${MODULE_BRANCH}`
 
 		if [ -z $MODULE ]; then
 			MODULE=$MODULE_PATH
+		fi
+
+		MODULE_BRANCH=`${JENKINS_SLAVE_HOME}/projects.kde.org.py resolve branch ${MODULE} ${MODULE_BRANCH}`
+		if [ -z ${MODULE_BRANCH} ]; then
+			MODULE_BRANCH=${REAL_BRANCH}
 		fi
 
 		CLEAN_DEPS="${CLEAN_DEPS} $MODULE_PATH=$MODULE_BRANCH"
