@@ -124,17 +124,24 @@ def resolveBranch(dom, project, branch):
 		print branch
 		return
 
+	branches=[]
 	for repo in repos:
 		if repo.parentNode.getAttribute('identifier') == project:
 			for node in repo.childNodes:
 				if node.nodeType != xml.dom.Node.ELEMENT_NODE:
 					continue
 				try:
-					if node.tagName == 'branch' and node.getAttribute('i18n') == branch:
-						print node.childNodes[0].nodeValue
-						return
+					if node.tagName == 'branch':
+						branches.append(node.childNodes[0].nodeValue)
+						if node.getAttribute('i18n') == branch:
+							print node.childNodes[0].nodeValue
+							return
 				except IndexError:
 					continue
+	if branch in branches:
+		print branch
+		return
+
 	print "master"
 
 def resolvePath(dom, project):
