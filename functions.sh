@@ -171,7 +171,6 @@ function sync_from_master() {
 			MODULE=${DEP%=*}
 			MODULE_BRANCH=${DEP#*=}
 
-			#lock_dir ${ROOT}/install/${MODULE}/${MODULE_BRANCH}/
 			echo "Syncing $MODULE ($MODULE_BRANCH)..."
 			if [[ -z "${FAKE_EXECUTION}" ]] || [[ "${FAKE_EXECUTION}" == "false" ]]; then
 				mkdir -p ${ROOT}/install/${MODULE}/${MODULE_BRANCH}
@@ -186,7 +185,6 @@ function sync_from_master() {
 				fi
 			fi
 			echo "Syncing $MODULE ($MODULE_BRANCH)... done"
-			#unlock_dir ${ROOT}/install/${MODULE}/${MODULE_BRANCH}/
 		done
 	else
 		echo "=> Running on master, skipping sync"
@@ -208,34 +206,21 @@ function sync_to_master() {
 
 function save_results() {
 	echo -e "=====================\n=> Saving build to install location\n====================="
+	TRANSFER_OPTIONS=""
 
 	if [[ "${PROJECT_PATH}" != "deps" ]]; then
-		echo -n "=> Removing old install dir (\"${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH}\")..."
-		if [[ -z "${FAKE_EXECUTION}" ]] || [[ "${FAKE_EXECUTION}" == "false" ]]; then
-			rm -rf "${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH}"
-		fi
-		echo " done"
-	else
-		echo "=> Dependency build, will not remove old install dir"
+		echo "=> Not a dependencies build - will clean install directory"
+		TRANSFER_OPTIONS="--delete"
 	fi
 
 	basedir=`dirname "${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH}"`
-	echo -n "=> Moving new install to global location (\"${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH}\")..."
+	echo -n "=> Syncing new install to global location (\"${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH}\")..."
 	if [[ -z "${FAKE_EXECUTION}" ]] || [[ "${FAKE_EXECUTION}" == "false" ]]; then
 		mkdir -p "${basedir}"
-		rsync -rlptgoD --checksum "${WORKSPACE}/install/${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH}/" "${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH}"
+		rsync -rlptgoD --checksum ${TRANSFER_OPTIONS} "${WORKSPACE}/install/${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH}/" "${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH}"
 		rm -rf "${WORKSPACE}/install/${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH}"
 	fi
 	echo " done"
-}
-
-function set_revision() {
-	echo "No not yet"
-	#if [ -d .git ]; then
-	#	git checkout ${REVISION}
-	#elif [ -d .svn ]; then
-	#	svn co ${REPO_URL}
-	#fi
 }
 
 function schedule_build() {

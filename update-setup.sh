@@ -1,0 +1,54 @@
+# Settings
+JENKINS_SLAVE_HOME=$HOME/scripts
+JENKINS_BRANCH="development"
+JENKINS_DEPENDENCY_BRANCH="master"
+
+# Move to the slave home
+if [ ! -d ${JENKINS_SLAVE_HOME} ]; then
+	mkdir -p ${JENKINS_SLAVE_HOME}
+fi
+cd ${JENKINS_SLAVE_HOME}
+
+# Checkout our scripts
+if [ ! -d .git ]; then
+	git clone git://anongit.kde.org/websites/build-kde-org .
+fi
+git fetch origin
+git checkout ${JENKINS_BRANCH}
+git merge --ff-only origin/${JENKINS_BRANCH}
+
+# Setup the dependency data
+if [ -d ${JENKINS_SLAVE_HOME}/dependencies ]; then
+	mkdir -p ${JENKINS_SLAVE_HOME}/dependencies
+fi
+pushd ${JENKINS_SLAVE_HOME}/dependencies
+(
+	if [ ! -d ".git" ]; then
+		git clone git://anongit.kde.org/kde-build-metadata .
+	fi
+	git fetch origin
+	git checkout ${JENKINS_DEPENDENCY_BRANCH}
+	git merge --ff-only origin/${JENKINS_DEPENDENCY_BRANCH}
+	git log -1 HEAD
+)
+popd
+
+# Setup the ecma262 data (needed for kdelibs)
+if [ -d ${JENKINS_SLAVE_HOME}/ecma262 ]; then
+	mkdir -p ${JENKINS_SLAVE_HOME}/ecma262
+fi
+pushd ${JENKINS_SLAVE_HOME}/ecma262
+(
+	if [ ! -d ".hg" ]; then
+		hg clone http://hg.ecmascript.org/tests/test262/ .
+	fi
+	hg pull -u
+)
+popd
+
+# Update the Jenkins CLI client
+pushd /tmp
+(
+	wget http://build.kde.org/jnlpJars/jenkins-cli.jar && mv jenkins-cli.jar ${JENKINS_SLAVE_HOME}/jenkins-cli.jar
+)
+popd

@@ -1,14 +1,17 @@
 #!/bin/bash -e
 
+##
+## A few functions to help us...
+##
 function FAIL {
 	# return if sourced and exit if executed
 	[ "$0" != "bash" ] || return 1
 	exit 1
 }
 
-echo -e "\n=====================\n=> Setting up build environment\n====================="
-
-
+##
+## Perform some sanity tests
+##
 if [ -z ${JENKINS_BRANCH} ]; then
 	echo "=> JENKINS_BRANCH not set!"
 	export JENKINS_BRANCH="master"
@@ -29,45 +32,70 @@ if [ -z "${JENKINS_SLAVE_HOME}" ]; then
     FAIL
 fi
 
-echo "=>Setting up tools..."
-pushd ${JENKINS_SLAVE_HOME}
-(
-	if [ ! -d .git ]; then
-		git clone git://anongit.kde.org/websites/build-kde-org .
-	fi
-	git fetch origin
-	git checkout ${JENKINS_BRANCH}
-	git merge --ff-only origin/${JENKINS_BRANCH}
-	git log -1 HEAD
-) || FAIL
-popd
-echo "=>Setting up tools... done"
+echo -e "\n=====================\n=> Setting up branch\n====================="
 
-echo "=>Setting up dependency info..."
-mkdir -p ${JENKINS_SLAVE_HOME}/dependencies
-pushd ${JENKINS_SLAVE_HOME}/dependencies
-(
+# Purge the environment from the previous build
+# (otherwise they indefinitely stack, making a dependency mess)
+rm -f ${WORKSPACE}/build-kde-org.environment
+source ${JENKINS_SLAVE_HOME}/functions.sh
+
+# Determine the branch we want to build...
+if [[ -n ${BRANCH} ]]; then
+	WANTED_BRANCH=${BRANCH}
+else
+	WANTED_BRANCH="${JOB_NAME##*_}"
+fi
+
+JOB_NAME=${JOB_NAME/test-/}
+PROJECT="${JOB_NAME%%_*}"
+
+KDE_PROJECT="true"
+
+echo "=> Resolving branch..."
+if [[ "${PROJECT}" == "Qt" ]]; then
+	if [[ "$WANTED_BRANCH" == "stable" ]]; then
+		RESOLVED_BRANCH=${QT_STABLE_BRANCH}
+	elif [[ "$WANTED_BRANCH" == "master" ]]; then
+		RESOLVED_BRANCH=${QT_FUTURE_BRANCH}
+	elif [[ "${WANTED_BRANCH}" == "legacy" ]]; then
+		RESOLVED_BRANCH=${QT_LEGACY_BRANCH}
+	else
+		FAIL "Unknown Qt branch ${WANTED_BRANCH}"
+	fi
+else
+	pushd ${JENKINS_SLAVE_HOME}
+	EXTERNAL_JOBS=`java -jar ./jenkins-cli.jar -i jenkins-private.key -s http://sandbox.build.kde.org groovy external_jobs.groovy`
+	echo "=> External projects: ${EXTERNAL_JOBS}"
+	if `echo "${EXTERNAL_JOBS}" | grep -q -- "${PROJECT}"`; then
+		echo "=> Non KDE project"
+		KDE_PROJECT="false"
+		unset BRANCH
+	else
+		echo "=> KDE project"
+		RESOLVED_BRANCH=`${JENKINS_SLAVE_HOME}/projects.kde.org.py resolve branch ${PROJECT} ${WANTED_BRANCH}`
+	fi
+	popd
+fi
+echo "=> Resolving branch... ${RESOLVED_BRANCH}"
+
+if [[ "${KDE_PROJECT}" == "true" ]]; then
+	echo "=> Sleeping for $POLL_DELAY seconds to allow mirrors to sync"
+	sleep $POLL_DELAY
+
+	echo "=> Setting up git..."
+	pushd ${JENKINS_SLAVE_HOME}
+	REPO_ADDRESS=`${JENKINS_SLAVE_HOME}/projects.kde.org.py resolve repo ${PROJECT}`
+	popd
+	echo "=> Setting up git... done"
+
 	if [ ! -d ".git" ]; then
-		git clone git://anongit.kde.org/kde-build-metadata .
+		git clone $REPO_ADDRESS .
 	fi
-	git fetch origin
-	git checkout ${JENKINS_DEPENDENCY_BRANCH}
-	git merge --ff-only origin/${JENKINS_DEPENDENCY_BRANCH}
-	git log -1 HEAD
-) || FAIL
-popd
-echo "=>Setting up dependency info... done"
+	git fetch
+	echo "=> Using branch ${RESOLVED_BRANCH}"
+	git branch --set-upstream --force jenkins origin/${RESOLVED_BRANCH}
+fi
 
-echo "=> Setting up ECMA 262 test data"
-mkdir -p ${JENKINS_SLAVE_HOME}/ecma262
-pushd ${JENKINS_SLAVE_HOME}/ecma262
-(
-	if [ ! -d ".hg" ]; then
-		hg clone http://hg.ecmascript.org/tests/test262/ .
-	fi
-	hg pull -u
-)
-popd
-echo "=> Setting up ECMA 262 test data... done"
+export_var KDE_PROJECT ${KDE_PROJECT}
 
-${JENKINS_SLAVE_HOME}/setup-branch.sh
+echo -e "=====================\n=> Handing over to Jenkins\n=====================\n"

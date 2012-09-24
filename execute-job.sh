@@ -42,12 +42,6 @@ case ${JOB_TYPE} in
 
 		clean_workspace
 
-		# Apply any local patches
-		#echo "=> Apply local patches"
-		#for f in ${ROOT}/patches/${JOB_NAME_DIR}/*.patch; do
-		#	patch -p0 < ${f}
-		#done
-
 		echo -e "=====================\n=> Calculate dependencies\n====================="
 		if [[ "${KDE_PROJECT}" == "true" ]]; then
 			${JENKINS_SLAVE_HOME}/build-deps-parser.py ${PROJECT_PATH} ${REAL_BRANCH}
