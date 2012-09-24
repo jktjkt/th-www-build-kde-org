@@ -29,7 +29,6 @@ pushd ${JENKINS_SLAVE_HOME}/dependencies
 	git fetch origin
 	git checkout ${JENKINS_DEPENDENCY_BRANCH}
 	git merge --ff-only origin/${JENKINS_DEPENDENCY_BRANCH}
-	git log -1 HEAD
 )
 popd
 
