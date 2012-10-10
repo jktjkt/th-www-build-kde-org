@@ -111,7 +111,15 @@ case ${JOB_TYPE} in
 
 		;;
 	package)
+		echo "=> Packaging mode"
+		setup_packaging
+		clean_workspace
+
 		# 1: Package
+		echo "=> Packaging... ${PROJECT}:${REAL_BRANCH}"
+		package
+		echo "=> Packaging... done"
+
 		# 2: Build and test the new package against the latest packaged dependencies.
 		#    Trigger a build with special options, real_branch set to version?
 		#    Do it here inline?

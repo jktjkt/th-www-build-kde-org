@@ -292,3 +292,111 @@ function clean_workspace() {
 	fi
 	popd
 }
+
+function setup_packaging() {
+	pushd ${JENKINS_SLAVE_HOME}
+	mkdir -p packaging
+	cd packaging
+	if [ ! -d ".svn" ]; then
+		echo "=> Checkingout release tools..."
+		svn co svn://anonsvn.kde.org/home/kde/trunk/kde-common/release .
+	else
+		echo "=> Updating release tools..."
+		svn up
+	fi
+}
+
+function _package() {
+	echo -e "=====================\n=> Packaging\n====================="
+	mkdir -p packaging/dirty packaging/sources packaging/clean
+	ln -s ./ packaging/clean/${PROJECT}
+	${JENKINS_SLAVE_HOME}/packaging/anon ${PROJECT}
+	${JENKINS_SLAVE_HOME}/packaging/docu ${PROJECT}
+	${JENKINS_SLAVE_HOME}/packaging/dist ${PROJECT}
+	${JENKINS_SLAVE_HOME}/packaging/taritup ${PROJECT}
+}
+
+function package() {
+	echo -e "=====================\n=> Set Version\n====================="
+	pushd ${WORKSPACE}
+	if [[ -z ${KDE_VERSION} ]]; then
+		local FULL_VERSION=${KDE_VERSION}
+		local MAJOR_MINOR_VERSION=${FULL_VERSION%.*}
+		local MAJOR_VERSION=${FULL_VERSION%%.*}
+		local MINOR_VERSION=${MAJOR_MINOR_VERSION##*.}
+		local PATCH_VERSION=${FULL_VERSION##*.}
+	fi
+
+	case ${PROJECT} in
+		"kdelibs")
+			if [[ -z ${KDE_VERSION} ]]; then
+				echo "=> Update CMakeLists.txt (KDE_VERSION_*)"
+       			sed -i -e "s:KDE_VERSION_MAJOR [0-9]*:KDE_VERSION_MAJOR ${MAJOR_VERSION}:" CMakeLists.txt
+    	   		sed -i -e "s:KDE_VERSION_MINOR [0-9]*:KDE_VERSION_MINOR ${MINOR_VERSION}:" CMakeLists.txt
+       			sed -i -e "s:KDE_VERSION_RELEASE [0-9]*:KDE_VERSION_RELEASE ${PATCH_VERSION}:" CMakeLists.txt
+   
+  	     		echo "=> Update README"
+  	     		sed -i -e "s:version [0-9]*\.[0-9]*\.[0-9]* of the KDE libraries:version ${FULL_VERSION} of the KDE libraries:" README
+   
+    	   		echo "=> Update cmake/modules/KDE4Defaults.cmake (GENERIC_LIB_VERSION, KDE_NON_GENERIC_LIB_VERSION)"
+       			sed -i -e "s:set(GENERIC_LIB_VERSION \"[0-9]*\.[0-9]*\.[0-9]*\"):set(GENERIC_LIB_VERSION \"${FULL_VERSION}\"):" cmake/modules/KDE4Defaults.cmake
+       			sed -i -e "s:set(GENERIC_LIB_SOVERSION \"[0-9]*\"):set(GENERIC_LIB_SOVERSION \"${MAJOR_VERSION}\"):" cmake/modules/KDE4Defaults.cmake
+       			sed -i -e "s:set(KDE_NON_GENERIC_LIB_VERSION \"[0-9]*\.[0-9]*\.[0-9]*\"):set(KDE_NON_GENERIC_LIB_VERSION \"$((${MAJOR_VERSION}+1)).${MINOR_VERSION}.${PATCH_VERSION}\"):" cmake/modules/KDE4Defaults.cmake
+ 				sed -i -e "s:set(KDE_NON_GENERIC_LIB_SOVERSION \"[0-9]*\"):set(KDE_NON_GENERIC_LIB_SOVERSION \"$((${MAJOR_VERSION}+1))\"):" cmake/modules/KDE4Defaults.cmake
+			fi
+			;;
+		"kdepimlibs")
+			if [[ -z ${KDE_VERSION} ]]; then
+				echo "=> Update CMakeLists.txt (KDEPIMLIBS_VERSION_*)"
+				sed -i -e "s:KDEPIMLIBS_VERSION_MAJOR [0-9]*:KDEPIMLIBS_VERSION_MAJOR ${MAJOR_VERSION}:" CMakeLists.txt
+				sed -i -e "s:KDEPIMLIBS_VERSION_MINOR [0-9]*:KDEPIMLIBS_VERSION_MINOR ${MINOR_VERSION}:" CMakeLists.txt
+				sed -i -e "s:KDEPIMLIBS_VERSION_RELEASE [0-9]*:KDEPIMLIBS_VERSION_RELEASE ${PATCH_VERSION}:" CMakeLists.txt
+			fi
+			;;
+		"kdepim")
+			if [[ -z ${KDE_VERSION} ]]; then
+				echo "=> Update CMakeLists.modules (KDEPIM_DEV_VERSION, KDEPIM_VERSION)"
+				sed -i -e "s:set(KDEPIM_DEV_VERSION.*):set(KDEPIM_DEV_VERSION ):" CMakeLists.txt
+				sed -i -e "s:KDEPIM_VERSION \"[0-9]*\.[0-9]*\.[0-9]*\":KDEPIM_VERSION \"${FULL_VERSION}\"):" CMakeLists.txt
+			fi
+			;;
+		"kdepim-runtime")
+			if [[ -z ${KDE_VERSION} ]]; then
+				echo "Update CMakeLists.txt (KDEPIM_RUNTIME_DEV_VERSION, KDEPIM_RUNTIME_VERSION)"
+				sed -i -e "s:set([ ]*KDEPIM_RUNTIME_DEV_VERSION.*):set( KDEPIM_RUNTIME_DEV_VERSION ):" CMakeLists.txt
+				sed -i -e "s:KDEPIM_RUNTIME_VERSION \"[0-9]*\.[0-9]*\.[0-9]*\":KDEPIM_RUNTIME_VERSION \"${FULL_VERSION}\"):" CMakeLists.txt
+			fi
+			;;
+		"kde-workspace")
+			if [[ -z ${KDE_VERSION} ]]; then
+				echo "=> Update CMakeLists.txt (KDE4WORKSPACE_VERSION_*)"
+				sed -i -e "s:KDE4WORKSPACE_VERSION_MAJOR [0-9]*:KDE4WORKSPACE_VERSION_MAJOR ${MAJOR_VERSION}:" CMakeLists.txt
+				sed -i -e "s:KDE4WORKSPACE_VERSION_MINOR [0-9]*:KDE4WORKSPACE_VERSION_MINOR ${MINOR_VERSION}:" CMakeLists.txt
+				sed -i -e "s:KDE4WORKSPACE_VERSION_RELEASE [0-9]*:KDE4WORKSPACE_VERSION_RELEASE ${PATCH_VERSION}:" CMakeLists.txt
+			
+				if [[ ${PATCH_VERSION} == 0 ]]; then
+					echo "=> Removing MALLOC_CHECK from startkde-cmake"
+				fi
+			fi
+			;;
+		"kopete")
+			if [[ -z ${KDE_VERSION} ]]; then
+				local KOPETE_MAJOR_VERSION=``
+				local KOPETE_MINOR_VERSION=``
+				local KOPETE_PATCH_VERSION=``
+			fi
+			;;
+		*)
+			;;
+	esac
+	_package
+	popd
+}
+
+function package_all() {
+	# for project in ${JENKINS_SLAVE_HOME}/{modules,modules.git}; do
+	# 	make sure ${project_WORKSPACE} exist
+	#   update -||-
+	#	package()
+	# done
+}
