@@ -14,8 +14,8 @@ rm -rf ${BUILD_DIR}/Testing
 pushd ${BUILD_DIR}
 
 ctest -N | grep "Total Tests: 0"
-if [[ $? == 0 ]]; then
-    echo "=> No tests found"
+if [[ $? == 0 ]] || [[ "${PROJECT}" == "kdepimlibs" ]]; then
+    echo "=> No tests found or kdepimlibs (tests disabled)"
 cat <<EOB > ${BUILD_DIR}/JUnitTestResults.xml
 <?xml version="1.0"?>
 <testsuite>
