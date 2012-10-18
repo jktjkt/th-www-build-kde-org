@@ -9,6 +9,9 @@ else
 	source ${WORKSPACE}/build-kde-org.environment
 fi
 
+JOB_NAME=${JOB_NAME/test-/}
+PROJECT="${JOB_NAME%%_*}"
+
 rm -f ${BUILD_DIR}/JUnitTestResults.xml
 rm -rf ${BUILD_DIR}/Testing
 pushd ${BUILD_DIR}
@@ -38,6 +41,9 @@ else
 	
 	echo "=> Setting up runtime environment"
 	RUNTIME_BRANCH=`echo $DEPS | sed -e "s,.*kde/kdelibs=\([A-Z|a-z|\/|0-9|\.]*\).*,\1,g"`
+	if [[ "${RUNTIME_BRANCH}" == "KDE/4.10" ]]; then
+		RUNTIME_BRANCH="master"
+	fi
 	if [[ "${RUNTIME_BRANCH}" != '' ]]; then
 		PREFIX="${ROOT}/install/kde/kde-runtime/${RUNTIME_BRANCH}"
 		
