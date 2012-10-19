@@ -90,6 +90,11 @@ else
 	echo "==> /TEST env"
 
 	ctest -T Test --output-on-failure --no-compress-output
+
+	#Cleanup known spacewaste
+	rm -rf /tmp/akonadi-jenkins*
+	rm -rf ~/.kdevduchain
+
 	popd
 
 	${JENKINS_SLAVE_HOME}/ctesttojunit.py ${BUILD_DIR} ${JENKINS_SLAVE_HOME}/ctesttojunit.xsl > JUnitTestResults.xml
