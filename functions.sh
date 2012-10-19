@@ -35,6 +35,14 @@ else
 fi
 LOCALHOST=`hostname -f`
 
+if [[ -z ${KDE_VERSION} ]]; then
+	FULL_VERSION=${KDE_VERSION}
+	MAJOR_MINOR_VERSION=${FULL_VERSION%.*}
+	MAJOR_VERSION=${FULL_VERSION%%.*}
+	MINOR_VERSION=${MAJOR_MINOR_VERSION##*.}
+	PATCH_VERSION=${FULL_VERSION##*.}
+fi
+
 if [[ -f ${WORKSPACE}/build-kde-org.environment ]]; then
 	echo -n "=> Loading build environment..."
 	source ${WORKSPACE}/build-kde-org.environment
@@ -318,17 +326,13 @@ function _package() {
 
 function package() {
 	echo -e "=====================\n=> Set Version\n====================="
-	pushd ${WORKSPACE}
-	if [[ -z ${KDE_VERSION} ]]; then
-		local FULL_VERSION=${KDE_VERSION}
-		local MAJOR_MINOR_VERSION=${FULL_VERSION%.*}
-		local MAJOR_VERSION=${FULL_VERSION%%.*}
-		local MINOR_VERSION=${MAJOR_MINOR_VERSION##*.}
-		local PATCH_VERSION=${FULL_VERSION##*.}
+	if [ -z $KDE_VERSION ]; then
+		FAIL "KDE_VERSION not set, unable to package"
 	fi
+	pushd ${JENKINS_HOME}/workspace/${PROJECT}
 
 	case ${PROJECT} in
-		"kdelibs")
+		"kdelibs*")
 			if [[ -z ${KDE_VERSION} ]]; then
 				echo "=> Update CMakeLists.txt (KDE_VERSION_*)"
        			sed -i -e "s:KDE_VERSION_MAJOR [0-9]*:KDE_VERSION_MAJOR ${MAJOR_VERSION}:" CMakeLists.txt
@@ -345,7 +349,7 @@ function package() {
  				sed -i -e "s:set(KDE_NON_GENERIC_LIB_SOVERSION \"[0-9]*\"):set(KDE_NON_GENERIC_LIB_SOVERSION \"$((${MAJOR_VERSION}+1))\"):" cmake/modules/KDE4Defaults.cmake
 			fi
 			;;
-		"kdepimlibs")
+		"kdepimlibs*")
 			if [[ -z ${KDE_VERSION} ]]; then
 				echo "=> Update CMakeLists.txt (KDEPIMLIBS_VERSION_*)"
 				sed -i -e "s:KDEPIMLIBS_VERSION_MAJOR [0-9]*:KDEPIMLIBS_VERSION_MAJOR ${MAJOR_VERSION}:" CMakeLists.txt
@@ -353,21 +357,21 @@ function package() {
 				sed -i -e "s:KDEPIMLIBS_VERSION_RELEASE [0-9]*:KDEPIMLIBS_VERSION_RELEASE ${PATCH_VERSION}:" CMakeLists.txt
 			fi
 			;;
-		"kdepim")
+		"kdepim*")
 			if [[ -z ${KDE_VERSION} ]]; then
 				echo "=> Update CMakeLists.modules (KDEPIM_DEV_VERSION, KDEPIM_VERSION)"
 				sed -i -e "s:set(KDEPIM_DEV_VERSION.*):set(KDEPIM_DEV_VERSION ):" CMakeLists.txt
 				sed -i -e "s:KDEPIM_VERSION \"[0-9]*\.[0-9]*\.[0-9]*\":KDEPIM_VERSION \"${FULL_VERSION}\"):" CMakeLists.txt
 			fi
 			;;
-		"kdepim-runtime")
+		"kdepim-runtime*")
 			if [[ -z ${KDE_VERSION} ]]; then
 				echo "Update CMakeLists.txt (KDEPIM_RUNTIME_DEV_VERSION, KDEPIM_RUNTIME_VERSION)"
 				sed -i -e "s:set([ ]*KDEPIM_RUNTIME_DEV_VERSION.*):set( KDEPIM_RUNTIME_DEV_VERSION ):" CMakeLists.txt
 				sed -i -e "s:KDEPIM_RUNTIME_VERSION \"[0-9]*\.[0-9]*\.[0-9]*\":KDEPIM_RUNTIME_VERSION \"${FULL_VERSION}\"):" CMakeLists.txt
 			fi
 			;;
-		"kde-workspace")
+		"kde-workspace*")
 			if [[ -z ${KDE_VERSION} ]]; then
 				echo "=> Update CMakeLists.txt (KDE4WORKSPACE_VERSION_*)"
 				sed -i -e "s:KDE4WORKSPACE_VERSION_MAJOR [0-9]*:KDE4WORKSPACE_VERSION_MAJOR ${MAJOR_VERSION}:" CMakeLists.txt
@@ -379,7 +383,7 @@ function package() {
 				fi
 			fi
 			;;
-		"kopete")
+		"kopete*")
 			if [[ -z ${KDE_VERSION} ]]; then
 				local KOPETE_MAJOR_VERSION=``
 				local KOPETE_MINOR_VERSION=``
@@ -394,9 +398,26 @@ function package() {
 }
 
 function package_all() {
-	# for project in ${JENKINS_SLAVE_HOME}/{modules,modules.git}; do
-	# 	make sure ${project_WORKSPACE} exist
-	#   update -||-
-	#	package()
-	# done
+	# Were to get the sources from?
+	pushd ${WORKSPACE}
+	rm -rf clean build dirty sources borrame
+	mkdir -p clean build dirty sources borrame
+
+	#Checkout all SVN based modules
+	${JENKINS_SLAVE_HOME}/packaging/checkout
+	#And now all git based
+	${JENKINS_SLAVE_HOME}/packaging/setup-git-modules.sh
+
+	cat ${JENKINS_SLAVE_HOME}/packaging/modules.git | while read PROJECT branch; do
+		package
+	done
+
+	for PROJECT in `cat ${JENKINS_SLAVE_HOME}/packaging/modules`; do
+		package
+	done
+
+	if [[ "$KDE_MAJOR_VERSION" -eq "4" ]] && [[ "$KDE_MINOR_VERSION" -eq "9" ]]; then
+		${JENKINS_SLAVE_HOME}/packaging/pack_kdegames
+	fi
 }
+
