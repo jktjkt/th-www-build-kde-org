@@ -241,9 +241,9 @@ function schedule_build() {
 
 	pushd ${JENKINS_SLAVE_HOME}
 	if [[ ! -f "jenkins-cli.jar" ]]; then
-		wget http://sandbox.build.kde.org/jnlpJars/jenkins-cli.jar
+		wget http://${MASTER}:${HTTP_PORT:-80}/jnlpJars/jenkins-cli.jar
 	fi
-	java -jar ./jenkins-cli.jar -i jenkins-private.key -s http://sandbox.build.kde.org build -s ${MODULE}_${MODULE_BRANCH} || FAIL "Dependency build failed"
+	java -jar ./jenkins-cli.jar -i jenkins-private.key -s http://${MASTER}:${HTTP_PORT:-80} build -s ${MODULE}_${MODULE_BRANCH} || FAIL "Dependency build failed"
 	popd
 }
 

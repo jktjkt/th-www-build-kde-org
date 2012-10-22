@@ -65,10 +65,10 @@ if [[ "${PROJECT}" == "Qt" ]]; then
 else
 	pushd ${JENKINS_SLAVE_HOME}
 	if [[ ! -f "jenkins-cli.jar" ]]; then
-		wget http://sandbox.build.kde.org/jnlpJars/jenkins-cli.jar
+		wget http://${MASTER}:${HTTP_PORT:-80}/jnlpJars/jenkins-cli.jar
 	fi
 
-	EXTERNAL_JOBS=`java -jar ./jenkins-cli.jar -i jenkins-private.key -s http://sandbox.build.kde.org groovy external_jobs.groovy`
+	EXTERNAL_JOBS=`java -jar ./jenkins-cli.jar -i jenkins-private.key -s http://${MASTER}:${HTTP_PORT:-80} groovy external_jobs.groovy`
 	echo "=> External projects: ${EXTERNAL_JOBS}"
 	if `echo "${EXTERNAL_JOBS}" | grep -q -- "${PROJECT}"`; then
 		echo "=> Non KDE project"
