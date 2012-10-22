@@ -112,7 +112,6 @@ case ${JOB_TYPE} in
 		;;
 	package)
 		echo "=> Packaging mode"
-		setup_packaging
 		clean_workspace
 
 		# 1: Package
