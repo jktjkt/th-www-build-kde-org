@@ -371,7 +371,7 @@ function package() {
 			local KOPETE_PATCH_VERSION=``
 			_package
 			;;
-		"package_kde_sc")
+		"package-kde-sc")
 			_package_all
 			;;
 		*)
