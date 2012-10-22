@@ -388,9 +388,9 @@ function _package_all() {
 	mkdir -p clean build dirty sources borrame
 
 	#Checkout all SVN based modules
-	./checkout
+	BASE="svn://anonsvn.kde.org/home/kde" ./checkout
 	#And now all git based
-	./setup-git-modules.sh
+	BASE="git://anongit.kde.org" ./setup-git-modules.sh
 
 	cat modules.git | while read PROJECT branch; do
 		package
