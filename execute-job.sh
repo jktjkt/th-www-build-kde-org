@@ -91,6 +91,10 @@ case ${JOB_TYPE} in
 			else
 				${JENKINS_SLAVE_HOME}/cmake.sh ${EXTRA_VARS} -DKDE4_BUILD_TESTS=ON -DLIB_SUFFIX=64 -DSIP_DEFAULT_SIP_DIR=${INSTPREFIX}/share/sip/ -DCMAKE_INSTALL_PREFIX=${INSTPREFIX} ..
 			fi
+			# KDev-Python needs some preparation before a general make run can be done
+			if [[ "${PROJECT}" == "kdev-python" ]]; then
+				${JENKINS_SLAVE_HOME}/make.sh parser
+			fi
 			${JENKINS_SLAVE_HOME}/make.sh
 			${JENKINS_SLAVE_HOME}/make.sh install
 		fi
