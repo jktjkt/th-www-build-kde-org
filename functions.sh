@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash -xe
 
 if [ -z ${JOB_TYPE} ]; then
 	JOB_TYPE="build"
@@ -35,7 +35,7 @@ else
 fi
 LOCALHOST=`hostname -f`
 
-if [[ -z ${KDE_VERSION} ]]; then
+if [[ -n ${KDE_VERSION} ]]; then
 	FULL_VERSION=${KDE_VERSION}
 	MAJOR_MINOR_VERSION=${FULL_VERSION%.*}
 	MAJOR_VERSION=${FULL_VERSION%%.*}
@@ -301,25 +301,79 @@ function clean_workspace() {
 	popd
 }
 
-function _package() {
-	echo -e "=====================\n=> Packaging\n====================="
-	mkdir -p packaging/dirty packaging/sources packaging/clean
-	ln -s ./ packaging/clean/${PROJECT}
-	${JENKINS_SLAVE_HOME}/packaging/anon ${PROJECT}
-	${JENKINS_SLAVE_HOME}/packaging/docu ${PROJECT}
-	${JENKINS_SLAVE_HOME}/packaging/dist ${PROJECT}
-	${JENKINS_SLAVE_HOME}/packaging/taritup ${PROJECT}
+function setup_packaging() {
+	mkdir -p ${JENKINS_SLAVE_HOME}/packaging
+	pushd ${JENKINS_SLAVE_HOME}/packaging
+	if [[ ! -d .svn ]]; then
+		svn co ${SVN_URL} .
+	else
+		svn up
+	fi
+	popd
+}
+
+function create_packaging_helpers() {
+	if [[ "${JOB_NAME}" -eq "package-kde-sc" ]]; then
+		pushd ${WORKSPACE}
+		mkdir -p borrame
+		cp -R clean/kdelibs/kdoctools/* borrame/
+
+		if [[ ! -x docbookl10nhelper ]]; then
+			echo "=> Generate docbookl10nhelper..."
+			pushd borrame
+			g++ -lQtCore -L${ROOT}/install/Qt/${QT_STABLE_BRANCH}/lib -I${ROOT}/install/Qt/${QT_STABLE_BRANCH}/include -I${ROOT}/install/Qt/${QT_STABLE_BRANCH}/include/Qt -I${ROOT}/install/Qt/${QT_STABLE_BRANCH}/include/QtCore docbookl10nhelper.cpp -o ../docbookl10nhelper
+			popd
+			echo "=> Generate docbookl10nhelper... done"
+		fi
+
+		if [[ ! -f borrame/customization/dtd/kdex.dtd ]]; then
+			echo "=> Generate xml templates..."
+			DOCBOOK_LOCATION=/usr/share/xml/docbook/schema/dtd/4.2/
+			DOCBOOKXSL_LOCATION=/usr/share/xml/docbook/stylesheet/nwalsh/
+			sed s#@DOCBOOKXML_CURRENTDTD_DIR@#$DOCBOOK_LOCATION#g borrame/customization/dtd/kdex.dtd.cmake > borrame/customization/dtd/kdex.dtd
+			sed s#@DOCBOOKXSL_DIR@#$DOCBOOKXSL_LOCATION#g borrame/customization/kde-include-common.xsl.cmake > borrame/customization/kde-include-common.xsl
+			sed s#@DOCBOOKXSL_DIR@#$DOCBOOKXSL_LOCATION#g borrame/customization/kde-include-man.xsl.cmake > borrame/customization/kde-include-man.xsl
+			./docbookl10nhelper $DOCBOOKXSL_LOCATION borrame/customization/xsl/ borrame/customization/xsl/
+			echo "=> Generate xml templates... done"
+		fi
+
+		rsync -rlptgoD --checksum --delete "borrame" "${JENKINS_SLAVE_HOME}/packaging/"
+		popd
+	elif [[ ! -d ${JENKINS_SLAVE_HOME}/packaging/borrame ]]; then
+		echo "\n=====================\n=> l10n helpers not present, documentation/translations generation will not be successful\n================="
+	fi
 }
 
 function package() {
 	echo -e "=====================\n=> Packaging ${PROJECT}\n====================="
+	echo "=> Removing SCM info..."
+	${JENKINS_SLAVE_HOME}/packaging/anon ${PROJECT}
+	echo "=> Removing SCM info... done"
+	echo "=> Preparing for distribution..."
+	${JENKINS_SLAVE_HOME}/packaging/dist ${PROJECT}
+	echo "=> Preparing for distribution... done"
+	echo "=> Making package..."
+	${JENKINS_SLAVE_HOME}/packaging/taritup ${PROJECT} ${KDE_VERSION}
+	echo "=> Making package... done"
+}
+
+function make_docs() {
+	echo "=> Make docs..."
+	NUM_PROC=$(($(grep -c processor /proc/cpuinfo)+1))
+	make -k -f ${JENKINS_SLAVE_HOME}/packaging/Makefile.docu -j$NUM_PROC SOURCE_DIR=. KDOCTOOLS_DIR=${JENKINS_SLAVE_HOME}/packaging/borrame
+	#${JENKINS_SLAVE_HOME}/packaging/docu ${PROJECT}
+	echo "=> Make docs... done"
+}
+
+function update_version_numbers() {
+	echo -e "=====================\n=> Updating version numbers for ${PROJECT}\n====================="
 	if [ -z $KDE_VERSION ]; then
 		FAIL "KDE_VERSION not set, unable to package"
 	fi
-	pushd ${JENKINS_HOME}/workspace/${PROJECT}
 
 	case ${PROJECT} in
-		"kdelibs*")
+		kdelibs*)
+			pushd ${PROJECT}
 			echo "=> Update CMakeLists.txt (KDE_VERSION_*)"
 			sed -i -e "s:KDE_VERSION_MAJOR [0-9]*:KDE_VERSION_MAJOR ${MAJOR_VERSION}:" CMakeLists.txt
 			sed -i -e "s:KDE_VERSION_MINOR [0-9]*:KDE_VERSION_MINOR ${MINOR_VERSION}:" CMakeLists.txt
@@ -333,29 +387,33 @@ function package() {
 			sed -i -e "s:set(GENERIC_LIB_SOVERSION \"[0-9]*\"):set(GENERIC_LIB_SOVERSION \"${MAJOR_VERSION}\"):" cmake/modules/KDE4Defaults.cmake
 			sed -i -e "s:set(KDE_NON_GENERIC_LIB_VERSION \"[0-9]*\.[0-9]*\.[0-9]*\"):set(KDE_NON_GENERIC_LIB_VERSION \"$((${MAJOR_VERSION}+1)).${MINOR_VERSION}.${PATCH_VERSION}\"):" cmake/modules/KDE4Defaults.cmake
 			sed -i -e "s:set(KDE_NON_GENERIC_LIB_SOVERSION \"[0-9]*\"):set(KDE_NON_GENERIC_LIB_SOVERSION \"$((${MAJOR_VERSION}+1))\"):" cmake/modules/KDE4Defaults.cmake
-			_package
+			popd
 			;;
-		"kdepimlibs*")
+		kdepimlibs*)
 			echo "=> Update CMakeLists.txt (KDEPIMLIBS_VERSION_*)"
+			pushd ${PROJECT}
 			sed -i -e "s:KDEPIMLIBS_VERSION_MAJOR [0-9]*:KDEPIMLIBS_VERSION_MAJOR ${MAJOR_VERSION}:" CMakeLists.txt
 			sed -i -e "s:KDEPIMLIBS_VERSION_MINOR [0-9]*:KDEPIMLIBS_VERSION_MINOR ${MINOR_VERSION}:" CMakeLists.txt
 			sed -i -e "s:KDEPIMLIBS_VERSION_RELEASE [0-9]*:KDEPIMLIBS_VERSION_RELEASE ${PATCH_VERSION}:" CMakeLists.txt
-			_package
+			popd
 			;;
-		"kdepim*")
+		kdepim*)
 			echo "=> Update CMakeLists.modules (KDEPIM_DEV_VERSION, KDEPIM_VERSION)"
+			pushd ${PROJECT}
 			sed -i -e "s:set(KDEPIM_DEV_VERSION.*):set(KDEPIM_DEV_VERSION ):" CMakeLists.txt
 			sed -i -e "s:KDEPIM_VERSION \"[0-9]*\.[0-9]*\.[0-9]*\":KDEPIM_VERSION \"${FULL_VERSION}\"):" CMakeLists.txt
-			_package
+			popd
 			;;
-		"kdepim-runtime*")
+		kdepim-runtime*)
 			echo "Update CMakeLists.txt (KDEPIM_RUNTIME_DEV_VERSION, KDEPIM_RUNTIME_VERSION)"
+			pushd ${PROJECT}
 			sed -i -e "s:set([ ]*KDEPIM_RUNTIME_DEV_VERSION.*):set( KDEPIM_RUNTIME_DEV_VERSION ):" CMakeLists.txt
 			sed -i -e "s:KDEPIM_RUNTIME_VERSION \"[0-9]*\.[0-9]*\.[0-9]*\":KDEPIM_RUNTIME_VERSION \"${FULL_VERSION}\"):" CMakeLists.txt
-			_package
+			popd
 			;;
-		"kde-workspace*")
+		kde-workspace*)
 			echo "=> Update CMakeLists.txt (KDE4WORKSPACE_VERSION_*)"
+			pushd ${PROJECT}
 			sed -i -e "s:KDE4WORKSPACE_VERSION_MAJOR [0-9]*:KDE4WORKSPACE_VERSION_MAJOR ${MAJOR_VERSION}:" CMakeLists.txt
 			sed -i -e "s:KDE4WORKSPACE_VERSION_MINOR [0-9]*:KDE4WORKSPACE_VERSION_MINOR ${MINOR_VERSION}:" CMakeLists.txt
 			sed -i -e "s:KDE4WORKSPACE_VERSION_RELEASE [0-9]*:KDE4WORKSPACE_VERSION_RELEASE ${PATCH_VERSION}:" CMakeLists.txt
@@ -363,44 +421,76 @@ function package() {
 			if [[ ${PATCH_VERSION} == 0 ]]; then
 				echo "=> Removing MALLOC_CHECK from startkde-cmake"
 			fi
-			_package
+			popd
 			;;
-		"kopete*")
+		kopete*)
+			pushd ${PROJECT}
 			local KOPETE_MAJOR_VERSION=``
 			local KOPETE_MINOR_VERSION=``
 			local KOPETE_PATCH_VERSION=``
-			_package
-			;;
-		"package-kde-sc")
-			_package_all
+			popd
 			;;
 		*)
-			_package
 			;;
 	esac
+}
+
+function package_project() {
+	pushd ${WORKSPACE}
+	rm -rf build dirty sources borrame
+	mkdir -p clean build dirty sources borrame
+	create_packaging_helpers
+	update_version_numbers
+	make_docs
+	package
 	popd
 }
 
-function _package_all() {
+function package_kde_sc() {
 	# Were to get the sources from?
 	pushd ${WORKSPACE}
-	rm -rf clean build dirty sources borrame
+	rm -rf build dirty sources borrame
 	mkdir -p clean build dirty sources borrame
 
 	#Checkout all SVN based modules
-	BASE="svn://anonsvn.kde.org/home/kde" ./checkout
+	#BASE="svn://anonsvn.kde.org/home/kde" ${JENKINS_SLAVE_HOME}/packaging/checkout
 	#And now all git based
-	BASE="git://anongit.kde.org" ./setup-git-modules.sh
+	#BASE="git://anongit.kde.org/" ${JENKINS_SLAVE_HOME}/packaging/setup-git-modules.sh
 
-	cat modules.git | while read PROJECT branch; do
-		package
+	create_packaging_helpers
+	
+	cat ${JENKINS_SLAVE_HOME}/packaging/modules.git | while read PROJECT branch; do
+		echo "=> Copying sources to 'dirty'..."
+		cp -prl clean/${PROJECT}/ dirty
+		echo "=> Copying sources to 'dirty'... done"
+		pushd dirty
+		update_version_numbers
+		popd
 	done
 
-	for PROJECT in `cat modules`; do
-		package
+	for PROJECT in `cat ${JENKINS_SLAVE_HOME}/packaging/modules`; do
+		echo "=> Copying sources to 'dirty'..."
+		cp -prl clean/${PROJECT}/ dirty
+		echo "=> Copying sources to 'dirty'... done"
+		pushd dirty
+		update_version_numbers
+		popd
 	done
 
+	make_docs
+
+	cat ${JENKINS_SLAVE_HOME}/packaging/modules.git | while read PROJECT branch; do
+		pushd dirty
+		package
+		popd
+	done
+
+	for PROJECT in `cat ${JENKINS_SLAVE_HOME}/packaging/modules`; do
+		pushd dirty
+		package
+		popd
+	done
 	if [[ "$KDE_MAJOR_VERSION" -eq "4" ]] && [[ "$KDE_MINOR_VERSION" -eq "9" ]]; then
-		./pack_kdegames
+		${JENKINS_SLAVE_HOME}/packaging/pack_kdegames
 	fi
 }

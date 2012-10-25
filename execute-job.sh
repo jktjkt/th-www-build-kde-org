@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash -xe
 
 echo -e "\n=====================\n=> Executing job...\n====================="
 
@@ -74,6 +74,7 @@ case ${JOB_TYPE} in
 		fi
 
 		echo "=> Building..."
+		env > ${WORKSPACE}/build.kde.org-build-environment
 		if [[ -z "${FAKE_EXECUTION}" ]] || [[ "${FAKE_EXECUTION}" == "false" ]]; then
 			INSTPREFIX="${ROOT}/install/${PROJECT_PATH}/${REAL_BRANCH}"
 			if [[ "${PROJECT}" == "cmake" ]]; then
@@ -112,11 +113,17 @@ case ${JOB_TYPE} in
 		;;
 	package)
 		echo "=> Packaging mode"
+		setup_packaging
 		clean_workspace
 
+		env > ${WORKSPACE}/build.kde.org-build-environment
 		# 1: Package
 		echo "=> Packaging... ${PROJECT}:${REAL_BRANCH}"
-		package
+		if [[ "${JOB_NAME}" -eq "package-kde-sc" ]]; then
+			package_kde_sc
+		else
+			package_project
+		fi
 		echo "=> Packaging... done"
 
 		# 2: Build and test the new package against the latest packaged dependencies.
