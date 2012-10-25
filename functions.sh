@@ -26,6 +26,7 @@ RSYNC_OPTS="--recursive --links --perms --times --group --owner --devices \
 			--specials --delete-during --update --checksum --human-readable --progress"
 
 COMMON_DEPS="/srv/jenkins/install/deps"
+NUM_PROC=$(($(grep -c processor /proc/cpuinfo)+1))
 JOB_NAME=${JOB_NAME/test-/}
 PROJECT="${JOB_NAME%%_*}"
 if [[ -n ${BRANCH} ]]; then
@@ -302,6 +303,7 @@ function clean_workspace() {
 }
 
 function setup_packaging() {
+	echo -e "=====================\n=> Installing/Updating packaging tools\n====================="
 	mkdir -p ${JENKINS_SLAVE_HOME}/packaging
 	pushd ${JENKINS_SLAVE_HOME}/packaging
 	if [[ ! -d .svn ]]; then
@@ -313,6 +315,7 @@ function setup_packaging() {
 }
 
 function create_packaging_helpers() {
+	echo -e "=====================\n=> Creating/updating documentation tools\n====================="
 	if [[ "${JOB_NAME}" -eq "package-kde-sc" ]]; then
 		pushd ${WORKSPACE}
 		mkdir -p borrame
@@ -340,7 +343,7 @@ function create_packaging_helpers() {
 		rsync -rlptgoD --checksum --delete "borrame" "${JENKINS_SLAVE_HOME}/packaging/"
 		popd
 	elif [[ ! -d ${JENKINS_SLAVE_HOME}/packaging/borrame ]]; then
-		echo "\n=====================\n=> l10n helpers not present, documentation/translations generation will not be successful\n================="
+		echo "=> l10n helpers not present, documentation/translations generation will not be successful"
 	fi
 }
 
@@ -359,13 +362,13 @@ function package() {
 
 function make_docs() {
 	echo "=> Make docs..."
-	NUM_PROC=$(($(grep -c processor /proc/cpuinfo)+1))
-	make -k -f ${JENKINS_SLAVE_HOME}/packaging/Makefile.docu -j$NUM_PROC SOURCE_DIR=. KDOCTOOLS_DIR=${JENKINS_SLAVE_HOME}/packaging/borrame
-	#${JENKINS_SLAVE_HOME}/packaging/docu ${PROJECT}
+	pushd ${PROJECT}
+	make -k -f ${JENKINS_SLAVE_HOME}/packaging/Makefile.docu -j$NUM_PROC SOURCE_DIR=${WORKSPACE}/sources KDOCTOOLS_DIR=${JENKINS_SLAVE_HOME}/packaging/borrame
+	popd
 	echo "=> Make docs... done"
 }
 
-function update_version_numbers() {
+function update_project_version_numbers() {
 	echo -e "=====================\n=> Updating version numbers for ${PROJECT}\n====================="
 	if [ -z $KDE_VERSION ]; then
 		FAIL "KDE_VERSION not set, unable to package"
@@ -435,22 +438,33 @@ function update_version_numbers() {
 	esac
 }
 
+function update_branch_information {
+	echo "=> Updating branch information..."
+	sed -i -e "s:HEADURL=branches/KDE/[0-9]*\.[0-9]*/$1:HEADURL=branches/KDE/${MAJOR_MINOR_VERSION}/\$1:" ${JENKINS_SLAVE_HOME}/packaging/versions
+	# if branch KDE/${MAJOR_MINOR_VERSION} doesn't exists use master
+	sed -i -e "s:KDE/[0-9]*\.[0-9]*:KDE/${MAJOR_MINOR_VERSION}" ${JENKINS_SLAVE_HOME}/packaging/modules.git
+	echo "=> Updating branch information... done"
+}
+
 function package_project() {
+	echo -e "=====================\n=> Packaging a single project (${PROJECT})\n====================="
 	pushd ${WORKSPACE}
 	rm -rf build dirty sources borrame
 	mkdir -p clean build dirty sources borrame
 	create_packaging_helpers
-	update_version_numbers
+	update_project_version_numbers
 	make_docs
 	package
 	popd
 }
 
 function package_kde_sc() {
-	# Were to get the sources from?
+	echo -e "=====================\n=> Packaging KDE SC\n====================="
 	pushd ${WORKSPACE}
 	rm -rf build dirty sources borrame
 	mkdir -p clean build dirty sources borrame
+
+	update_branch_information
 
 	#Checkout all SVN based modules
 	#BASE="svn://anonsvn.kde.org/home/kde" ${JENKINS_SLAVE_HOME}/packaging/checkout
@@ -464,7 +478,9 @@ function package_kde_sc() {
 		cp -prl clean/${PROJECT}/ dirty
 		echo "=> Copying sources to 'dirty'... done"
 		pushd dirty
-		update_version_numbers
+		update_project_version_numbers
+		make_docs
+		package
 		popd
 	done
 
@@ -473,30 +489,18 @@ function package_kde_sc() {
 		cp -prl clean/${PROJECT}/ dirty
 		echo "=> Copying sources to 'dirty'... done"
 		pushd dirty
-		update_version_numbers
-		popd
-	done
-
-	pushd ${WORKSPACE}/dirty
-	make_docs
-	popd
-
-	cat ${JENKINS_SLAVE_HOME}/packaging/modules.git | while read PROJECT branch; do
-		pushd dirty
+		update_project_version_numbers
+		make_docs
 		package
 		popd
 	done
 
-	for PROJECT in `cat ${JENKINS_SLAVE_HOME}/packaging/modules`; do
-		pushd dirty
-		package
-		popd
-	done
 	if [[ "$KDE_MAJOR_VERSION" -eq "4" ]] && [[ "$KDE_MINOR_VERSION" -eq "9" ]]; then
 		${JENKINS_SLAVE_HOME}/packaging/pack_kdegames
 	fi
 }
 
 function build_kde_sc_from_packages() {
+	echo -e "=====================\n=> Updating version numbers for ${PROJECT}\n====================="
 	local SRCDIR=$1
 }
