@@ -442,7 +442,7 @@ function update_branch_information {
 	echo "=> Updating branch information..."
 	sed -i -e "s:HEADURL=branches/KDE/[0-9]*\.[0-9]*/$1:HEADURL=branches/KDE/${MAJOR_MINOR_VERSION}/\$1:" ${JENKINS_SLAVE_HOME}/packaging/versions
 	# if branch KDE/${MAJOR_MINOR_VERSION} doesn't exists use master
-	sed -i -e "s:KDE/[0-9]*\.[0-9]*:KDE/${MAJOR_MINOR_VERSION}" ${JENKINS_SLAVE_HOME}/packaging/modules.git
+	sed -i -e "s:KDE/[0-9]*\.[0-9]*:KDE/${MAJOR_MINOR_VERSION}:" ${JENKINS_SLAVE_HOME}/packaging/modules.git
 	echo "=> Updating branch information... done"
 }
 
