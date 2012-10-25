@@ -477,7 +477,9 @@ function package_kde_sc() {
 		popd
 	done
 
+	pushd ${WORKSPACE}/dirty
 	make_docs
+	popd
 
 	cat ${JENKINS_SLAVE_HOME}/packaging/modules.git | while read PROJECT branch; do
 		pushd dirty
@@ -493,4 +495,8 @@ function package_kde_sc() {
 	if [[ "$KDE_MAJOR_VERSION" -eq "4" ]] && [[ "$KDE_MINOR_VERSION" -eq "9" ]]; then
 		${JENKINS_SLAVE_HOME}/packaging/pack_kdegames
 	fi
+}
+
+function build_kde_sc_from_packages() {
+	local SRCDIR=$1
 }
