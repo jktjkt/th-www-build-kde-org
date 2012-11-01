@@ -1,4 +1,4 @@
-#!/bin/bash -xe
+#!/bin/bash -e
 
 if [ -z ${JOB_TYPE} ]; then
 	JOB_TYPE="build"
@@ -461,7 +461,10 @@ function package_project() {
 function package_kde_sc() {
 	echo -e "=====================\n=> Packaging KDE SC\n====================="
 	pushd ${WORKSPACE}
-	rm -rf build dirty sources borrame
+	rm -rf borrame
+	rm -rf sources
+	rm -rf dirty
+	rm -rf build
 	mkdir -p clean build dirty sources borrame
 
 	update_branch_information
@@ -476,28 +479,24 @@ function package_kde_sc() {
 	create_packaging_helpers
 
 	local PACKAGES
-	cat ${JENKINS_SLAVE_HOME}/packaging/modules.git | while read PROJECT branch; do
-		PACKAGES="${PACKAGES} ${PROJECT}"
-	done
+	PACKAGES=`awk ' {print $1 }' ${JENKINS_SLAVE_HOME}/packaging/modules.git`
 
 	for PROJECT in `cat ${JENKINS_SLAVE_HOME}/packaging/modules`; do
 		PACKAGES="${PACKAGES} ${PROJECT}"
 	done
 
-	for PROJECT in ${PACKAGES}; do
-		if [[ "${PROJECT}" == "kde-l10n" ]]; then
-			continue
+	for PROJECT in ${PACKAGES} ${SVN_PACKAGES}; do
+		if [[ "${PROJECT}" != "kde-l10n" ]]; then
+			echo -e "=====================\n=> Processig ${PROJECT}\n====================="
+			echo "=> Copying sources to 'dirty'..."
+			cp -prl clean/${PROJECT}/ dirty
+			echo "=> Copying sources to 'dirty'... done"
+			pushd dirty
+			update_project_version_numbers
+			make_docs
+			package
+			popd
 		fi
-
-		echo -e "=====================\n=> Processig ${PROJECT}\n====================="
-		echo "=> Copying sources to 'dirty'..."
-		cp -prl clean/${PROJECT}/ dirty
-		echo "=> Copying sources to 'dirty'... done"
-		pushd dirty
-		update_project_version_numbers
-		make_docs
-		package
-		popd
 	done
 
 	if [[ "$KDE_MAJOR_VERSION" -eq "4" ]] && [[ "$KDE_MINOR_VERSION" -eq "9" ]]; then

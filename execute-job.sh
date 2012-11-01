@@ -1,4 +1,4 @@
-#!/bin/bash -xe
+#!/bin/bash -e
 
 echo -e "\n=====================\n=> Executing job...\n====================="
 
