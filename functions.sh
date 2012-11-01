@@ -302,6 +302,29 @@ function clean_workspace() {
 	popd
 }
 
+function create_checksums {
+	pushd ${WORKSPACE}/sources
+	sha256sum * > sha256sums.txt
+	popd
+}
+
+function record_versions {
+	pushd ${WORKSPACE}/clean
+	rm -rf ../sources/versions.txt
+	for d in *; do
+		pushd ${d}
+		local VERSION
+		if [[ -d .git ]]; then
+			VERSION=`git rev-parse HEAD`
+		elif [[ -d .svn ]]; then
+			VERSION=`svn info | sed -n -e '/^Revision: \([0-9]*\).*$/s//\1/p'`
+		fi
+		echo "${d} ${VERSION}" >> ../sources/versions.txt
+		popd
+	done
+	popd
+}
+
 function setup_packaging() {
 	echo -e "=====================\n=> Installing/Updating packaging tools\n====================="
 	mkdir -p ${JENKINS_SLAVE_HOME}/packaging
@@ -513,6 +536,9 @@ function package_kde_sc() {
 	make_docs
 	package
 	popd
+
+	create_checksums
+	record_versions
 }
 
 function build_kde_sc_from_packages() {
