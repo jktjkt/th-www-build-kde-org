@@ -466,25 +466,30 @@ function package_kde_sc() {
 
 	update_branch_information
 
+	echo -e "=====================\n=> Checking out/Updating all SVN based modules\n====================="
 	#Checkout all SVN based modules
-	#BASE="svn://anonsvn.kde.org/home/kde" ${JENKINS_SLAVE_HOME}/packaging/checkout
+	BASE="svn://anonsvn.kde.org/home/kde" ${JENKINS_SLAVE_HOME}/packaging/checkout
+	echo -e "=====================\n=> Cloning/Updating all Git based modules\n====================="
 	#And now all git based
-	#BASE="git://anongit.kde.org/" ${JENKINS_SLAVE_HOME}/packaging/setup-git-modules.sh
+	BASE="git://anongit.kde.org/" ${JENKINS_SLAVE_HOME}/packaging/setup-git-modules.sh
 
 	create_packaging_helpers
-	
+
+	local PACKAGES
 	cat ${JENKINS_SLAVE_HOME}/packaging/modules.git | while read PROJECT branch; do
-		echo "=> Copying sources to 'dirty'..."
-		cp -prl clean/${PROJECT}/ dirty
-		echo "=> Copying sources to 'dirty'... done"
-		pushd dirty
-		update_project_version_numbers
-		make_docs
-		package
-		popd
+		PACKAGES="${PACKAGES} ${PROJECT}"
 	done
 
 	for PROJECT in `cat ${JENKINS_SLAVE_HOME}/packaging/modules`; do
+		PACKAGES="${PACKAGES} ${PROJECT}"
+	done
+
+	for PROJECT in ${PACKAGES}; do
+		if [[ "${PROJECT}" == "kde-l10n" ]]; then
+			continue
+		fi
+
+		echo -e "=====================\n=> Processig ${PROJECT}\n====================="
 		echo "=> Copying sources to 'dirty'..."
 		cp -prl clean/${PROJECT}/ dirty
 		echo "=> Copying sources to 'dirty'... done"
@@ -498,9 +503,20 @@ function package_kde_sc() {
 	if [[ "$KDE_MAJOR_VERSION" -eq "4" ]] && [[ "$KDE_MINOR_VERSION" -eq "9" ]]; then
 		${JENKINS_SLAVE_HOME}/packaging/pack_kdegames
 	fi
+
+	PROJECT="kde-l10n"
+	echo -e "=====================\n=> Processig ${PROJECT} (SVN)\n====================="
+	echo "=> Copying sources to 'dirty'..."
+	cp -prl clean/${PROJECT}/ dirty
+	echo "=> Copying sources to 'dirty'... done"
+	pushd dirty
+	update_project_version_numbers
+	make_docs
+	package
+	popd
 }
 
 function build_kde_sc_from_packages() {
-	echo -e "=====================\n=> Updating version numbers for ${PROJECT}\n====================="
+	echo -e "=====================\n=> Building KDE SC from packaged sources\n====================="
 	local SRCDIR=$1
 }

@@ -127,9 +127,7 @@ case ${JOB_TYPE} in
 		echo "=> Packaging... done"
 
 		# 2: Build and test the new package against the latest packaged dependencies.
-		#    Trigger a build with special options, real_branch set to version?
-		#    Do it here inline?
-		#    Do all packaging first then build all packages or one by one?
+		build_kde_sc_from_packages ${WORKSPACE}/sources
 		;;
 esac
 echo -e "\n=====================\n=> Executing job... done\n====================="

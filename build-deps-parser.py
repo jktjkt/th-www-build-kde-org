@@ -175,6 +175,9 @@ class Dependency_parser(object):
 				self.add_missing_dependencies(all_dependent_projects, project)
 			return all_dependent_projects
 
+	def sort_deps(self, project):
+		print "Sorting dependencies for %s"%project
+		
 
 if __name__ in '__main__':
 	if len(sys.argv) < 3:
