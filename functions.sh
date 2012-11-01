@@ -529,6 +529,7 @@ function package_kde_sc() {
 	PROJECT="kde-l10n"
 	echo -e "=====================\n=> Processig ${PROJECT} (SVN)\n====================="
 	echo "=> Copying sources to 'dirty'..."
+	mkdir -p ${WORKSPACE}/sources/${PROJECT}
 	cp -prl clean/${PROJECT}/ dirty
 	echo "=> Copying sources to 'dirty'... done"
 	pushd dirty
