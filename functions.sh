@@ -303,14 +303,24 @@ function clean_workspace() {
 }
 
 function create_checksums {
+	echo "=> Saving checksums of generated tarball(s)..."
 	pushd ${WORKSPACE}/sources
-	sha256sum * > sha256sums.txt
+	sha256sum *.tar* > sha256sums.txt
+	sha1sum *.tar* > sha1sums.txt
+	if [[ -d kde-l10n ]]; then
+		pushd kde-l10n
+		sha256sum *.tar* >> ../sha256sums.txt
+		sha1sum *.tar* >> ../sha1sums.txt
+		popd
+	fi
 	popd
+	echo "=> Saving checksums of generated tarball(s)... done"
 }
 
 function record_versions {
+	echo "=> Saving revisions/hashes used to generate tarball(s)..."
 	pushd ${WORKSPACE}/clean
-	rm -rf ../sources/versions.txt
+	rm -rf ${WORKSPACE}/sources/versions.txt
 	for d in *; do
 		pushd ${d}
 		local VERSION
@@ -319,10 +329,11 @@ function record_versions {
 		elif [[ -d .svn ]]; then
 			VERSION=`svn info | sed -n -e '/^Revision: \([0-9]*\).*$/s//\1/p'`
 		fi
-		echo "${d} ${VERSION}" >> ../sources/versions.txt
+		echo "${d} ${VERSION}" >> ${WORKSPACE}/sources/versions.txt
 		popd
 	done
 	popd
+	echo "=> Saving revisions/hashes used to generate tarball(s)... done"
 }
 
 function setup_packaging() {
@@ -463,7 +474,7 @@ function update_project_version_numbers() {
 
 function update_branch_information {
 	echo "=> Updating branch information..."
-	sed -i -e "s:HEADURL=branches/KDE/[0-9]*\.[0-9]*/$1:HEADURL=branches/KDE/${MAJOR_MINOR_VERSION}/\$1:" ${JENKINS_SLAVE_HOME}/packaging/versions
+	sed -i -e "s:HEADURL=branches/KDE/[0-9]*\.[0-9]*/$1:HEADURL=branches/KDE/${MAJOR_MINOR_VERSION}/$1:" ${JENKINS_SLAVE_HOME}/packaging/versions
 	# if branch KDE/${MAJOR_MINOR_VERSION} doesn't exists use master
 	sed -i -e "s:KDE/[0-9]*\.[0-9]*:KDE/${MAJOR_MINOR_VERSION}:" ${JENKINS_SLAVE_HOME}/packaging/modules.git
 	echo "=> Updating branch information... done"
