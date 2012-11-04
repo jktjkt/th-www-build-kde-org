@@ -64,7 +64,7 @@ if [[ "${PROJECT}" == "Qt" ]]; then
 	fi
 else
 	pushd ${JENKINS_SLAVE_HOME}
-	EXTERNAL_JOBS=`java -jar ./jenkins-cli.jar -i jenkins-private.key -s http://sandbox.build.kde.org groovy external_jobs.groovy`
+	EXTERNAL_JOBS=`java -jar ./jenkins-cli.jar -i jenkins-private.key -s http://build.kde.org groovy external_jobs.groovy`
 	echo "=> External projects: ${EXTERNAL_JOBS}"
 	if `echo "${EXTERNAL_JOBS}" | grep -q -- "${PROJECT}"`; then
 		echo "=> Non KDE project"
