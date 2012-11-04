@@ -437,8 +437,8 @@ function update_project_version_numbers() {
 		kdepim*)
 			echo "=> Update CMakeLists.modules (KDEPIM_DEV_VERSION, KDEPIM_VERSION)"
 			pushd ${PROJECT}
-			sed -i -e "s:set(KDEPIM_DEV_VERSION.*):set(KDEPIM_DEV_VERSION ):" CMakeLists.txt
-			sed -i -e "s:KDEPIM_VERSION \"[0-9]*\.[0-9]*\.[0-9]*\":KDEPIM_VERSION \"${FULL_VERSION}\"):" CMakeLists.txt
+			#sed -i -e "s:set(KDEPIM_DEV_VERSION.*):set(KDEPIM_DEV_VERSION ):" CMakeLists.txt
+			sed -i -e "s:KDEPIM_VERSION \"[0-9]*\.[0-9]*\.[0-9]*\":KDEPIM_VERSION \"${FULL_VERSION}\":" CMakeLists.txt
 			popd
 			;;
 		kdepim-runtime*)
@@ -494,6 +494,7 @@ function package_project() {
 
 function package_kde_sc() {
 	echo -e "=====================\n=> Packaging KDE SC\n====================="
+	echo "=> Using version: ${MAJOR_VERSION}.${MINOR_VERSION}.${PATCH_VERSION}"
 	pushd ${WORKSPACE}
 	rm -rf borrame
 	rm -rf sources
@@ -533,7 +534,7 @@ function package_kde_sc() {
 		fi
 	done
 
-	if [[ "$KDE_MAJOR_VERSION" -eq "4" ]] && [[ "$KDE_MINOR_VERSION" -eq "9" ]]; then
+	if [[ "$KDE_MAJOR_VERSION" == "4" ]] && [[ "$KDE_MINOR_VERSION" == "9" ]]; then
 		${JENKINS_SLAVE_HOME}/packaging/pack_kdegames
 	fi
 
