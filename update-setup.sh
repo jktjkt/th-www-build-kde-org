@@ -45,6 +45,19 @@ pushd ${JENKINS_SLAVE_HOME}/ecma262
 )
 popd
 
+# Setup the poppler test data (needed for poppler)
+if [ -d ${JENKINS_SLAVE_HOME}/poppler-test-data ]; then
+        mkdir -p ${JENKINS_SLAVE_HOME}/poppler-test-data
+fi
+pushd ${JENKINS_SLAVE_HOME}/poppler-test-data
+(
+        if [ ! -d ".git" ]; then
+                git clone git://git.freedesktop.org/git/poppler/test .
+        fi
+        git pull
+)
+popd
+
 # Update the Jenkins CLI client
 pushd /tmp
 (
