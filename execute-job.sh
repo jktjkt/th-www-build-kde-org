@@ -67,7 +67,7 @@ case ${JOB_TYPE} in
 			EXTRA_VARS="--debug-output"
 		fi
 		if [[ "${PROJECT}" == "poppler" ]]; then
-			EXTRA_VARS="${EXTRA_VARS} -DENABLE_XPDF_HEADERS=ON"
+			EXTRA_VARS="${EXTRA_VARS} -DENABLE_XPDF_HEADERS=ON -DTESTDATADIR=${JENKINS_SLAVE_HOME}/poppler-test-data"
 		fi
 		if [[ "${PROJECT}" == "kdelibs" ]]; then
 			EXTRA_VARS="${EXTRA_VARS} -DECMATEST_BASEDIR=${JENKINS_SLAVE_HOME}/ecma262"
