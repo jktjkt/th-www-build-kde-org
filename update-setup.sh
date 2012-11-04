@@ -1,6 +1,6 @@
 # Settings
 JENKINS_SLAVE_HOME=$HOME/scripts
-JENKINS_BRANCH="development"
+JENKINS_BRANCH="production"
 JENKINS_DEPENDENCY_BRANCH="master"
 
 # Move to the slave home
@@ -18,7 +18,7 @@ git checkout ${JENKINS_BRANCH}
 git merge --ff-only origin/${JENKINS_BRANCH}
 
 # Setup the dependency data
-if [ -d ${JENKINS_SLAVE_HOME}/dependencies ]; then
+if [ ! -d ${JENKINS_SLAVE_HOME}/dependencies ]; then
 	mkdir -p ${JENKINS_SLAVE_HOME}/dependencies
 fi
 pushd ${JENKINS_SLAVE_HOME}/dependencies
@@ -33,7 +33,7 @@ pushd ${JENKINS_SLAVE_HOME}/dependencies
 popd
 
 # Setup the ecma262 data (needed for kdelibs)
-if [ -d ${JENKINS_SLAVE_HOME}/ecma262 ]; then
+if [ ! -d ${JENKINS_SLAVE_HOME}/ecma262 ]; then
 	mkdir -p ${JENKINS_SLAVE_HOME}/ecma262
 fi
 pushd ${JENKINS_SLAVE_HOME}/ecma262
