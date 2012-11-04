@@ -67,7 +67,7 @@ case ${JOB_TYPE} in
 			EXTRA_VARS="--debug-output"
 		fi
 		if [[ "${PROJECT}" == "poppler" ]]; then
-			EXTRA_VARS="${EXTRA_VARS} -DENABLE_XPDF_HEADERS=ON"
+			EXTRA_VARS="${EXTRA_VARS} -DENABLE_XPDF_HEADERS=ON -DTESTDATADIR=${JENKINS_SLAVE_HOME}/poppler-test-data"
 		fi
 		if [[ "${PROJECT}" == "kdelibs" ]]; then
 			EXTRA_VARS="${EXTRA_VARS} -DECMATEST_BASEDIR=${JENKINS_SLAVE_HOME}/ecma262"
@@ -91,6 +91,10 @@ case ${JOB_TYPE} in
 				./configure --prefix="${INSTPREFIX}"
 			else
 				${JENKINS_SLAVE_HOME}/cmake.sh ${EXTRA_VARS} -DKDE4_BUILD_TESTS=ON -DLIB_SUFFIX=64 -DSIP_DEFAULT_SIP_DIR=${INSTPREFIX}/share/sip/ -DCMAKE_INSTALL_PREFIX=${INSTPREFIX} ..
+			fi
+			# KDev-Python needs some preparation before a general make run can be done
+			if [[ "${PROJECT}" == "kdev-python" ]]; then
+				${JENKINS_SLAVE_HOME}/make.sh parser
 			fi
 			${JENKINS_SLAVE_HOME}/make.sh
 			${JENKINS_SLAVE_HOME}/make.sh install
