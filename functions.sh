@@ -559,12 +559,14 @@ function build_kde_sc_from_packages() {
 	local SRCDIR=$1
 	local PACKAGES
 	pushd ${SRCDIR}
-	PACKAGES=`ls -1 *-${FULL_VERSION}.tar.xz | sed -e "s:-${FULL_VERSION}.tar.gz::" -e 's:^:kde/:' | xargs`
-	LANGUAGES=`ls -1 kde-l10n/kde-l10n-*-${FULL_VERSION}.tar.xz | sed -e "s:-${FULL_VERSION}.tar.gz::" | xargs`
+	PACKAGES=`ls -1 *-${FULL_VERSION}.tar.xz | sed -e "s:-${FULL_VERSION}.tar.xz::" -e 's:^:kde/:' | xargs`
+	LANGUAGES=`ls -1 kde-l10n/kde-l10n-*-${FULL_VERSION}.tar.xz | sed -e "s:-${FULL_VERSION}.tar.xz::" | xargs`
 	popd
 
-	${JENKINS_SLAVE_HOME}/kde-build-metadata ${PACKAGES}
+	echo "=> Finding build order..."
+	${JENKINS_SLAVE_HOME}/build-deps-parser.py ${PACKAGES}
 	source ${WORKSPACE}/build-kde-org.dependency.order
+	echo "=> Finding build order... done"
 
 	rm -rf ${WORKSPACE}/install
 	mkdir ${WORKSPACE}/install
@@ -583,8 +585,10 @@ function build_kde_sc_from_packages() {
 
 	pushd ${WORKSPACE}/build
 	for PROJECT in ${ORDERED_DEPENDENCIES} ${LANGUAGES}; do
+		echo "=> Building ${PROJECT/kde\/}..."
 		tar xJf ../sources/${PROJECT/kde\/}-${FULL_VERSION}.tar.xz || FAIL "Unable to unpack ${PROJECT/kde\/}"
 		pushd ${PROJECT/kde\/}-${FULL_VERSION}
+		rm -rf build
 		mkdir build
 		pushd build
 
@@ -594,5 +598,6 @@ function build_kde_sc_from_packages() {
 		popd
 		popd
 		rm -rf ${PROJECT/kde\/}/${FULL_VERSION}
+		echo "=> Building ${PROJECT/kde\/}... done"
 	done
 }
