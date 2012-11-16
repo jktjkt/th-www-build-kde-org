@@ -118,17 +118,17 @@ case ${JOB_TYPE} in
 	package)
 		echo "=> Packaging mode"
 		setup_packaging
-		clean_workspace
+		#clean_workspace
 
 		env > ${WORKSPACE}/build.kde.org-build-environment
 		# 1: Package
-		echo "=> Packaging... ${PROJECT}:${REAL_BRANCH}"
-		if [[ "${JOB_NAME}" -eq "package-kde-sc" ]]; then
-			package_kde_sc
-		else
-			package_project
-		fi
-		echo "=> Packaging... done"
+		#echo "=> Packaging... ${PROJECT}:${REAL_BRANCH}"
+		#if [[ "${JOB_NAME}" -eq "package-kde-sc" ]]; then
+		#	package_kde_sc
+		#else
+		#	package_project
+		#fi
+		#echo "=> Packaging... done"
 
 		# 2: Build and test the new package against the latest packaged dependencies.
 		build_kde_sc_from_packages ${WORKSPACE}/sources

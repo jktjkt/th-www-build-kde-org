@@ -557,4 +557,42 @@ function package_kde_sc() {
 function build_kde_sc_from_packages() {
 	echo -e "=====================\n=> Building KDE SC from packaged sources\n====================="
 	local SRCDIR=$1
+	local PACKAGES
+	pushd ${SRCDIR}
+	PACKAGES=`ls -1 *-${FULL_VERSION}.tar.xz | sed -e "s:-${FULL_VERSION}.tar.gz::" -e 's:^:kde/:' | xargs`
+	LANGUAGES=`ls -1 kde-l10n/kde-l10n-*-${FULL_VERSION}.tar.xz | sed -e "s:-${FULL_VERSION}.tar.gz::" | xargs`
+	popd
+
+	${JENKINS_SLAVE_HOME}/kde-build-metadata ${PACKAGES}
+	source ${WORKSPACE}/build-kde-org.dependency.order
+
+	rm -rf ${WORKSPACE}/install
+	mkdir ${WORKSPACE}/install
+
+	PREFIX="${WORKSPACE}/install"
+	PATH="${JENKINS_SLAVE_HOME}:${PREFIX}/bin:${PATH%:}:${COMMON_DEPS}/bin"
+	LD_LIBRARY_PATH="${PREFIX}/lib64:${LD_LIBRARY_PATH%:}:${COMMON_DEPS}/lib64"
+	PKG_CONFIG_PATH="${PREFIX}/share/pkgconfig:${PREFIX}/lib64/pkgconfig:${PKG_CONFIG_PATH%:}:${COMMON_DEPS}/share/pkgconfig:${COMMON_DEPS}/lib64/pkgconfig"
+	QT_PLUGIN_PATH="${PREFIX}/lib64/qt4/plugins:${PREFIX}/lib64/kde4/plugins:${QT_PLUGIN_PATH%:}:${COMMON_DEPS}"
+	XDG_DATA_DIRS="${PREFIX}/share:${XDG_DATA_DIRS%:}:/usr/local/share/:/usr/share:${COMMON_DEPS}/share"
+	XDG_CONFIG_DIRS="${PREFIX}/etc/xdg:${XDG_CONFIG_DIRS%:}:/etc/xdg:${COMMON_DEPS}/etc/xdg"
+	KDEDIRS="${PREFIX}:${KDEDIRS%:}"
+	CMAKE_CMD_LINE="-DCMAKE_PREFIX_PATH=\"${CMAKE_PREFIX_PATH%:}\""
+	QML_IMPORT_PATH=${QML_IMPORT_PATH}
+	PYTHONPATH="${PYTHONPATH}:${COMMON_DEPS}/lib64/python2.7/site-packages:${COMMON_DEPS}/share/sip/"
+
+	pushd ${WORKSPACE}/build
+	for PROJECT in ${ORDERED_DEPENDENCIES} ${LANGUAGES}; do
+		tar xJf ../sources/${PROJECT/kde\/}-${FULL_VERSION}.tar.xz || FAIL "Unable to unpack ${PROJECT/kde\/}"
+		pushd ${PROJECT/kde\/}-${FULL_VERSION}
+		mkdir build
+		pushd build
+
+		${JENKINS_SLAVE_HOME}/cmake.sh ${EXTRA_VARS} -DKDE4_BUILD_TESTS=ON -DLIB_SUFFIX=64 -DSIP_DEFAULT_SIP_DIR=${WORKSPACE}/install/share/sip/ -DCMAKE_INSTALL_PREFIX=${WORKSPACE}/install .. || FAIL "Unable to configure ${PROJECT/kde\/}"
+		${JENKINS_SLAVE_HOME}/make.sh || FAIL "Unable to build ${PROJECT/kde\/}"
+		${JENKINS_SLAVE_HOME}/make.sh install || FAIL "Unable to install ${PROJECT/kde\/}"
+		popd
+		popd
+		rm -rf ${PROJECT/kde\/}/${FULL_VERSION}
+	done
 }
