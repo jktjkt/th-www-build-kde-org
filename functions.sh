@@ -421,9 +421,9 @@ function update_project_version_numbers() {
 
 			echo "=> Update cmake/modules/KDE4Defaults.cmake (GENERIC_LIB_VERSION, KDE_NON_GENERIC_LIB_VERSION)"
 			sed -i -e "s:set(GENERIC_LIB_VERSION \"[0-9]*\.[0-9]*\.[0-9]*\"):set(GENERIC_LIB_VERSION \"${FULL_VERSION}\"):" cmake/modules/KDE4Defaults.cmake
-			sed -i -e "s:set(GENERIC_LIB_SOVERSION \"[0-9]*\"):set(GENERIC_LIB_SOVERSION \"${MAJOR_VERSION}\"):" cmake/modules/KDE4Defaults.cmake
+			#sed -i -e "s:set(GENERIC_LIB_SOVERSION \"[0-9]*\"):set(GENERIC_LIB_SOVERSION \"${MAJOR_VERSION}\"):" cmake/modules/KDE4Defaults.cmake
 			sed -i -e "s:set(KDE_NON_GENERIC_LIB_VERSION \"[0-9]*\.[0-9]*\.[0-9]*\"):set(KDE_NON_GENERIC_LIB_VERSION \"$((${MAJOR_VERSION}+1)).${MINOR_VERSION}.${PATCH_VERSION}\"):" cmake/modules/KDE4Defaults.cmake
-			sed -i -e "s:set(KDE_NON_GENERIC_LIB_SOVERSION \"[0-9]*\"):set(KDE_NON_GENERIC_LIB_SOVERSION \"$((${MAJOR_VERSION}+1))\"):" cmake/modules/KDE4Defaults.cmake
+			#sed -i -e "s:set(KDE_NON_GENERIC_LIB_SOVERSION \"[0-9]*\"):set(KDE_NON_GENERIC_LIB_SOVERSION \"$((${MAJOR_VERSION}+1))\"):" cmake/modules/KDE4Defaults.cmake
 			popd
 			;;
 		kdepimlibs*)
