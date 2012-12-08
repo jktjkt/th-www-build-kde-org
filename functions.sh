@@ -461,10 +461,21 @@ function update_project_version_numbers() {
 			popd
 			;;
 		kopete*)
+			echo "=> Update kopeteversion.h"
 			pushd ${PROJECT}
-			local KOPETE_MAJOR_VERSION=``
-			local KOPETE_MINOR_VERSION=``
-			local KOPETE_PATCH_VERSION=``
+			local KOPETE_MAJOR_VERSION=`grep -Eo 'KOPETE_VERSION_MAJOR [0-9]+' kopeteversion.h | cut -d" " -f2`
+			local KOPETE_MINOR_VERSION=`grep -Eo 'KOPETE_VERSION_MINOR [0-9]+' kopeteversion.h | cut -d" " -f2`
+			local KOPETE_PATCH_VERSION=`grep -Eo 'KOPETE_VERSION_RELEASE [0-9]+' kopeteversion.h | cut -d" " -f2`
+			if [[ ${PATH_VERSION} == 0 ]]; then
+				KOPETE_MINOR_VERSION=$(($KOPETE_MINOR_VERSION + 1))
+			else
+				KOPETE_PATCH_VERSION=$(($KOPETE_PATCH_VERSION + 1))
+			fi
+			sed -i -E -e "s:#define KOPETE_VERSION_STRING \"[0-9]+.[0-9]+.[0-9]+\":#define KOPETE_VERSION_STRING \"${KOPETE_MAJOR_VERSION}.${KOPETE_MINOR_VERSION}.${KOPETE_PATCH_VERSION}\":" kopeteversion.h
+			sed -i -E -e "s:#define KOPETE_VERSION_MAJOR [0-9]+:#define KOPETE_VERSION_MAJOR ${KOPETE_MAJOR_VERSION}:" kopeteversion.h
+			sed -i -E -e "s:#define KOPETE_VERSION_MINOR [0-9]+:#define KOPETE_VERSION_MINOR ${KOPETE_MINOR_VERSION}:" kopeteversion.h
+			sed -i -E -e "s:#define KOPETE_VERSION_RELEASE [0-9]+:#define KOPETE_VERSION_RELEASE ${KOPETE_PATCH_VERSION}:" kopeteversion.h
+
 			popd
 			;;
 		*)
