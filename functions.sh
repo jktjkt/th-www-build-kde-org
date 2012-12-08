@@ -560,6 +560,17 @@ function package_kde_sc() {
 	make_docs
 	package
 	popd
+	echo "=> Removing unqualified languages from packaging results..."
+	pushd sources/kde-l10n
+	for l in *.xz; do
+		ll=${l##kde-l10n-}
+		if [[ !`grep ${ll%%-${FULL_VERSION}.tar.xz}`]]; then
+			echo "==> Removing ${l}"
+			rm ${l}
+		fi
+	done
+	echo "=> Removing unqualified languages from packaging results... done"
+	popd
 
 	create_checksums
 	record_versions
