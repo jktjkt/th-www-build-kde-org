@@ -176,6 +176,10 @@ function sync_from_master() {
 	echo -e "=====================\n=> Syncing dependencies from master\n====================="
 
 	if [[ "${MASTER}" != "${LOCALHOST}" ]]; then
+		echo "Syncing base dependencies..."
+		rsync ${RSYNC_OPTS} ${MASTER}:${ROOT}/install/deps/ ${ROOT}/install/deps/
+		echo "Syncing base dependencies... done"
+
 		for DEP in ${DEPS}; do
 			MODULE=${DEP%=*}
 			MODULE_BRANCH=${DEP#*=}

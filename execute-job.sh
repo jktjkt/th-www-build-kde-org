@@ -72,6 +72,9 @@ case ${JOB_TYPE} in
 		if [[ "${PROJECT}" == "kdelibs" ]]; then
 			EXTRA_VARS="${EXTRA_VARS} -DECMATEST_BASEDIR=${JENKINS_SLAVE_HOME}/ecma262"
 		fi
+		if [[ "${PROJECT}" == "kajongg" ]]; then
+			EXTRA_VARS="${EXTRA_VARS} -DINSTALL_KAJONGG=TRUE"
+		fi
 
 		echo "=> Building..."
 		env > ${WORKSPACE}/build.kde.org-build-environment
