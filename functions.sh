@@ -605,8 +605,8 @@ function build_kde_sc_from_packages() {
 	mkdir ${WORKSPACE}/install
 
 	PREFIX="${WORKSPACE}/install"
-	PATH="${JENKINS_SLAVE_HOME}:${PREFIX}/bin:${PATH%:}:${COMMON_DEPS}/bin"
-	LD_LIBRARY_PATH="${PREFIX}/lib64:${LD_LIBRARY_PATH%:}:${COMMON_DEPS}/lib64"
+	PATH="${JENKINS_SLAVE_HOME}:${PREFIX}/bin:${PATH%:}:${COMMON_DEPS}/bin:${PREFIX}/Qt/${QT_STABLE_BRANCH}/bin"
+	LD_LIBRARY_PATH="${PREFIX}/lib64:${LD_LIBRARY_PATH%:}:${COMMON_DEPS}/lib64:${PREFIX}/Qt/${QT_STABLE_BRANCH}/lib"
 	PKG_CONFIG_PATH="${PREFIX}/share/pkgconfig:${PREFIX}/lib64/pkgconfig:${PKG_CONFIG_PATH%:}:${COMMON_DEPS}/share/pkgconfig:${COMMON_DEPS}/lib64/pkgconfig"
 	QT_PLUGIN_PATH="${PREFIX}/lib64/qt4/plugins:${PREFIX}/lib64/kde4/plugins:${QT_PLUGIN_PATH%:}:${COMMON_DEPS}"
 	XDG_DATA_DIRS="${PREFIX}/share:${XDG_DATA_DIRS%:}:/usr/local/share/:/usr/share:${COMMON_DEPS}/share"
