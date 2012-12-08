@@ -605,16 +605,16 @@ function build_kde_sc_from_packages() {
 	mkdir ${WORKSPACE}/install
 
 	PREFIX="${WORKSPACE}/install"
-	PATH="${JENKINS_SLAVE_HOME}:${PREFIX}/bin:${PATH%:}:${COMMON_DEPS}/bin:${PREFIX}/Qt/${QT_STABLE_BRANCH}/bin"
-	LD_LIBRARY_PATH="${PREFIX}/lib64:${LD_LIBRARY_PATH%:}:${COMMON_DEPS}/lib64:${PREFIX}/Qt/${QT_STABLE_BRANCH}/lib"
-	PKG_CONFIG_PATH="${PREFIX}/share/pkgconfig:${PREFIX}/lib64/pkgconfig:${PKG_CONFIG_PATH%:}:${COMMON_DEPS}/share/pkgconfig:${COMMON_DEPS}/lib64/pkgconfig"
-	QT_PLUGIN_PATH="${PREFIX}/lib64/qt4/plugins:${PREFIX}/lib64/kde4/plugins:${QT_PLUGIN_PATH%:}:${COMMON_DEPS}"
-	XDG_DATA_DIRS="${PREFIX}/share:${XDG_DATA_DIRS%:}:/usr/local/share/:/usr/share:${COMMON_DEPS}/share"
-	XDG_CONFIG_DIRS="${PREFIX}/etc/xdg:${XDG_CONFIG_DIRS%:}:/etc/xdg:${COMMON_DEPS}/etc/xdg"
-	KDEDIRS="${PREFIX}:${KDEDIRS%:}"
+	export PATH="${JENKINS_SLAVE_HOME}:${PREFIX}/bin:${PATH%:}:${COMMON_DEPS}/bin:${PREFIX}/Qt/${QT_STABLE_BRANCH}/bin"
+	export LD_LIBRARY_PATH="${PREFIX}/lib64:${LD_LIBRARY_PATH%:}:${COMMON_DEPS}/lib64:${PREFIX}/Qt/${QT_STABLE_BRANCH}/lib"
+	export PKG_CONFIG_PATH="${PREFIX}/share/pkgconfig:${PREFIX}/lib64/pkgconfig:${PKG_CONFIG_PATH%:}:${COMMON_DEPS}/share/pkgconfig:${COMMON_DEPS}/lib64/pkgconfig"
+	export QT_PLUGIN_PATH="${PREFIX}/lib64/qt4/plugins:${PREFIX}/lib64/kde4/plugins:${QT_PLUGIN_PATH%:}:${COMMON_DEPS}"
+	export XDG_DATA_DIRS="${PREFIX}/share:${XDG_DATA_DIRS%:}:/usr/local/share/:/usr/share:${COMMON_DEPS}/share"
+	export XDG_CONFIG_DIRS="${PREFIX}/etc/xdg:${XDG_CONFIG_DIRS%:}:/etc/xdg:${COMMON_DEPS}/etc/xdg"
+	export KDEDIRS="${PREFIX}:${KDEDIRS%:}"
 	CMAKE_CMD_LINE="-DCMAKE_PREFIX_PATH=\"${CMAKE_PREFIX_PATH%:}\""
-	QML_IMPORT_PATH=${QML_IMPORT_PATH}
-	PYTHONPATH="${PYTHONPATH}:${COMMON_DEPS}/lib64/python2.7/site-packages:${COMMON_DEPS}/share/sip/"
+	export QML_IMPORT_PATH=${QML_IMPORT_PATH}
+	export PYTHONPATH="${PYTHONPATH}:${COMMON_DEPS}/lib64/python2.7/site-packages:${COMMON_DEPS}/share/sip/"
 
 	pushd ${WORKSPACE}/build
 	for PROJECT in ${ORDERED_DEPENDENCIES} ${LANGUAGES}; do
