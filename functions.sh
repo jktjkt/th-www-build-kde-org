@@ -411,6 +411,10 @@ function update_project_version_numbers() {
 	case ${PROJECT} in
 		kdelibs*)
 			pushd ${PROJECT}
+			local CURRENT_MAJOR_VERSION=`grep -Eo "KDE_VERSION_MAJOR [0-9]*" CMakeLists.txt | cut -d" " -f2`
+			local CURRENT_MINOR_VERSION=`grep -Eo "KDE_VERSION_MAJOR [0-9]*" CMakeLists.txt | cut -d" " -f2`
+			local CURRENT_PATH_VERSION=`grep -Eo "KDE_VERSION_MAJOR [0-9]*" CMakeLists.txt | cut -d" " -f2`
+
 			echo "=> Update CMakeLists.txt (KDE_VERSION_*)"
 			sed -i -e "s:KDE_VERSION_MAJOR [0-9]*:KDE_VERSION_MAJOR ${MAJOR_VERSION}:" CMakeLists.txt
 			sed -i -e "s:KDE_VERSION_MINOR [0-9]*:KDE_VERSION_MINOR ${MINOR_VERSION}:" CMakeLists.txt
@@ -466,10 +470,17 @@ function update_project_version_numbers() {
 			local KOPETE_MAJOR_VERSION=`grep -Eo 'KOPETE_VERSION_MAJOR [0-9]+' kopeteversion.h | cut -d" " -f2`
 			local KOPETE_MINOR_VERSION=`grep -Eo 'KOPETE_VERSION_MINOR [0-9]+' kopeteversion.h | cut -d" " -f2`
 			local KOPETE_PATCH_VERSION=`grep -Eo 'KOPETE_VERSION_RELEASE [0-9]+' kopeteversion.h | cut -d" " -f2`
-			if [[ ${PATH_VERSION} == 0 ]]; then
-				KOPETE_MINOR_VERSION=$(($KOPETE_MINOR_VERSION + 1))
+			
+			if [[ -n ${CURRENT_MAJOR_VERSION} ]]; then
+				KOPETE_MAJOR_VERSION=$(($KOPETE_MAJOR_VERSION + (${KDE_MAJOR_VERSION} - ${CURRENT_MAJOR_VERSION})))
+				KOPETE_MINOR_VERSION=$(($KOPETE_MINOR_VERSION + (${KDE_MINOR_VERSION} - ${CURRENT_MINOR_VERSION})))
+				KOPETE_PATCH_VERSION=$(($KOPETE_PATCH_VERSION + (${KDE_PATCH_VERSION} - ${CURRENT_PATCH_VERSION})))
 			else
-				KOPETE_PATCH_VERSION=$(($KOPETE_PATCH_VERSION + 1))
+				if [[ ${PATH_VERSION} == 0 ]]; then
+					KOPETE_MINOR_VERSION=$(($KOPETE_MINOR_VERSION + 1))
+				else
+					KOPETE_PATCH_VERSION=$(($KOPETE_PATCH_VERSION + 1))
+				fi
 			fi
 			sed -i -E -e "s:#define KOPETE_VERSION_STRING \"[0-9]+.[0-9]+.[0-9]+\":#define KOPETE_VERSION_STRING \"${KOPETE_MAJOR_VERSION}.${KOPETE_MINOR_VERSION}.${KOPETE_PATCH_VERSION}\":" kopeteversion.h
 			sed -i -E -e "s:#define KOPETE_VERSION_MAJOR [0-9]+:#define KOPETE_VERSION_MAJOR ${KOPETE_MAJOR_VERSION}:" kopeteversion.h
