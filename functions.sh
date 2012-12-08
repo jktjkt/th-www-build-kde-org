@@ -564,7 +564,7 @@ function package_kde_sc() {
 	pushd sources/kde-l10n
 	for l in *.xz; do
 		ll=${l##kde-l10n-}
-		if [[ !`grep ${ll%%-${FULL_VERSION}.tar.xz}`]]; then
+		if [[ !`grep ${ll%%-${FULL_VERSION}.tar.xz} ../../language_list`]]; then
 			echo "==> Removing ${l}"
 			rm ${l}
 		fi
