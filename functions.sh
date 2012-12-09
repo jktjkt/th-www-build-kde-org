@@ -371,6 +371,9 @@ function create_packaging_helpers() {
 			echo "=> Generate xml templates..."
 			DOCBOOK_LOCATION=/usr/share/xml/docbook/schema/dtd/4.2/
 			DOCBOOKXSL_LOCATION=/usr/share/xml/docbook/stylesheet/nwalsh/
+			if [[ -d ${DOCBOOK_LOCATION}/current ]]; then
+				DOCBOOKXSL_LOCATION=${DOCBOOK_LOCATION}/current
+			fi
 			sed s#@DOCBOOKXML_CURRENTDTD_DIR@#$DOCBOOK_LOCATION#g borrame/customization/dtd/kdex.dtd.cmake > borrame/customization/dtd/kdex.dtd
 			sed s#@DOCBOOKXSL_DIR@#$DOCBOOKXSL_LOCATION#g borrame/customization/kde-include-common.xsl.cmake > borrame/customization/kde-include-common.xsl
 			sed s#@DOCBOOKXSL_DIR@#$DOCBOOKXSL_LOCATION#g borrame/customization/kde-include-man.xsl.cmake > borrame/customization/kde-include-man.xsl
