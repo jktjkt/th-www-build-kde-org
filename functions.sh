@@ -374,7 +374,7 @@ function create_packaging_helpers() {
 			sed s#@DOCBOOKXML_CURRENTDTD_DIR@#$DOCBOOK_LOCATION#g borrame/customization/dtd/kdex.dtd.cmake > borrame/customization/dtd/kdex.dtd
 			sed s#@DOCBOOKXSL_DIR@#$DOCBOOKXSL_LOCATION#g borrame/customization/kde-include-common.xsl.cmake > borrame/customization/kde-include-common.xsl
 			sed s#@DOCBOOKXSL_DIR@#$DOCBOOKXSL_LOCATION#g borrame/customization/kde-include-man.xsl.cmake > borrame/customization/kde-include-man.xsl
-			./docbookl10nhelper $DOCBOOKXSL_LOCATION borrame/customization/xsl/ borrame/customization/xsl/
+			LD_LIBRARY_PATH=${ROOT}/install/Qt/${QT_STABLE_BRANCH}/lib ./docbookl10nhelper $DOCBOOKXSL_LOCATION borrame/customization/xsl/ borrame/customization/xsl/
 			echo "=> Generate xml templates... done"
 		fi
 
