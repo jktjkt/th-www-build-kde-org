@@ -354,6 +354,10 @@ function setup_packaging() {
 
 function create_packaging_helpers() {
 	echo -e "=====================\n=> Creating/updating documentation tools\n====================="
+	
+	KDELIBS_STABLE_BRANCH=`${JENKINS_SLAVE_HOME}/projects.kde.org.py resolve branch kdelibs stable`
+	export STABLE_KDELIBS=${ROOT}/install/kde/kdelibs/${KDELIBS_STABLE_BRANCH}
+
 	if [[ "${JOB_NAME}" -eq "package-kde-sc" ]]; then
 		pushd ${WORKSPACE}
 		mkdir -p borrame
@@ -404,7 +408,7 @@ function package() {
 function make_docs() {
 	echo "=> Make docs..."
 	pushd ${PROJECT}
-	make -k -f ${JENKINS_SLAVE_HOME}/packaging/Makefile.docu -j$NUM_PROC SOURCE_DIR=${WORKSPACE}/sources KDOCTOOLS_DIR=${JENKINS_SLAVE_HOME}/packaging/borrame
+	PATH=${PATH}:${STABLE_KDELIBS}/bin make -k -f ${JENKINS_SLAVE_HOME}/packaging/Makefile.docu -j$NUM_PROC SOURCE_DIR=${WORKSPACE}/sources KDOCTOOLS_DIR=${JENKINS_SLAVE_HOME}/packaging/borrame
 	popd
 	echo "=> Make docs... done"
 }
@@ -435,6 +439,8 @@ function update_project_version_numbers() {
 			#sed -i -e "s:set(GENERIC_LIB_SOVERSION \"[0-9]*\"):set(GENERIC_LIB_SOVERSION \"${MAJOR_VERSION}\"):" cmake/modules/KDE4Defaults.cmake
 			sed -i -e "s:set(KDE_NON_GENERIC_LIB_VERSION \"[0-9]*\.[0-9]*\.[0-9]*\"):set(KDE_NON_GENERIC_LIB_VERSION \"$((${MAJOR_VERSION}+1)).${MINOR_VERSION}.${PATCH_VERSION}\"):" cmake/modules/KDE4Defaults.cmake
 			#sed -i -e "s:set(KDE_NON_GENERIC_LIB_SOVERSION \"[0-9]*\"):set(KDE_NON_GENERIC_LIB_SOVERSION \"$((${MAJOR_VERSION}+1))\"):" cmake/modules/KDE4Defaults.cmake
+			
+			git diff > ${WORKSPACE}/kdelibs.diff
 			popd
 			;;
 		kdepimlibs*)
@@ -443,6 +449,8 @@ function update_project_version_numbers() {
 			sed -i -e "s:KDEPIMLIBS_VERSION_MAJOR [0-9]*:KDEPIMLIBS_VERSION_MAJOR ${MAJOR_VERSION}:" CMakeLists.txt
 			sed -i -e "s:KDEPIMLIBS_VERSION_MINOR [0-9]*:KDEPIMLIBS_VERSION_MINOR ${MINOR_VERSION}:" CMakeLists.txt
 			sed -i -e "s:KDEPIMLIBS_VERSION_RELEASE [0-9]*:KDEPIMLIBS_VERSION_RELEASE ${PATCH_VERSION}:" CMakeLists.txt
+
+			git diff > ${WORKSPACE}/kdepimlibs.diff
 			popd
 			;;
 		kdepim*)
@@ -450,6 +458,8 @@ function update_project_version_numbers() {
 			pushd ${PROJECT}
 			#sed -i -e "s:set(KDEPIM_DEV_VERSION.*):set(KDEPIM_DEV_VERSION ):" CMakeLists.txt
 			sed -i -e "s:KDEPIM_VERSION \"[0-9]*\.[0-9]*\.[0-9]*\":KDEPIM_VERSION \"${FULL_VERSION}\":" CMakeLists.txt
+			
+			git diff > ${WORKSPACE}/kdepim.diff
 			popd
 			;;
 		kdepim-runtime*)
@@ -457,6 +467,8 @@ function update_project_version_numbers() {
 			pushd ${PROJECT}
 			sed -i -e "s:set([ ]*KDEPIM_RUNTIME_DEV_VERSION.*):set( KDEPIM_RUNTIME_DEV_VERSION ):" CMakeLists.txt
 			sed -i -e "s:KDEPIM_RUNTIME_VERSION \"[0-9]*\.[0-9]*\.[0-9]*\":KDEPIM_RUNTIME_VERSION \"${FULL_VERSION}\"):" CMakeLists.txt
+
+			git diff > ${WORKSPACE}/kdepim-runtime.diff
 			popd
 			;;
 		kde-workspace*)
@@ -469,11 +481,13 @@ function update_project_version_numbers() {
 			if [[ ${PATCH_VERSION} == 0 ]]; then
 				echo "=> Removing MALLOC_CHECK from startkde-cmake"
 			fi
+
+			git diff > ${WORKSPACE}/kde-workspace.diff
 			popd
 			;;
-		kopete*)
+		kdenetwork*)
 			echo "=> Update kopeteversion.h"
-			pushd ${PROJECT}
+			pushd ${PROJECT}/kopete/libkopete/
 			local KOPETE_MAJOR_VERSION=`grep -Eo 'KOPETE_VERSION_MAJOR [0-9]+' kopeteversion.h | cut -d" " -f2`
 			local KOPETE_MINOR_VERSION=`grep -Eo 'KOPETE_VERSION_MINOR [0-9]+' kopeteversion.h | cut -d" " -f2`
 			local KOPETE_PATCH_VERSION=`grep -Eo 'KOPETE_VERSION_RELEASE [0-9]+' kopeteversion.h | cut -d" " -f2`
@@ -494,6 +508,7 @@ function update_project_version_numbers() {
 			sed -i -E -e "s:#define KOPETE_VERSION_MINOR [0-9]+:#define KOPETE_VERSION_MINOR ${KOPETE_MINOR_VERSION}:" kopeteversion.h
 			sed -i -E -e "s:#define KOPETE_VERSION_RELEASE [0-9]+:#define KOPETE_VERSION_RELEASE ${KOPETE_PATCH_VERSION}:" kopeteversion.h
 
+			svn diff > ${WORKSPACE}/kopete.diff
 			popd
 			;;
 		*)
@@ -532,7 +547,7 @@ function package_kde_sc() {
 	mkdir -p clean build dirty sources borrame
 
 	update_branch_information
-
+	
 	echo -e "=====================\n=> Checking out/Updating all SVN based modules\n====================="
 	#Checkout all SVN based modules
 	BASE="svn://anonsvn.kde.org/home/kde" ${JENKINS_SLAVE_HOME}/packaging/checkout
@@ -564,7 +579,9 @@ function package_kde_sc() {
 	done
 
 	if [[ "$KDE_MAJOR_VERSION" == "4" ]] && [[ "$KDE_MINOR_VERSION" == "9" ]]; then
+		echo "=> Recreating kdegames tarball..."
 		${JENKINS_SLAVE_HOME}/packaging/pack_kdegames
+		echo "=> Recreating kdegames tarball... done"
 	fi
 
 	PROJECT="kde-l10n"
@@ -581,9 +598,10 @@ function package_kde_sc() {
 	echo "=> Removing unqualified languages from packaging results..."
 	pushd sources/kde-l10n
 	for l in *.xz; do
-		ll=${l##kde-l10n-}
-		if [[ !`grep ${ll%%-${FULL_VERSION}.tar.xz} ../../language_list` ]]; then
-			echo "==> Removing ${l}"
+		local ll=${l##kde-l10n-}
+		local lang=${ll%%-${FULL_VERSION}.tar.xz}
+		if [[ $(grep -q ${lang} ../../language_list) ]]; then
+			echo "==> Removing ${lang} (${l})"
 			rm ${l}
 		fi
 	done
