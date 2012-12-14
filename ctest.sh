@@ -40,7 +40,7 @@ else
 	echo "=> Done"
 	
 	echo "=> Setting up runtime environment"
-	RUNTIME_BRANCH=`echo $DEPS | sed -e "s,.*kde/kdelibs=\([A-Z|a-z|\/|0-9|\.]*\).*,\1,g"`
+	RUNTIME_BRANCH=`echo $DEPS | grep "kde/kdelibs" | sed -e "s,.*kde/kdelibs=\([A-Z|a-z|\/|0-9|\.]*\).*,\1,g"`
 	if [[ "${RUNTIME_BRANCH}" == "KDE/4.10" ]]; then
 		RUNTIME_BRANCH="master"
 	fi
