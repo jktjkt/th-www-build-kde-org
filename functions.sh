@@ -128,7 +128,7 @@ function export_vars() {
 		PATH="${PREFIX}/bin:${PATH}"
 		LD_LIBRARY_PATH="${PREFIX}/lib$LIBPREFIX:${LD_LIBRARY_PATH}"
 		PKG_CONFIG_PATH="${PREFIX}/share/pkgconfig:${PREFIX}/lib$LIBPREFIX/pkgconfig:${PKG_CONFIG_PATH}"
-		QT_PLUGIN_PATH="${PREFIX}/lib$LIBPREFIX/qt4/plugins:${PREFIX}/lib$LIBPREFIX/kde4/plugins:${QT_PLUGIN_PATH}"
+		QT_PLUGIN_PATH="${PREFIX}/lib$LIBPREFIX/qt4/plugins:${PREFIX}/lib$LIBPREFIX/plugins:${PREFIX}/lib$LIBPREFIX/kde4/plugins:${QT_PLUGIN_PATH}"
 		XDG_DATA_DIRS="${PREFIX}/share:${XDG_DATA_DIRS}"
 		XDG_CONFIG_DIRS="${PREFIX}/etc/xdg:${XDG_CONFIG_DIRS}"
 		KDEDIRS="${PREFIX}:${KDEDIRS}"
