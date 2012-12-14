@@ -146,7 +146,7 @@ function export_vars() {
 	export_var PATH "${JENKINS_SLAVE_HOME}:${PREFIX}/bin:${PATH%:}:${COMMON_DEPS}/bin"
 	export_var LD_LIBRARY_PATH "${PREFIX}/lib64:${LD_LIBRARY_PATH%:}:${COMMON_DEPS}/lib64"
 	export_var PKG_CONFIG_PATH "${PREFIX}/share/pkgconfig:${PREFIX}/lib64/pkgconfig:${PKG_CONFIG_PATH%:}:${COMMON_DEPS}/share/pkgconfig:${COMMON_DEPS}/lib64/pkgconfig"
-	export_var QT_PLUGIN_PATH "${PREFIX}/lib64/qt4/plugins:${PREFIX}/lib64/kde4/plugins:${QT_PLUGIN_PATH%:}:${COMMON_DEPS}"
+	export_var QT_PLUGIN_PATH "${PREFIX}/lib64/qt4/plugins:${PREFIX}/lib$LIBPREFIX/plugins:${PREFIX}/lib64/kde4/plugins:${QT_PLUGIN_PATH%:}:${COMMON_DEPS}"
 	export_var XDG_DATA_DIRS "${PREFIX}/share:${XDG_DATA_DIRS%:}:/usr/local/share/:/usr/share:${COMMON_DEPS}/share"
 	export_var XDG_CONFIG_DIRS "${PREFIX}/etc/xdg:${XDG_CONFIG_DIRS%:}:/etc/xdg:${COMMON_DEPS}/etc/xdg"
 	export_var KDEDIRS "${PREFIX}:${KDEDIRS%:}"
