@@ -94,6 +94,7 @@ case ${JOB_TYPE} in
 				./configure --prefix="${INSTPREFIX}"
 			elif [[ "${PROJECT}" == "qwt" ]]; then
 				cd ${WORKSPACE}
+				svn revert -R *
 				patch -i ${JENKINS_SLAVE_HOME}/patches/qwt-set-install-prefix.patch
 				qmake
 			else
