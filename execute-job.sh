@@ -94,7 +94,8 @@ case ${JOB_TYPE} in
 				./configure --prefix="${INSTPREFIX}"
 			elif [[ "${PROJECT}" == "qwt" ]]; then
 				cd ${WORKSPACE}
-				qmake INSTALLBASE="${INSTPREFIX}" CONFIG+=QwtExamples CONFIG+=QwtSVGItem -after
+				patch -i ${JENKINS_SLAVE_HOME}/patches/qwt-set-install-prefix.patch
+				qmake
 			else
 				${JENKINS_SLAVE_HOME}/cmake.sh ${EXTRA_VARS} -DKDE4_BUILD_TESTS=ON -DLIB_SUFFIX=64 -DSIP_DEFAULT_SIP_DIR=${INSTPREFIX}/share/sip/ -DCMAKE_INSTALL_PREFIX=${INSTPREFIX} ..
 			fi
