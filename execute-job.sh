@@ -93,7 +93,6 @@ case ${JOB_TYPE} in
 				./configure ${QT_CONFIG_OPTIONS} -prefix "${INSTPREFIX}"
 			elif [[ "${PROJECT}" == "Qt5" ]]; then
 				cd ${WORKSPACE}
-				perl ./init-repository
 				./configure ${QT5_CONFIG_OPTIONS} -prefix "${INSTPREFIX}"
 			elif [[ "${PROJECT}" == "pyqt4" ]]; then
 				cd ${WORKSPACE}
