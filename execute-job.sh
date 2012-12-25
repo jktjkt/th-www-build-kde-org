@@ -8,6 +8,8 @@ QT_CONFIG_OPTIONS="-fast -debug -separate-debug-info -system-zlib -system-libpng
                    -system-libjpeg -dbus -webkit -plugin-sql-mysql -nomake examples \
                    -nomake demos -no-phonon -confirm-license -opensource"
 
+QT5_CONFIG_OPTIONS="-confirm-license -opensource -nomake examples -nomake tests -nomake demos"
+
 case ${JOB_TYPE} in
 	build)
 		echo "=> Build mode"
@@ -24,11 +26,15 @@ case ${JOB_TYPE} in
 			else
 				FAIL "Unknown Qt branch ${WANTED_BRANCH}"
 			fi
+		elif [[ "${PROJECT}" == "Qt5" ]]; then
+			REAL_BRANCH="stable"
 		else
 			REAL_BRANCH=`${JENKINS_SLAVE_HOME}/projects.kde.org.py resolve branch ${PROJECT} ${WANTED_BRANCH}`
 		fi
 		if [[ "${PROJECT}" == "Qt" ]]; then
 			PROJECT_PATH='Qt'
+		elif [[ "${PROJECT}" == "Qt5" ]]; then
+			PROJECT_PATH='Qt5'
 		elif [[ "${KDE_PROJECT}" == "true" ]]; then
 			PROJECT_PATH=`${JENKINS_SLAVE_HOME}/projects.kde.org.py resolve path ${PROJECT}`
 		else
@@ -85,6 +91,10 @@ case ${JOB_TYPE} in
 			elif [[ "${PROJECT}" == "Qt" ]]; then
 				cd ${WORKSPACE}
 				./configure ${QT_CONFIG_OPTIONS} -prefix "${INSTPREFIX}"
+			elif [[ "${PROJECT}" == "Qt5" ]]; then
+				cd ${WORKSPACE}
+				perl ./init-repository
+				./configure ${QT5_CONFIG_OPTIONS} -prefix "${INSTPREFIX}"
 			elif [[ "${PROJECT}" == "pyqt4" ]]; then
 				cd ${WORKSPACE}
 				python configure.py --confirm-license -u --bindir="${INSTPREFIX}/bin" --destdir="${INSTPREFIX}/lib64/python2.7/site-packages" --sipdir="${INSTPREFIX}/share/sip"
