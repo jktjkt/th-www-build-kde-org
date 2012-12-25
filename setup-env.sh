@@ -62,6 +62,8 @@ if [[ "${PROJECT}" == "Qt" ]]; then
 	else
 		FAIL "Unknown Qt branch ${WANTED_BRANCH}"
 	fi
+elif [[ "${PROJECT}" == "Qt5" ]]; then
+	RESOLVED_BRANCH="stable"
 else
 	pushd ${JENKINS_SLAVE_HOME}
 	if [[ ! -f "jenkins-cli.jar" ]]; then
