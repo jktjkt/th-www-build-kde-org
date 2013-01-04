@@ -473,7 +473,7 @@ class BuildManager(object):
 		else:
 			return
 		
-		process = subprocess.Popen(shlex.split(command), shell=True, cwd=self.projectSources)
+		process = subprocess.Popen(shlex.split(command), cwd=self.projectSources)
 		process.wait()
 		return
 
