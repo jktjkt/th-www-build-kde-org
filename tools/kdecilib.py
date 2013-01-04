@@ -1,6 +1,7 @@
 # Python library to help manage and run the KDE Continuous Integration system
 import re
 import os
+import sys
 import shlex
 import fnmatch
 import subprocess
