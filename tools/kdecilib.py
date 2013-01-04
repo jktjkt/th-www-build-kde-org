@@ -337,7 +337,7 @@ class BuildManager(object):
 		rsyncCommand = self.config.get('General', 'rsyncCommand', vars=specialArguments)
 		rsyncCommand = shlex.split( rsyncCommand )
 		# Add the source and destination to our arguments
-		rsyncCommand.append( source )
+		rsyncCommand.append( source + '/' )
 		rsyncCommand.append( destination )
 		# Execute rsync and wait for it to finish
 		process = subprocess.Popen( rsyncCommand, stdout=sys.stdout, stderr=sys.stderr )
