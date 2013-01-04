@@ -334,7 +334,7 @@ class BuildManager(object):
 
 	def perform_rsync(self, source, destination, specialArguments = {}):
 		# Get the rsync command
-		rsyncCommand = self.config.get('General', 'rsyncCommand', specialArguments)
+		rsyncCommand = self.config.get('General', 'rsyncCommand', vars=specialArguments)
 		rsyncCommand = shlex.split( rsyncCommand )
 		# Add the source and destination to our arguments
 		rsyncCommand.append( source )
