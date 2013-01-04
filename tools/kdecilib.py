@@ -493,7 +493,7 @@ class BuildManager(object):
 				# Apply the patch
 				try:
 					process = subprocess.check_call( command + [patchPath], stdout=sys.stdout, stderr=sys.stderr, cwd=self.projectSources )
-				except subprocess.ProcessCalledError:
+				except subprocess.CalledProcessError:
 					# Make sure the patch applied successfully - if it failed, then we should halt here
 					return False
 
@@ -551,7 +551,7 @@ class BuildManager(object):
 			# Execute the command which is part of the build execution process
 			try:
 				process = subprocess.check_call( command, stdout=sys.stdout, stderr=sys.stderr, cwd=buildDirectory, env=buildEnv )
-			except subprocess.ProcessCalledError:
+			except subprocess.CalledProcessError:
 				# Abort if it fails to complete
 				return False
 
