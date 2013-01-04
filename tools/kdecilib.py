@@ -481,7 +481,7 @@ class BuildManager(object):
 		# Do we have anything to apply?
 		patchesDir = os.path.join( self.config.get('General', 'scriptsLocation'), 'patches', self.project.path, self.projectBranch )
 		if not os.path.exists(patchesDir):
-			return
+			return True
 
 		# Iterate over the patches and apply them
 		command = shlex.split( self.config.get('Source', 'patchCommand') )
