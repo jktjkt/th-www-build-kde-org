@@ -564,7 +564,7 @@ class BuildManager(object):
 			specialArguments['rsyncExtraArgs'] = ''
 		# First we have to transfer the install from the "install root" to the actual install location
 		sourcePath = os.path.join( self.projectSources, 'build', self.installPrefix[1:] )
-		if not self.perform_rsync( source=sourcePath, destination=self.installPrefix, specialArguments ):
+		if not self.perform_rsync( source=sourcePath, destination=self.installPrefix, specialArguments=specialArguments ):
 			return False
 
 		# Now we sync the actual install up to the master server so it can be used by other build slaves
