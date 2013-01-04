@@ -575,11 +575,12 @@ class BuildManager(object):
 	def execute_tests(self):
 		# Prepare
 		buildDirectory = self.build_directory()
+		runtimeEnv = self.generate_environment(True)
 		junitFilename = os.path.join( self.projectSources, 'JUnitTestResults.xml' )
 
 		# Determine if we have tests to run....
 		command = self.config.get('Test', 'ctestCountTestsCommand')
-		process = subprocess.Popen( shlex.split(command), stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=buildDirectory)
+		process = subprocess.Popen( shlex.split(command), stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=runtimeEnv, cwd=buildDirectory)
 		stdout, stderr = process.communicate()
 		# Is it necessary to run tests? (tests must be enabled per configuration and CTest must report more than 1 test)
 		if not self.config.getboolean('Test', 'testsEnabled') or re.search('Total Tests: 0', stdout, re.MULTILINE):
@@ -589,11 +590,8 @@ class BuildManager(object):
 			# All done
 			return True
 
-		# Prepare the environment - runtime edition
-		runtimeEnv = self.generate_environment(True)
-		runtimeEnv['DISPLAY'] = self.config.get('Test', 'xvfbDisplayName')
-
 		# Setup Xvfb
+		runtimeEnv['DISPLAY'] = self.config.get('Test', 'xvfbDisplayName')
 		command = self.config.get('Test', 'xvfbCommand')
 		xvfbProcess = subprocess.Popen( shlex.split(command), env=runtimeEnv )
 
