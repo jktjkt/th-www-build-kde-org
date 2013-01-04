@@ -343,7 +343,7 @@ class BuildManager(object):
 		process = subprocess.Popen( rsyncCommand, stdout=sys.stdout, stderr=sys.stderr )
 		process.wait()
 		# Indicate our success
-		return process.returncode != 0
+		return process.returncode == 0
 
 	# Sync all of our dependencies from the master server
 	def sync_dependencies(self):
