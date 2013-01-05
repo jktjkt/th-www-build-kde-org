@@ -489,7 +489,7 @@ class BuildManager(object):
 
 	def apply_patches(self):
 		# Do we have anything to apply?
-		patchesDir = os.path.join( self.config.get('General', 'scriptsLocation'), 'patches', self.project.path, self.projectBranch )
+		patchesDir = os.path.join( self.config.get('General', 'scriptsLocation'), 'patches', self.project.identifier, self.projectBranch )
 		if not os.path.exists(patchesDir):
 			return True
 
