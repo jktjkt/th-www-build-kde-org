@@ -2,7 +2,9 @@
 import re
 import os
 import sys
+import time
 import shlex
+import shutil
 import fnmatch
 import subprocess
 import ConfigParser
@@ -218,7 +220,6 @@ class Project(object):
 			return branchName
 
 		# The branch does not actually exist?!
-		print "Branch fall through: %s for project %s" % (branchName, self.identifier)
 		return 'master'
 
 	# Return a list of dependencies of ourselves
@@ -305,10 +306,12 @@ class BuildManager(object):
 		self.installPrefix = self.project_prefix( self.project, self.projectBranch )
 
 	# Determine the proper prefix (either local or remote) where a project is installed
-	def project_prefix(self, project, desiredBranch, local = True, specialArguments = {}):
+	def project_prefix(self, project, desiredBranch, local = True, includeHost = True, specialArguments = {}):
 		# Determine the appropriate prefix
 		prefix = self.config.get('General', 'installPrefix', vars=specialArguments)
-		if not local:
+		if not local and includeHost:
+			prefix = self.config.get('General', 'remoteHostPrefix', vars=specialArguments)
+		elif not local:
 			prefix = self.config.get('General', 'remotePrefix', vars=specialArguments)
 		
 		# Do we have a proper Project instance which is not a general dependency?
@@ -350,6 +353,9 @@ class BuildManager(object):
 		# Sync the shared common dependencies
 		hostPath = self.project_prefix( 'shared', None, local=False, specialArguments={'systemBase': 'common'} )
 		localPath = self.project_prefix( 'shared', None, specialArguments={'systemBase': 'common'} )
+		# Make sure the local path exists (otherwise rsync will fail)
+		if not os.path.exists( localPath ):
+			os.makedirs( localPath )
 		if not self.perform_rsync( source=hostPath, destination=localPath ):
 			return False
 
@@ -359,6 +365,9 @@ class BuildManager(object):
 			# Determine the host (source) and local (destination) directories we are syncing
 			hostPath = self.project_prefix( candidate, candidateBranch, local=False )
 			localPath = self.project_prefix( candidate, candidateBranch )
+			# Make sure the local path exists (otherwise rsync will fail)
+			if not os.path.exists( localPath ):
+				os.makedirs( localPath )
 			# Execute the command
 			if not self.perform_rsync( source=hostPath, destination=localPath ):
 				return False
@@ -473,7 +482,7 @@ class BuildManager(object):
 		# Nothing for us to do
 		else:
 			return
-		
+
 		process = subprocess.Popen(shlex.split(command), cwd=self.projectSources)
 		process.wait()
 		return
@@ -559,14 +568,24 @@ class BuildManager(object):
 		return True
 
 	def deploy_installation(self):
+		# Make sure the local destination exists
+		if not os.path.exists( self.installPrefix ):
+			os.makedirs( self.installPrefix )
+
 		# If we are moving a general dependency, then we need to disable deletion
 		specialArguments = {}
 		if self.project.generalDependency:
 			specialArguments['rsyncExtraArgs'] = ''
+
 		# First we have to transfer the install from the "install root" to the actual install location
 		sourcePath = os.path.join( self.projectSources, 'install', self.installPrefix[1:] )
 		if not self.perform_rsync( source=sourcePath, destination=self.installPrefix, specialArguments=specialArguments ):
 			return False
+
+		# Next we ensure the remote directory exists
+		serverPath = self.project_prefix( self.project, self.projectBranch, local=False, includeHost=False )
+		command = self.config.get('General', 'createRemotePathCommand').format( remotePath=serverPath )
+		process = subprocess.Popen( shlex.split(command), stdout=sys.stdout, stderr=sys.stderr)
 
 		# Now we sync the actual install up to the master server so it can be used by other build slaves
 		serverPath = self.project_prefix( self.project, self.projectBranch, local=False )
@@ -574,6 +593,7 @@ class BuildManager(object):
 
 	def execute_tests(self):
 		# Prepare
+		devnull = open(os.devnull, 'w')
 		buildDirectory = self.build_directory()
 		runtimeEnv = self.generate_environment(True)
 		junitFilename = os.path.join( self.projectSources, 'JUnitTestResults.xml' )
@@ -588,30 +608,36 @@ class BuildManager(object):
 			unitTestSkeleton = os.path.join( self.config.get('General', 'scriptsLocation'), 'templates', 'JUnitTestResults-Success.xml' )
 			shutil.copyfile( unitTestSkeleton, junitFilename )
 			# All done
-			return True
+			return
 
 		# Setup Xvfb
 		runtimeEnv['DISPLAY'] = self.config.get('Test', 'xvfbDisplayName')
 		command = self.config.get('Test', 'xvfbCommand')
-		xvfbProcess = subprocess.Popen( shlex.split(command), env=runtimeEnv )
+		xvfbProcess = subprocess.Popen( shlex.split(command), stdout=devnull, stderr=devnull, env=runtimeEnv )
 
 		# Startup D-Bus and ensure the environment is adjusted
 		command = self.config.get('Test', 'dbusLaunchCommand')
-		dbusServerProcess = subprocess.Popen( shlex.split(command), stdout=subprocess.PIPE, env=runtimeEnv )
+		dbusServerProcess = subprocess.Popen( shlex.split(command), stdout=subprocess.PIPE, stderr=devnull, env=runtimeEnv )
 		for variable in dbusServerProcess.stdout:
 			 splitVars = variable.split('=', 1)
 			 runtimeEnv[ splitVars[0] ] = splitVars[1]
 
 		# Rebuild the Sycoca
 		command = self.config.get('Test', 'kbuildsycocaCommand')
-		process = subprocess.Popen( shlex.split(command), env=runtimeEnv )
-		process.wait()
+		try:
+			process = subprocess.Popen( shlex.split(command), stdout=devnull, stderr=devnull, env=runtimeEnv )
+			process.wait()
+		except OSError:
+			pass
 
 		# Fire-up kdeinit and nepomukserver
-		command = self.config.get('Test', 'kdeinitCommand')
-		kdeinitProcess = subprocess.Popen( shlex.split(command), env=runtimeEnv )
-		command = self.config.get('Test', 'nepomukserverCommand')
-		nepomukProcess = subprocess.Popen( shlex.split(command), env=runtimeEnv )
+		kdeinitCommand = self.config.get('Test', 'kdeinitCommand')
+		nepomukCommand = self.config.get('Test', 'nepomukserverCommand')
+		try:
+			kdeinitProcess = subprocess.Popen( shlex.split(kdeinitCommand), stdout=devnull, stderr=devnull, env=runtimeEnv )
+			nepomukProcess = subprocess.Popen( shlex.split(nepomukCommand), env=runtimeEnv )
+		except OSError:
+			pass
 
 		# Execute CTest
 		command = self.config.get('Test', 'ctestRunCommand')
@@ -620,7 +646,7 @@ class BuildManager(object):
 		# Determine the maximum amount of time we will permit CTest to run for
 		# To accomodate for possible inconsistencies, we allow an extra 2 lots of the permissible time per test
 		testsFound = re.search('Total Tests: ([0-9]+)', stdout, re.MULTILINE).group(1)
-		permittedTime = ( testsFound + 2 ) * self.config.getint('Test', 'testTimePermitted')
+		permittedTime = ( int(testsFound) + 2 ) * self.config.getint('Test', 'testTimePermitted')
 		# Start timing it
 		timeRunning = 0
 		while timeRunning < permittedTime and ctestProcess.poll() is None:
@@ -635,18 +661,21 @@ class BuildManager(object):
 			unitTestSkeleton = os.path.join( self.config.get('General', 'scriptsLocation'), 'templates', 'JUnitTestResults-Failure.xml' )
 			shutil.copyfile( unitTestSkeleton, junitFilename )
 			# Report our failure - overruns are not permitted
-			return True
+			return
 
 		# Transform the CTest output into JUnit output
 		junitOutput = self.convert_ctest_to_junit( buildDirectory )
 		with open(junitFilename, 'w') as junitFile:
-			junitFile.write( junitOutput )
+			junitFile.write( str(junitOutput) )
 
 		# All finished, shut everyone down
-		nepomukProcess.terminate()
-		kdeinitProcess.terminate()
-		dbusServerProcess.terminate()
-		xvfbProcess.terminate()
+		try:
+			nepomukProcess.terminate()
+			kdeinitProcess.terminate()
+			dbusServerProcess.terminate()
+			xvfbProcess.terminate()
+		except Exception:
+			pass
 
 	def convert_ctest_to_junit(self, buildDirectory):
 		# Where is the base prefix for all test data for this project located?
