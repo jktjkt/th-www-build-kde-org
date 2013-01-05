@@ -472,6 +472,7 @@ class BuildManager(object):
 		# Prepare Git/Subversion paths
 		gitDirectory = os.path.join( self.projectSources, '.git' )
 		svnDirectory = os.path.join( self.projectSources, '.svn' )
+		bzrDirectory = os.path.join( self.projectSources, '.bzr' )
 		
 		# Maybe it is a Git repository?
 		if os.path.exists( gitDirectory ):
@@ -479,6 +480,9 @@ class BuildManager(object):
 		# Maybe it is a SVN checkout?
 		elif os.path.exists( svnDirectory ):
 			command = self.config.get('Source', 'svnRevertCommand')
+		# Maybe it is a BZR checkout?
+		elif os.path.exists( bzrDirectory ):
+			command = self.config.get('Source', 'bzrCleanCommand')
 		# Nothing for us to do
 		else:
 			return
