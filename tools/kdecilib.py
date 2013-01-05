@@ -596,7 +596,7 @@ class BuildManager(object):
 		devnull = open(os.devnull, 'w')
 		buildDirectory = self.build_directory()
 		runtimeEnv = self.generate_environment(True)
-		junitFilename = os.path.join( self.projectSources, 'JUnitTestResults.xml' )
+		junitFilename = os.path.join( self.projectSources, 'build', 'JUnitTestResults.xml' )
 
 		# Determine if we have tests to run....
 		command = self.config.get('Test', 'ctestCountTestsCommand')
@@ -703,6 +703,6 @@ class BuildManager(object):
 
 	def execute_cppcheck(self):
 		# This is not yet implemented, we simply stub it for future use
-		cppcheckFilename = os.path.join( self.projectSources, 'cppcheck.xml' )
+		cppcheckFilename = os.path.join( self.projectSources, 'build', 'cppcheck.xml' )
 		cppcheckSkeleton = os.path.join( self.config.get('General', 'scriptsLocation'), 'templates', 'cppcheck-empty.xml' )
 		shutil.copyfile( cppcheckSkeleton, cppcheckFilename )
