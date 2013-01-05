@@ -82,9 +82,7 @@ if not manager.deploy_installation():
 	sys.exit("Deployment of completed installation failed for project %s." % project.identifier)
 
 # Execute the tests
-if not manager.execute_tests():
-	sys.exit("Execution of tests has failed.")
+manager.execute_tests()
 
 # Run cppcheck
-if not manager.execute_cppcheck():
-	sys.exit("Execution of cppcheck has failed - reason unknown.")
+manager.execute_cppcheck()
