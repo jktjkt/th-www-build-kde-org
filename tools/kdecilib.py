@@ -710,3 +710,24 @@ class BuildManager(object):
 		cppcheckFilename = os.path.join( self.build_directory(), 'cppcheck.xml' )
 		cppcheckSkeleton = os.path.join( self.config.get('General', 'scriptsLocation'), 'templates', 'cppcheck-empty.xml' )
 		shutil.copyfile( cppcheckSkeleton, cppcheckFilename )
+
+# Checks for a Jenkins environment, and sets up a argparse.Namespace appropriately if found
+def check_jenkins_environment():
+	# Prepare
+	arguments = argparse.Namespace()
+
+	# Do we have a job name?
+	if 'JOB_NAME' in os.environ:
+		# Split it out
+		jobMatch = re.match("(?P<project>[^_]+)_?(?P<branch>[^_]+)?_?(?P<base>[^_]+)?", os.environ['JOB_NAME'])
+		# Now transfer in any non-None attributes
+		for name, value jobMatch.groupdict().iteritems():
+			if value not None:
+				setattr(arguments, name, value)
+
+	# Do we have a workspace?
+	if 'WORKSPACE' in os.environ:
+		# Transfer it
+		arguments.sources = os.environ['WORKSPACE']
+
+	return arguments

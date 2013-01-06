@@ -12,11 +12,13 @@ from kdecilib import Project, ProjectManager, BuildManager
 
 # Load our command line arguments
 parser = argparse.ArgumentParser(description='Utility to initialize a git repository before handover to the build executor.')
-parser.add_argument('--project', type=str, required=True)
-parser.add_argument('--branch', type=str, required=True)
-parser.add_argument('--sources', type=str, required=True)
+parser.add_argument('--project', type=str)
+parser.add_argument('--branch', type=str)
+parser.add_argument('--sources', type=str)
 parser.add_argument('--delay', type=int, default=30)
-arguments = parser.parse_args()
+# Parse the arguments
+environmentArgs = kdecilib.check_jenkins_environment()
+arguments = parser.parse_args( namespace=environmentArgs )
 
 # Load the various configuration files
 config = ConfigParser.SafeConfigParser()

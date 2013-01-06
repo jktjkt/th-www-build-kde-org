@@ -11,12 +11,14 @@ from kdecilib import Project, ProjectManager, BuildManager
 
 # Load our command line arguments
 parser = argparse.ArgumentParser(description='Utility to control building and execution of tests in an automated manner.')
-parser.add_argument('--project', type=str, required=True)
-parser.add_argument('--branch', type=str, required=True)
-parser.add_argument('--sources', type=str, required=True)
+parser.add_argument('--project', type=str)
+parser.add_argument('--branch', type=str)
+parser.add_argument('--sources', type=str)
 parser.add_argument('--platform', type=str, choices=['linux64-g++', 'win32-mingw-cross'], default='linux64-g++')
 parser.add_argument('--base', type=str, choices=['qt5', 'qt4', 'common'], default='qt4')
-arguments = parser.parse_args()
+# Parse the arguments
+environmentArgs = kdecilib.check_jenkins_environment()
+arguments = parser.parse_args( namespace=environmentArgs )
 
 # Load the various configuration files
 config = ConfigParser.SafeConfigParser( {'systemBase': arguments.base} )
