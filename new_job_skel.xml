@@ -73,7 +73,7 @@
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command>$${JENKINS_SLAVE_HOME}/execute-job.sh</command>
+	  <command>python $${JENKINS_SLAVE_HOME}/tools/perform-build.py --project $$project --branch $$branch --sources $$workspace --platform linux64-g++</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>
@@ -190,7 +190,7 @@
     <org.jenkinsci.plugins.preSCMbuildstep.PreSCMBuildStepsWrapper>
       <buildSteps>
         <hudson.tasks.Shell>
-          <command>$${JENKINS_SLAVE_HOME}/setup-env.sh</command>
+		  <command>python $${JENKINS_SLAVE_HOME}/tools/prepare-environment.py --project $$project --branch $$branch --sources $$workspace --delay $$poll_delay</command>
         </hudson.tasks.Shell>
       </buildSteps>
     </org.jenkinsci.plugins.preSCMbuildstep.PreSCMBuildStepsWrapper>
