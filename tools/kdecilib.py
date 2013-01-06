@@ -722,7 +722,7 @@ def check_jenkins_environment():
 		jobMatch = re.match("(?P<project>[^_]+)_?(?P<branch>[^_]+)?_?(?P<base>[^_]+)?", os.environ['JOB_NAME'])
 		# Now transfer in any non-None attributes
 		for name, value in jobMatch.groupdict().iteritems():
-			if value not None:
+			if value is not None:
 				setattr(arguments, name, value)
 
 	# Do we have a workspace?
