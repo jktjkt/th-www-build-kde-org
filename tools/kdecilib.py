@@ -721,7 +721,7 @@ def check_jenkins_environment():
 		# Split it out
 		jobMatch = re.match("(?P<project>[^_]+)_?(?P<branch>[^_]+)?_?(?P<base>[^_]+)?", os.environ['JOB_NAME'])
 		# Now transfer in any non-None attributes
-		for name, value jobMatch.groupdict().iteritems():
+		for name, value in jobMatch.groupdict().iteritems():
 			if value not None:
 				setattr(arguments, name, value)
 
