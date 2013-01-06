@@ -625,7 +625,7 @@ class BuildManager(object):
 		dbusServerProcess = subprocess.Popen( shlex.split(command), stdout=subprocess.PIPE, stderr=devnull, env=runtimeEnv )
 		for variable in dbusServerProcess.stdout:
 			 splitVars = variable.split('=', 1)
-			 runtimeEnv[ splitVars[0] ] = splitVars[1]
+			 runtimeEnv[ splitVars[0] ] = splitVars[1].strip()
 
 		# Rebuild the Sycoca
 		command = self.config.get('Test', 'kbuildsycocaCommand')
