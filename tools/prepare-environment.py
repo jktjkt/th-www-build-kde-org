@@ -15,7 +15,7 @@ parser = argparse.ArgumentParser(description='Utility to initialize a git reposi
 parser.add_argument('--project', type=str)
 parser.add_argument('--branch', type=str)
 parser.add_argument('--sources', type=str)
-parser.add_argument('--delay', type=int, default=30)
+parser.add_argument('--delay', type=int, default=10)
 # Parse the arguments
 environmentArgs = check_jenkins_environment()
 arguments = parser.parse_args( namespace=environmentArgs )
