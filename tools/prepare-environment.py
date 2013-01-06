@@ -8,7 +8,7 @@ import argparse
 import subprocess
 import ConfigParser
 from lxml import etree
-from kdecilib import Project, ProjectManager, BuildManager
+from kdecilib import Project, ProjectManager, BuildManager, check_jenkins_environment
 
 # Load our command line arguments
 parser = argparse.ArgumentParser(description='Utility to initialize a git repository before handover to the build executor.')
@@ -17,7 +17,7 @@ parser.add_argument('--branch', type=str)
 parser.add_argument('--sources', type=str)
 parser.add_argument('--delay', type=int, default=30)
 # Parse the arguments
-environmentArgs = kdecilib.check_jenkins_environment()
+environmentArgs = check_jenkins_environment()
 arguments = parser.parse_args( namespace=environmentArgs )
 
 # Load the various configuration files
