@@ -1,0 +1,2 @@
+*: Qt5
+*: kdesupport/extra-cmake-modules[master]
