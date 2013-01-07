@@ -724,7 +724,7 @@ def check_jenkins_environment():
 		# Now transfer in any non-None attributes
 		for name, value in jobMatch.groupdict().iteritems():
 			if value is not None:
-				setattr(arguments, name, value)
+				setattr(arguments, name, value.lower())
 
 	# Do we have a workspace?
 	if 'WORKSPACE' in os.environ:
