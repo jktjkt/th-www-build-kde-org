@@ -250,6 +250,8 @@ class Project(object):
 			toLookup = set(ourDeps) - set(finalDynamic)
 			for dependency, dependencyBranch in toLookup:
 				ourDeps = ourDeps + dependency.determine_dependencies(dependencyBranch, True)
+			for dependency, dependencyBranch in finalDynamic:
+				ourDeps = ourDeps + dependency.determine_dependencies(dependencyBranch, False)
 
 		# Re-ensure the current project is not listed 
 		# Dynamic dependency resolution of sub-dependencies may have re-added it
