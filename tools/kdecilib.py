@@ -593,6 +593,7 @@ class BuildManager(object):
 		serverPath = self.project_prefix( self.project, self.projectBranch, local=False, includeHost=False )
 		command = self.config.get('General', 'createRemotePathCommand').format( remotePath=serverPath )
 		process = subprocess.Popen( shlex.split(command), stdout=sys.stdout, stderr=sys.stderr)
+		process.wait()
 
 		# Now we sync the actual install up to the master server so it can be used by other build slaves
 		serverPath = self.project_prefix( self.project, self.projectBranch, local=False )
