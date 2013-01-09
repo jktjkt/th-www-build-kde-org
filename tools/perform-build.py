@@ -66,25 +66,39 @@ if project is None:
 # Prepare the build manager
 manager = BuildManager(project, arguments.branch, arguments.sources, config)
 
+# Give out some information on what we are going to do...
+print "\nKDE Continuous Integration Build"
+print "== Building Project: %s - Branch %s" % (project.identifier, manager.projectBranch)
+print "== Build Dependencies:"
+for dependency, dependencyBranch in manager.dependencies:
+	print "==== %s - Branch %s" %(dependency.identifier, dependencyBranch)
+
 # Cleanup the source tree and apply any necessary patches if we have them
+print "\n== Cleaning Source Tree\n"
 manager.cleanup_sources()
+print "\n== Applying Patches\n"
 if not manager.apply_patches():
 	sys.exit("Applying patches to project %s failed." % project.identifier)
 
 # Sync all the dependencies
+print "\n== Syncing Dependencies from Master Server\n"
 if not manager.sync_dependencies():
 	sys.exit("Syncing dependencies from master server for project %s failed." % project.identifier)
 
 # Perform the build (including configure, post-configure, make and make install)
+print "\n== Commencing Build Process\n"
 if not manager.execute_build():
 	sys.exit("Build step exited with non-zero code, assuming failure to build from source for project %s." % project.identifier)
 
 # Deploy the newly completed build to the local tree as well as the master server
+print "\n== Deploying Installation\n"
 if not manager.deploy_installation():
 	sys.exit("Deployment of completed installation failed for project %s." % project.identifier)
 
 # Execute the tests
+print "\n== Executing Tests\n"
 manager.execute_tests()
 
 # Run cppcheck
+print "\n== Executing cppcheck\n"
 manager.execute_cppcheck()
