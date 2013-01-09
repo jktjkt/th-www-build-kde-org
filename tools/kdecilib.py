@@ -584,7 +584,7 @@ class BuildManager(object):
 		if os.path.exists( mimeDirectory ):
 			# Invoke update-mime-database
 			command = self.config.get('Build', 'updateMimeDatabaseCommand')
-			process = subprocess.Popen( command, stdout=sys.stdout, stderr=sys.stderr, cwd=installRoot, env=buildEnv )
+			process = subprocess.Popen( shlex.split(command), stdout=sys.stdout, stderr=sys.stderr, cwd=installRoot, env=buildEnv )
 			process.wait()
 
 		# None of the commands failed, so assume we succeeded
