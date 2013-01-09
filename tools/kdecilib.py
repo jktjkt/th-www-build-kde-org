@@ -571,6 +571,15 @@ class BuildManager(object):
 				# Abort if it fails to complete
 				return False
 
+		# Do we need to run update-mime-database?
+		installRoot = os.path.join( buildEnv['DESTDIR'], self.installPrefix[1:] )
+		mimeDirectory = os.path.join( installRoot, 'share', 'mime' )
+		if os.path.exists( mimeDirectory ):
+			# Invoke update-mime-database
+			command = self.config.get('Build', 'updateMimeDatabaseCommand')
+			process = subprocess.Popen( command, stdout=sys.stdout, stderr=sys.stderr, cwd=installRoot, env=buildEnv )
+			process.wait()
+
 		# None of the commands failed, so assume we succeeded
 		return True
 
