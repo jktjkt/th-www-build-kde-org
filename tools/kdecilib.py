@@ -617,7 +617,6 @@ class BuildManager(object):
 
 	def execute_tests(self):
 		# Prepare
-		devnull = open(os.devnull, 'w')
 		buildDirectory = self.build_directory()
 		runtimeEnv = self.generate_environment(True)
 		junitFilename = os.path.join( buildDirectory, 'JUnitTestResults.xml' )
@@ -637,11 +636,11 @@ class BuildManager(object):
 		# Setup Xvfb
 		runtimeEnv['DISPLAY'] = self.config.get('Test', 'xvfbDisplayName')
 		command = self.config.get('Test', 'xvfbCommand')
-		xvfbProcess = subprocess.Popen( shlex.split(command), stdout=devnull, stderr=devnull, env=runtimeEnv )
+		xvfbProcess = subprocess.Popen( shlex.split(command), stdout=open(os.devnull, 'w'), stderr=subprocess.STDOUT, env=runtimeEnv )
 
 		# Startup D-Bus and ensure the environment is adjusted
 		command = self.config.get('Test', 'dbusLaunchCommand')
-		dbusServerProcess = subprocess.Popen( shlex.split(command), stdout=subprocess.PIPE, stderr=devnull, env=runtimeEnv )
+		dbusServerProcess = subprocess.Popen( shlex.split(command), stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=runtimeEnv )
 		for variable in dbusServerProcess.stdout:
 			 splitVars = variable.split('=', 1)
 			 runtimeEnv[ splitVars[0] ] = splitVars[1].strip()
@@ -649,7 +648,7 @@ class BuildManager(object):
 		# Rebuild the Sycoca
 		command = self.config.get('Test', 'kbuildsycocaCommand')
 		try:
-			process = subprocess.Popen( shlex.split(command), stdout=devnull, stderr=devnull, env=runtimeEnv )
+			process = subprocess.Popen( shlex.split(command), stdout=open(os.devnull, 'w'), stderr=subprocess.STDOUT, env=runtimeEnv )
 			process.wait()
 		except OSError:
 			pass
@@ -658,8 +657,8 @@ class BuildManager(object):
 		kdeinitCommand = self.config.get('Test', 'kdeinitCommand')
 		nepomukCommand = self.config.get('Test', 'nepomukserverCommand')
 		try:
-			kdeinitProcess = subprocess.Popen( shlex.split(kdeinitCommand), stdout=devnull, stderr=devnull, env=runtimeEnv )
-			nepomukProcess = subprocess.Popen( shlex.split(nepomukCommand), env=runtimeEnv )
+			kdeinitProcess = subprocess.Popen( shlex.split(kdeinitCommand), stdout=open(os.devnull, 'w'), stderr=subprocess.STDOUT, env=runtimeEnv )
+			nepomukProcess = subprocess.Popen( shlex.split(nepomukCommand), stdout=open(os.devnull, 'w'), stderr=subprocess.STDOUT, env=runtimeEnv )
 		except OSError:
 			pass
 
