@@ -381,8 +381,15 @@ class BuildManager(object):
 	def generate_environment(self, runtime = False):
 		# Build the list of projects we need to include
 		requirements = self.dependencies
-		# For runtime (ie. running tests) we need to include ourselves too
+		# For runtime (ie. running tests) we need to include ourselves too and kde-runtime as well
 		if runtime:
+			# First we try to find kde-runtime - use the same branch as the kdelibs dependency
+			kdeRuntime = ProjectManager.lookup('kde-runtime')
+			kdelibsDep = [(project, branch) for project, branch in manager.dependencies if project.identifier == 'kdelibs']
+			if kdelibsDep and kdeRuntime:
+				libsProject, libsBranch = kdelibsDep[0]
+				requirements.append( (kdeRuntime, libsBranch) )
+			# Now we add ourselves
 			requirements.append( (self.project, self.projectBranch) )
 
 		# Turn the list of requirements into a list of prefixes
