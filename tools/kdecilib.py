@@ -640,8 +640,9 @@ class BuildManager(object):
 
 		# Startup D-Bus and ensure the environment is adjusted
 		command = self.config.get('Test', 'dbusLaunchCommand')
-		dbusServerProcess = subprocess.Popen( shlex.split(command), stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=runtimeEnv )
-		for variable in dbusServerProcess.stdout:
+		process = subprocess.Popen( shlex.split(command), stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=runtimeEnv )
+		process.wait()
+		for variable in process.stdout:
 			 splitVars = variable.split('=', 1)
 			 runtimeEnv[ splitVars[0] ] = splitVars[1].strip()
 
@@ -653,12 +654,12 @@ class BuildManager(object):
 		except OSError:
 			pass
 
-		# Fire-up kdeinit and nepomukserver
+		# Fire-up kdeinit and nepomuk
 		kdeinitCommand = self.config.get('Test', 'kdeinitCommand')
-		nepomukCommand = self.config.get('Test', 'nepomukserverCommand')
+		nepomukCommand = self.config.get('Test', 'nepomukCommand')
 		try:
-			kdeinitProcess = subprocess.Popen( shlex.split(kdeinitCommand), stdout=open(os.devnull, 'w'), stderr=subprocess.STDOUT, env=runtimeEnv )
-			nepomukProcess = subprocess.Popen( shlex.split(nepomukCommand), stdout=open(os.devnull, 'w'), stderr=subprocess.STDOUT, env=runtimeEnv )
+			subprocess.Popen( shlex.split(kdeinitCommand), stdout=open(os.devnull, 'w'), stderr=subprocess.STDOUT, env=runtimeEnv )
+			subprocess.Popen( shlex.split(nepomukCommand), stdout=open(os.devnull, 'w'), stderr=subprocess.STDOUT, env=runtimeEnv )
 		except OSError:
 			pass
 
@@ -692,13 +693,9 @@ class BuildManager(object):
 			junitFile.write( str(junitOutput) )
 
 		# All finished, shut everyone down
-		try:
-			nepomukProcess.terminate()
-			kdeinitProcess.terminate()
-			dbusServerProcess.terminate()
-			xvfbProcess.terminate()
-		except Exception:
-			pass
+		command = self.config.get('Test', 'terminateTestEnvCommand')
+		subprocess.Popen( shlex.split(command) )
+		xvfbProcess.terminate()
 
 	def convert_ctest_to_junit(self, buildDirectory):
 		# Where is the base prefix for all test data for this project located?
