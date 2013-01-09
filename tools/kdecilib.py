@@ -385,7 +385,7 @@ class BuildManager(object):
 		if runtime:
 			# First we try to find kde-runtime - use the same branch as the kdelibs dependency
 			kdeRuntime = ProjectManager.lookup('kde-runtime')
-			kdelibsDep = [(project, branch) for project, branch in manager.dependencies if project.identifier == 'kdelibs']
+			kdelibsDep = [(project, branch) for project, branch in self.dependencies if project.identifier == 'kdelibs']
 			if kdelibsDep and kdeRuntime:
 				libsProject, libsBranch = kdelibsDep[0]
 				requirements.append( (kdeRuntime, libsBranch) )
