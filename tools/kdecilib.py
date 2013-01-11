@@ -3,6 +3,7 @@ import re
 import os
 import sys
 import time
+import copy
 import shlex
 import shutil
 import fnmatch
@@ -465,7 +466,7 @@ class BuildManager(object):
 				envChanges['PYTHONPATH'].append( extraLocation )
 
 		# Finally, we can merge this into the real environment
-		clonedEnv = os.environ.__dict__['data']
+		clonedEnv = copy.deepcopy(os.environ.__dict__['data'])
 		for variableName, variableEntries in envChanges.iteritems():
 			# Join them
 			newEntry = ':'.join( variableEntries )
