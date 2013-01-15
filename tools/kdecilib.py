@@ -664,6 +664,9 @@ class BuildManager(object):
 		except OSError:
 			pass
 
+		# Sleep for a little while, to let kdeinit / nepomuk complete their startup processes
+		time.sleep( self.config.getint('Test', 'kdeStartupWait') )
+
 		# Execute CTest
 		command = self.config.get('Test', 'ctestRunCommand')
 		ctestProcess = subprocess.Popen( shlex.split(command), stdout=sys.stdout, stderr=sys.stderr, cwd=buildDirectory, env=runtimeEnv )
