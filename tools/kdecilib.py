@@ -484,10 +484,18 @@ class BuildManager(object):
 		gitDirectory = os.path.join( self.projectSources, '.git' )
 		svnDirectory = os.path.join( self.projectSources, '.svn' )
 		bzrDirectory = os.path.join( self.projectSources, '.bzr' )
-		
+
+		# Which directories are we cleaning?
+		pathsToClean = [self.projectSources]
+
 		# Maybe it is a Git repository?
 		if os.path.exists( gitDirectory ):
 			command = self.config.get('Source', 'gitCleanCommand')
+			# Because Git is silly, we have to build it a special list of paths to clean
+			pathsToClean = []
+			for root, dirs, files in os.walk( self.projectSources ):
+				if '.git' in dirs:
+					pathsToClean.append( root )
 		# Maybe it is a SVN checkout?
 		elif os.path.exists( svnDirectory ):
 			command = self.config.get('Source', 'svnRevertCommand')
@@ -498,8 +506,10 @@ class BuildManager(object):
 		else:
 			return
 
-		process = subprocess.Popen(command, shell=True, cwd=self.projectSources)
-		process.wait()
+		for path in pathsToClean:
+			process = subprocess.Popen(command, shell=True, cwd=path)
+			process.wait()
+
 		return
 
 	def apply_patches(self):
