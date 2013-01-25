@@ -493,7 +493,7 @@ class BuildManager(object):
 			command = self.config.get('Source', 'gitCleanCommand')
 			# Because Git is silly, we have to build it a special list of paths to clean
 			pathsToClean = []
-			for root, dirs, files in os.walk( self.projectSources ):
+			for root, dirs, files in os.walk( self.projectSources, topdown=False ):
 				if '.git' in dirs:
 					pathsToClean.append( root )
 		# Maybe it is a SVN checkout?
