@@ -90,6 +90,7 @@
 		
 			<testcase name="{$testcasename}" classname="TestSuite" time="{$exectime}">
             <xsl:if test="@Status = 'passed'">
+                <system-out><xsl:value-of select="Results/Measurement/Value/text()" /></system-out>
             </xsl:if>
             <xsl:if test="@Status = 'failed'">
 				<xsl:variable name="failtype">
