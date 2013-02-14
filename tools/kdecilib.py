@@ -445,6 +445,12 @@ class BuildManager(object):
 					if os.path.exists( extraLocation ):
 						envChanges['QML_IMPORT_PATH'].append(extraLocation)
 
+				# And to finish, QML2_IMPORT_PATH
+				for pluginDirName in ['qml']:
+					extraLocation = os.path.join( reqPrefix, libraryDirName, pluginDirName )
+					if os.path.exists( extraLocation ):
+						envChanges['QML2_IMPORT_PATH'].append(extraLocation)
+
 			# Setup PKG_CONFIG_PATH
 			extraLocation = os.path.join( reqPrefix, 'share/pkgconfig' )
 			if os.path.exists( extraLocation ):
