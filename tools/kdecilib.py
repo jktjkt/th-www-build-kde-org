@@ -766,4 +766,9 @@ def check_jenkins_environment():
 		# Transfer it
 		arguments.sources = os.environ['WORKSPACE']
 
+	# Do we need to change into the proper working directory?
+	if 'JENKINS_SLAVE_HOME' in os.environ:
+		# Change working directory
+		os.chdir( os.environ['JENKINS_SLAVE_HOME'] )
+
 	return arguments
