@@ -522,6 +522,7 @@ class BuildManager(object):
 		# Do we have anything to apply?
 		patchesDir = os.path.join( self.config.get('General', 'scriptsLocation'), 'patches', self.project.identifier, self.projectBranch )
 		if not os.path.exists(patchesDir):
+			print "\n=== No patches to apply\n"
 			return True
 
 		# Iterate over the patches and apply them
@@ -532,6 +533,7 @@ class BuildManager(object):
 				patchPath = os.path.join( dirname, filename )
 				# Apply the patch
 				try:
+					print "\n=== Applying: %s\n"%patchPath
 					process = subprocess.check_call( command + [patchPath], stdout=sys.stdout, stderr=sys.stderr, cwd=self.projectSources )
 				except subprocess.CalledProcessError:
 					# Make sure the patch applied successfully - if it failed, then we should halt here
