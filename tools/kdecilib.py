@@ -518,6 +518,18 @@ class BuildManager(object):
 
 		return
 
+	def apply_scm_corrections(self):
+		# Maybe we are correcting out of date Git submodules?
+		if self.config.getboolean('Source', 'useLatestGitSubmodules'):
+			# Execute the command to update the submodules
+			command = self.config.get('Source', 'gitSubmoduleLatestCommand')
+			try:
+				subprocess.check_call( shlex.split(command), cwd=self.projectSources )
+			except subprocess.CalledProcessError:
+				return False
+
+		return True
+
 	def apply_patches(self):
 		# Do we have anything to apply?
 		patchesDir = os.path.join( self.config.get('General', 'scriptsLocation'), 'patches', self.project.identifier, self.projectBranch )
