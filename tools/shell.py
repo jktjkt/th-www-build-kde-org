@@ -19,10 +19,10 @@ arguments = parser.parse_args()
 
 # Load the various configuration files
 config = ConfigParser.SafeConfigParser( {'systemBase': arguments.base} )
-configFiles =  ['config/build/global.cfg', 'config/build/{host}.cfg', 'config/build/{platform}.cfg']
-configFiles += ['config/build/{project}/project.cfg', 'config/build/{project}/{host}.cfg', 'config/build/{project}/{platform}.cfg']
+configFiles =  ['config/build/global.cfg', 'config/build/{base}.cfg', 'config/build/{host}.cfg', 'config/build/{platform}.cfg']
+configFiles += ['config/build/{project}/project.cfg', 'config/build/{project}/{base}.cfg', 'config/build/{project}/{host}.cfg', 'config/build/{project}/{platform}.cfg']
 for confFile in configFiles:
-	confFile = confFile.format( host=socket.gethostname(), platform=arguments.platform, project=arguments.project )
+	confFile = confFile.format( host=socket.gethostname(), base=arguments.base, platform=arguments.platform, project=arguments.project )
 	config.read( confFile )
 
 # Download the list of projects if necessary
