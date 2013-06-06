@@ -1,0 +1,59 @@
+--- kwin/CMakeLists.txt
++++ kwin/CMakeLists.txt
+@@ -17,6 +17,8 @@ if(${KDE_PLATFORM_PROFILE} STREQUAL "Desktop")
+ else()
+    OPTION(KWIN_PLASMA_ACTIVE "Enable building KWin for Plasma Active." On)
+ endif()
++# HACK for CI
++OPTION(KWIN_BUILD_LEGACY_ICCCM "Enable building of KWin with legacy ICCCM" OFF)
+ 
+ # Binary name of KWin
+ set(KWIN_NAME "kwin")
+--- kwin/config-kwin.h.cmake
++++ kwin/config-kwin.h.cmake
+@@ -9,3 +9,4 @@
+ #define KWIN_NAME "${KWIN_NAME}"
+ #define KWIN_CONFIG "${KWIN_NAME}rc"
+ #define KWIN_VERSION_STRING "${KDE4WORKSPACE_VERSION}"
++#cmakedefine KWIN_BUILD_LEGACY_ICCCM 1
+--- kwin/xcbutils.h
++++ kwin/xcbutils.h
+@@ -35,6 +35,37 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ #include <xcb/xcb_icccm.h>
+ #undef class             //UNDO HACK
+ 
++#ifdef KWIN_BUILD_LEGACY_ICCCM
++// HACK: KDE's CI system only has an outdated version of xcb utils.
++// Redefine the used xcb_icccm_* methods and map them to the old ones
++inline
++xcb_void_cookie_t xcb_icccm_set_wm_transient_for(xcb_connection_t *c,
++                                                   xcb_window_t window,
++                                                   xcb_window_t transient_for_window)
++{
++    Q_UNUSED(c)
++    Q_UNUSED(window)
++    Q_UNUSED(transient_for_window)
++    xcb_void_cookie_t cookie;
++    cookie.sequence = 0;
++    return cookie;
++}
++
++inline
++xcb_get_property_cookie_t xcb_icccm_get_wm_transient_for_unchecked(xcb_connection_t *c,
++                                                                     xcb_window_t window)
++{
++    return xcb_get_wm_transient_for_unchecked(c, window);
++}
++
++inline uint8_t
++xcb_icccm_get_wm_transient_for_from_reply(xcb_window_t *prop,
++                                            xcb_get_property_reply_t *reply)
++{
++    return xcb_get_wm_transient_for_from_reply(prop, reply);
++}
++#endif
++
+ namespace KWin {
+ 
+ namespace Xcb {
+
