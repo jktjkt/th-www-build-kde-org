@@ -749,10 +749,26 @@ class BuildManager(object):
 		return transform(xmlDocument)
 
 	def execute_cppcheck(self):
-		# This is not yet implemented, we simply stub it for future use
+		# Prepare to do the cppcheck run
+		runtimeEnv = self.generate_environment(True)
 		cppcheckFilename = os.path.join( self.build_directory(), 'cppcheck.xml' )
-		cppcheckSkeleton = os.path.join( self.config.get('General', 'scriptsLocation'), 'templates', 'cppcheck-empty.xml' )
-		shutil.copyfile( cppcheckSkeleton, cppcheckFilename )
+
+		# Are we able to run cppcheck?
+		if not self.config.getboolean('QualityCheck', 'runCppcheck') or self.projectSources == buildDirectory:
+			# Add a empty template
+			cppcheckSkeleton = os.path.join( self.config.get('General', 'scriptsLocation'), 'templates', 'cppcheck-empty.xml' )
+			shutil.copyfile( cppcheckSkeleton, cppcheckFilename )
+			return
+
+		# Prepare the command
+		command = self.config.get('QualityCheck', 'cppcheckCommand')
+		command = command.format( sources=self.projectSources, buildDirectory=self.build_directory() )
+		command = shlex.split(command)
+
+		# Run cppcheck and wait for it to finish
+		with open(cppcheckFilename, 'w') as cppcheckXml:
+			process = subprocess.Popen( command, stdout=sys.stdout, stderr=cppcheckXml, cwd=self.projectSources, env=runtimeEnv )
+			process.wait()
 
 # Checks for a Jenkins environment, and sets up a argparse.Namespace appropriately if found
 def check_jenkins_environment():
