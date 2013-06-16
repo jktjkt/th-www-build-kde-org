@@ -102,3 +102,5 @@ manager.execute_tests()
 # Run cppcheck
 print "\n== Executing cppcheck\n"
 manager.execute_cppcheck()
+
+print "\n== Run Completed Successfully\n"
