@@ -750,6 +750,7 @@ class BuildManager(object):
 
 	def execute_cppcheck(self):
 		# Prepare to do the cppcheck run
+		buildDirectory = self.build_directory()
 		runtimeEnv = self.generate_environment(True)
 		cppcheckFilename = os.path.join( self.build_directory(), 'cppcheck.xml' )
 
@@ -762,7 +763,7 @@ class BuildManager(object):
 
 		# Prepare the command
 		command = self.config.get('QualityCheck', 'cppcheckCommand')
-		command = command.format( sources=self.projectSources, buildDirectory=self.build_directory() )
+		command = command.format( sources=self.projectSources, buildDirectory=buildDirectory )
 		command = shlex.split(command)
 
 		# Run cppcheck and wait for it to finish
