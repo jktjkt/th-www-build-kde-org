@@ -865,13 +865,12 @@ class BulkBuildManager(object):
 			self.projectManagers.append(manager)
 
 	def sync_dependencies(self):
-		# We need to run a rsync command, so grab the first available build manager
-		manager = self.projectManagers[0]
-		# Get our local prefix and remote prefix
-		localPrefix = manager.config.get('General', 'installPrefix')
-		remotePrefix = manager.config.get('General', 'remoteHostPrefix')
-		# Perform the global dependencies sync
-		return manager.perform_rsync( source=remotePrefix, destination=localPrefix )
+		# It is more efficient to ask each project to sync it's own dependencies
+		for manager in self.projectManagers:
+			# Notify that we are syncing dependencies for this project
+			print "\n==== Syncing Dependencies for %s\n" % manager.project.identifier
+			# Configure it, and ignore failure
+			manager.sync_dependencies()
 
 	def prepare_sources(self):
 		# Ask each manager to prepare the sources for a build
