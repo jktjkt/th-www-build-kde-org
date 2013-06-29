@@ -531,21 +531,23 @@ class BuildManager(object):
 		gitDirectory = os.path.join( self.projectSources, '.git' )
 		if not os.path.exists(gitDirectory):
 			# Clone the repository
-			command = config.get('Source', 'gitCloneCommand').format( url=self.project.url )
+			command = self.config.get('Source', 'gitCloneCommand')
+			command = command.format( url=self.project.url )
 			try:
 				subprocess.check_call( shlex.split(command), cwd=self.projectSources )
 			except subprocess.CalledProcessError:
 				return False
 
 		# Update the git repository
-		command = config.get('Source', 'gitFetchCommand')
+		command = self.config.get('Source', 'gitFetchCommand')
 		try:
 			subprocess.check_call( shlex.split(command), cwd=self.projectSources )
 		except subprocess.CalledProcessError:
 			return False
 
 		# Ensure our desired branch is in place
-		command = config.get('Source', 'gitSetBranchCommand').format( targetBranch=self.projectBranch )
+		command = self.config.get('Source', 'gitSetBranchCommand')
+		command = command.format( targetBranch=self.projectBranch )
 		try:
 			subprocess.check_call( shlex.split(command), cwd=self.projectSources )
 		except subprocess.CalledProcessError:
@@ -554,7 +556,8 @@ class BuildManager(object):
 		# Do we need to checkout the sources too?
 		if checkoutSources:
 			# Check the sources out
-			command = config.get('Source', 'gitCheckoutCommand').format( branch=self.projectBranch )
+			command = self.config.get('Source', 'gitCheckoutCommand')
+			command = command.format( branch=self.projectBranch )
 			try:
 				subprocess.check_call( shlex.split(command), cwd=self.projectSources )
 			except subprocess.CalledProcessError:
