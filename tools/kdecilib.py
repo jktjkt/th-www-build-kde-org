@@ -352,6 +352,36 @@ class BuildManager(object):
 		# Indicate our success
 		return process.returncode == 0
 
+	def run_build_commands(self, buildCommands):
+		# Prepare, and load parameters we will need later
+		cpuCount = multiprocessing.cpu_count()
+		installPath = os.path.join( self.projectSources, 'install' )
+
+		# Prepare the environment
+		# We need to ensure that 'make install' will deploy to the appropriate directory
+		buildEnv = self.generate_environment()
+		buildEnv['DESTDIR'] = buildEnv['INSTALL_ROOT'] = installPath
+
+		# Actually invoke the commands
+		for command in buildCommands:
+			# Put the appropriate tokens in place
+			# {instPrefix} = Directory where the project should be installed
+			# {sources} = Base directory where the project sources are located
+			# {loadLevel} = The desired maxmium load level during the build
+			# {jobCount} = The appropriate number of jobs which should be started during a build
+			command = command.format( instPrefix=self.installPrefix, sources=self.projectSources, loadLevel=cpuCount, jobCount=cpuCount + 1 )
+			command = shlex.split( command )
+
+			# Execute the command which is part of the build execution process
+			try:
+				process = subprocess.check_call( command, stdout=sys.stdout, stderr=sys.stderr, cwd=buildDirectory, env=buildEnv )
+			except subprocess.CalledProcessError:
+				# Abort if it fails to complete
+				return False
+
+		# We are successful
+		return True
+
 	# Sync all of our dependencies from the master server
 	def sync_dependencies(self):
 		# Sync the shared common dependencies
@@ -546,70 +576,50 @@ class BuildManager(object):
 
 		return True
 
-	def execute_build(self):
+	def configure_build(self):
 		# Determine the directory we will perform the build in and make sure it exists
 		buildDirectory = self.build_directory()
 		if not os.path.exists( buildDirectory ):
 			os.makedirs( buildDirectory )
 
-		# Build up the list of commands we need to execute
-		buildCommands = []
-
-		# Configuring the build comes first
+		# Get the initial configuration command
 		command = self.config.get('Build', 'configureCommand')
-		buildCommands.append( command )
+		buildCommands = [ command ]
 
 		# Next comes the post configure command
 		if self.config.has_option('Build', 'postConfigureCommand'):
 			command = self.config.get('Build', 'postConfigureCommand')
 			buildCommands.append( command )
 
-		# Now we actually perform the "make"
-		command = self.config.get('Build', 'makeCommand')
-		buildCommands.append( command )
+		# Do the configure
+		return self.run_build_commands( buildCommands )
 
-		# Now we install it, to finish
+	def compile_build(self):
+		# Load the command and run it
+		command = self.config.get('Build', 'makeCommand')
+		return self.run_build_commands( [command] )
+
+	def install_build(self):
+		# Perform the installation
 		command = self.config.get('Build', 'makeInstallCommand')
-		buildCommands.append( command )
+		buildCommands = [ command ]
 
 		# Final command which is needed to finish up the installation
 		if self.config.has_option('Build', 'postInstallationCommand'):
 			command = self.config.get('Build', 'postInstallationCommand')
 			buildCommands.append( command )
 
-		# Prepare the global tokens
-		cpuCount = multiprocessing.cpu_count()
-		buildEnv = self.generate_environment()
-
-		# Force the 'make install' to go to where we want
-		buildEnv['DESTDIR'] = os.path.join( self.projectSources, 'install' )
-		buildEnv['INSTALL_ROOT'] = buildEnv['DESTDIR']
-
-		# Actually invoke the commands
-		for command in buildCommands:
-			# Put the appropriate tokens in place
-			# {instPrefix} = Directory where the project should be installed
-			# {sources} = Base directory where the project sources are located
-			# {loadLevel} = The desired maxmium load level during the build
-			# {jobCount} = The appropriate number of jobs which should be started during a build
-			command = command.format( instPrefix=self.installPrefix, sources=self.projectSources, loadLevel=cpuCount, jobCount=cpuCount + 1 )
-			command = shlex.split( command )
-
-			# Execute the command which is part of the build execution process
-			try:
-				process = subprocess.check_call( command, stdout=sys.stdout, stderr=sys.stderr, cwd=buildDirectory, env=buildEnv )
-			except subprocess.CalledProcessError:
-				# Abort if it fails to complete
-				return False
+		# Do the installation
+		if not self.run_build_commands( buildCommands ):
+			return False
 
 		# Do we need to run update-mime-database?
-		installRoot = os.path.join( buildEnv['DESTDIR'], self.installPrefix[1:] )
+		installRoot = os.path.join( self.projectSources, 'install', self.installPrefix[1:] )
 		mimeDirectory = os.path.join( installRoot, 'share', 'mime' )
 		if os.path.exists( mimeDirectory ):
 			# Invoke update-mime-database
 			command = self.config.get('Build', 'updateMimeDatabaseCommand')
-			process = subprocess.Popen( shlex.split(command), stdout=sys.stdout, stderr=sys.stderr, cwd=installRoot, env=buildEnv )
-			process.wait()
+			subprocess.call( shlex.split(command), stdout=sys.stdout, stderr=sys.stderr, cwd=installRoot, env=buildEnv )
 
 		# None of the commands failed, so assume we succeeded
 		return True

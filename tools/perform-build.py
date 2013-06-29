@@ -85,10 +85,20 @@ print "\n== Syncing Dependencies from Master Server\n"
 if not manager.sync_dependencies():
 	sys.exit("Syncing dependencies from master server for project %s failed." % project.identifier)
 
-# Perform the build (including configure, post-configure, make and make install)
-print "\n== Commencing Build Process\n"
-if not manager.execute_build():
-	sys.exit("Build step exited with non-zero code, assuming failure to build from source for project %s." % project.identifier)
+# Configure the build
+print "\n== Configuring Build\n"
+if not manager.configure_build():
+	sys.exit("Configure step exited with non-zero code, assuming failure to configure for project %s." % project.identifier)
+
+# Build the project
+print "\n== Commencing the Build\n"
+if not manager.compile_build():
+	sys.exit("Compiliation step exited with non-zero code, assuming failure to build from source for project %s." % project.identifier)
+
+# Install the project
+print "\n== Installing the Build\n"
+if not manager.install_build():
+	sys.exit("Installation step exited with non-zero code, assuming failure to install from source for project %s." % project.identifier)
 
 # Deploy the newly completed build to the local tree as well as the master server
 print "\n== Deploying Installation\n"
