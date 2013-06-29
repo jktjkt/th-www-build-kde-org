@@ -842,7 +842,7 @@ class BulkBuildManager(object):
 
 			# Retrieve the project / branch to work with
 			projectName = buildMatch.group('project').lower()
-			branch = match.group('branch').lower()
+			branch = buildMatch.group('branch').lower()
 
 			# Get the project - and if we don't know it, ignore and continue
 			project = ProjectManager.lookup( projectName )
