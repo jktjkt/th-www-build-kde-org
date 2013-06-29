@@ -908,7 +908,7 @@ def load_project_configuration( project, base = None, platform = None ):
 	configFiles += ['config/build/{project}/{platform}.cfg']
 	# Go over the list and load in what we can
 	for confFile in configFiles:
-		confFile = confFile.format( host=socket.gethostname(), base=base, platform=platform, project=project.identifier )
+		confFile = confFile.format( host=socket.gethostname(), base=base, platform=platform, project=project )
 		config.read( confFile )
 	# All done, return the configuration
 	return config
