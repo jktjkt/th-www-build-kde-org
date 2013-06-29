@@ -72,11 +72,7 @@ command = bulkManager.projectManagers[0].config.get('QualityCheck', 'covBuildCom
 command = command.format( sourceRoot=arguments.sourceRoot, platform=arguments.platform )
 command = shlex.split( command )
 
-			# Execute the command which is part of the build execution process
-			try:
-				process = subprocess.check_call( command, stdout=sys.stdout, stderr=sys.stderr, cwd=buildDirectory, env=buildEnv )
-			except subprocess.CalledProcessError:
-				# Abort if it fails to complete
-				return False
+# Execute the command which is part of the build execution process
+subprocess.call( command, stdout=sys.stdout, stderr=sys.stderr, cwd=os.getcwd() )
 
 print "\n== Run Completed Successfully\n"
