@@ -1,22 +1,19 @@
 #!/usr/bin/python
 import os
+import sys
 import time
 import urllib
 import argparse
 from lxml import etree
-from kdecilib import Project, ProjectManager, BuildManager
+from kdecilib import Project, ProjectManager, BulkBuildManager, check_jenkins_environment, load_project_configuration
 
 # Load our command line arguments
-parser = argparse.ArgumentParser(description='Utility to control building and execution of tests in an automated manner.')
-parser.add_argument('--project', type=str, required=True)
-parser.add_argument('--branch', type=str, required=True)
-parser.add_argument('--sources', type=str, required=True)
+parser = argparse.ArgumentParser(description='Utility to control bulk building of projects in a automated manner.')
+parser.add_argument('--sourceRoot', type=str)
 parser.add_argument('--platform', type=str, choices=['linux64-g++', 'win32-mingw-cross'], default='linux64-g++')
 parser.add_argument('--base', type=str, choices=['qt5', 'qt4', 'common'], default='qt4')
+# Parse the arguments
 arguments = parser.parse_args()
-
-# Load the various configuration files
-config = load_project_configuration( arguments.project, arguments.base, arguments.platform )
 
 # Download the list of projects if necessary
 project_file = 'kde_projects.xml'
@@ -48,10 +45,6 @@ with open('dependencies/build-script-ignore', 'r') as fileHandle:
 with open('dependencies/dependency-data', 'r') as fileHandle:
 	ProjectManager.setup_dependencies( fileHandle.readlines() )
 
-# Load the requested project
-project = ProjectManager.lookup( arguments.project )
-if project is None:
-	sys.exit("Requested project %s was not found." % arguments.project)
-
-# Prepare the build manager
-manager = BuildManager(project, arguments.branch, arguments.sources, config)
+# Prepare the bulk build manager
+bulkManager = BulkBuildManager('config/coverity/projects.list', arguments.sourceRoot, arguments.base, arguments.platform)
+bulkManager.compile_builds()

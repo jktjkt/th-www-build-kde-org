@@ -3,11 +3,9 @@ import os
 import sys
 import time
 import shlex
-import socket
 import urllib
 import argparse
 import subprocess
-import ConfigParser
 from lxml import etree
 from kdecilib import Project, ProjectManager, BuildManager, check_jenkins_environment
 
@@ -22,12 +20,7 @@ environmentArgs = check_jenkins_environment()
 arguments = parser.parse_args( namespace=environmentArgs )
 
 # Load the various configuration files
-config = ConfigParser.SafeConfigParser()
-configFiles =  ['config/build/global.cfg', 'config/build/{host}.cfg']
-configFiles += ['config/build/{project}/project.cfg', 'config/build/{project}/{host}.cfg']
-for confFile in configFiles:
-	confFile = confFile.format( host=socket.gethostname(), project=arguments.project )
-	config.read( confFile )
+config = load_project_configuration( arguments.project )
 
 # Download the list of projects if necessary
 project_file = 'kde_projects.xml'
@@ -56,27 +49,6 @@ if project.generalDependency:
 # First we must wait for the anongit mirrors to settle
 time.sleep( arguments.delay )
 
-# Does the git repository exist?
-gitDirectory = os.path.join( arguments.sources, '.git' )
-if not os.path.exists(gitDirectory):
-	# Clone the repository
-	command = config.get('Source', 'gitCloneCommand').format( url=project.url )
-	try:
-		subprocess.check_call( shlex.split(command), cwd=arguments.sources )
-	except subprocess.CalledProcessError:
-		sys.exit("Failed to clone git repository.")
-
-# Update the git repository
-fetchCommand = config.get('Source', 'gitFetchCommand')
-try:
-	subprocess.check_call( shlex.split(fetchCommand), cwd=arguments.sources )
-except subprocess.CalledProcessError:
-	sys.exit("Failed to fetch git repository.")
-
-# Ensure our desired branch is in place
-branch = project.resolve_branch( arguments.branch )
-fetchCommand = config.get('Source', 'gitSetBranchCommand').format( targetBranch=branch )
-try:
-	subprocess.check_call( shlex.split(fetchCommand), cwd=arguments.sources )
-except subprocess.CalledProcessError:
-	sys.exit("Failed to set required repository branch.")
+# Prepare the sources and handover to Jenkins
+manager = BuildManager(project, arguments.branch, arguments.sources, config)
+manager.checkout_sources()

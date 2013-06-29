@@ -2,12 +2,10 @@
 import os
 import sys
 import time
-import socket
 import urllib
 import argparse
-import ConfigParser
 from lxml import etree
-from kdecilib import Project, ProjectManager, BuildManager, check_jenkins_environment
+from kdecilib import Project, ProjectManager, BuildManager, check_jenkins_environment, load_project_configuration
 
 # Load our command line arguments
 parser = argparse.ArgumentParser(description='Utility to control building and execution of tests in an automated manner.')
@@ -20,13 +18,8 @@ parser.add_argument('--base', type=str, choices=['qt5', 'qt4', 'common'], defaul
 environmentArgs = check_jenkins_environment()
 arguments = parser.parse_args( namespace=environmentArgs )
 
-# Load the various configuration files
-config = ConfigParser.SafeConfigParser( {'systemBase': arguments.base} )
-configFiles =  ['config/build/global.cfg', 'config/build/{base}.cfg', 'config/build/{host}.cfg', 'config/build/{platform}.cfg']
-configFiles += ['config/build/{project}/project.cfg', 'config/build/{project}/{base}.cfg', 'config/build/{project}/{host}.cfg', 'config/build/{project}/{platform}.cfg']
-for confFile in configFiles:
-	confFile = confFile.format( host=socket.gethostname(), base=arguments.base, platform=arguments.platform, project=arguments.project )
-	config.read( confFile )
+# Load our configuration
+config = load_project_configuration( arguments.project, arguments.base, arguments.platform )
 
 # Download the list of projects if necessary
 project_file = 'kde_projects.xml'

@@ -6,6 +6,7 @@ import time
 import copy
 import shlex
 import shutil
+import socket
 import fnmatch
 import argparse
 import subprocess
@@ -521,6 +522,47 @@ class BuildManager(object):
 		# Return the dict of the cloned environment, suitable for use with subprocess.Popen
 		return clonedEnv
 
+	def checkout_sources(self, checkoutSources = False):
+		# We cannot handle general dependencies here
+		if self.project.generalDependency:
+			return True
+
+		# Does the git repository exist?
+		gitDirectory = os.path.join( self.projectSources, '.git' )
+		if not os.path.exists(gitDirectory):
+			# Clone the repository
+			command = config.get('Source', 'gitCloneCommand').format( url=self.project.url )
+			try:
+				subprocess.check_call( shlex.split(command), cwd=self.projectSources )
+			except subprocess.CalledProcessError:
+				return False
+
+		# Update the git repository
+		command = config.get('Source', 'gitFetchCommand')
+		try:
+			subprocess.check_call( shlex.split(command), cwd=self.projectSources )
+		except subprocess.CalledProcessError:
+			return False
+
+		# Ensure our desired branch is in place
+		command = config.get('Source', 'gitSetBranchCommand').format( targetBranch=self.projectBranch )
+		try:
+			subprocess.check_call( shlex.split(command), cwd=self.projectSources )
+		except subprocess.CalledProcessError:
+			return False
+
+		# Do we need to checkout the sources too?
+		if checkoutSources:
+			# Check the sources out
+			command = config.get('Source', 'gitCheckoutCommand').format( branch=self.projectBranch )
+			try:
+				subprocess.check_call( shlex.split(command), cwd=self.projectSources )
+			except subprocess.CalledProcessError:
+				return False
+
+		# All successful
+		return True
+
 	def cleanup_sources(self):
 		# Prepare Git/Subversion paths
 		gitDirectory = os.path.join( self.projectSources, '.git' )
@@ -783,6 +825,93 @@ class BuildManager(object):
 		with open(cppcheckFilename, 'w') as cppcheckXml:
 			process = subprocess.Popen( command, stdout=sys.stdout, stderr=cppcheckXml, cwd=self.projectSources, env=runtimeEnv )
 			process.wait()
+
+class BulkBuildManager(object):
+	# Initialize ourselves
+	def __init__(self, projectsFile, sourceRoot, base, platform):
+		# Prepare to determine the projects we will be building
+		self.projectManagers = []
+		dataFile = open(projectsFile, 'r'):
+
+		# Grab the project instance for each and create a manager for it
+		for line in dataFile:
+			# Make sure we have a project / branch to work with
+			buildMatch = re.match("(?P<project>[^:]+):\s*(?P<branch>.+)", line)
+			if not buildMatch:
+				continue
+
+			# Retrieve the project / branch to work with
+			projectName = buildMatch.group('project').lower()
+			branch = match.group('branch').lower()
+
+			# Get the project - and if we don't know it, ignore and continue
+			project = ProjectManager.lookup( projectName )
+			if not project:
+				continue
+
+			# Make sure we have a sources directory
+			projectSources = os.path.join( sourceRoot, project.identifier )
+			if not os.path.exists( projectSources ):
+				os.makedirs( projectSources )
+
+			# Generate a configuration
+			config = load_project_configuration( project.identifier, base, platform )
+
+			# Create the manager
+			manager = BuildManager(project, branch, projectSources, config)
+			self.projectManagers.append(manager)
+
+	def sync_dependencies(self):
+		# We need to run a rsync command, so grab the first available build manager
+		manager = self.projectManagers[0]
+		# Get our local prefix and remote prefix
+		localPrefix = manager.config.get('General', 'installPrefix', vars=specialArguments)
+		remotePrefix = manager.config.get('General', 'remoteHostPrefix', vars=specialArguments)
+		# Perform the global dependencies sync
+		return manager.perform_rsync( source=remotePrefix, destination=localPrefix )
+
+	def prepare_sources(self):
+		# Ask each manager to prepare the sources for a build
+		for manager in self.projectManagers:
+			# Mention the project being worked on
+			print "\n==== Preparing Sources for %s\n"
+			# Checkout sources
+			manager.checkout_sources()
+			# Cleanup the sources
+			manager.cleanup_sources()
+			# Apply any patches
+			manager.apply_patches()
+
+	def configure_builds(self):
+		# Simply iterate over each manager and ask it to configure it's project
+		for manager in self.projectManagers:
+			# Notify that we are configuring this project
+			print "\n==== Configuring %s\n" % manager.project.identifier
+			# Configure it, and ignore failure
+			manager.configure_build()
+
+	def compile_builds(self):
+		# Simply iterate over each manager and ask it to compile it's project
+		for manager in self.projectManagers:
+			# Notify that we are configuring this project
+			print "\n==== Compiling %s\n" % manager.project.identifier
+			# Compile it, and ignore failure
+			manager.compile_build()
+
+# Loads a configuration for a given project
+def load_project_configuration( project, base = None, platform = None ):
+	# Create a configuration parser
+	config = ConfigParser.SafeConfigParser( {'systemBase': base} )
+	# List of prospective files to parse
+	configFiles =  ['config/build/global.cfg', 'config/build/{base}.cfg', 'config/build/{host}.cfg', 'config/build/{platform}.cfg']
+	configFiles += ['config/build/{project}/project.cfg', 'config/build/{project}/{base}.cfg', 'config/build/{project}/{host}.cfg']
+	configFiles += ['config/build/{project}/{platform}.cfg']
+	# Go over the list and load in what we can
+	for confFile in configFiles:
+		confFile = confFile.format( host=socket.gethostname(), base=base, platform=platform, project=project.identifier )
+		config.read( confFile )
+	# All done, return the configuration
+	return config
 
 # Checks for a Jenkins environment, and sets up a argparse.Namespace appropriately if found
 def check_jenkins_environment():
