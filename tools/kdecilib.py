@@ -831,7 +831,7 @@ class BulkBuildManager(object):
 	def __init__(self, projectsFile, sourceRoot, base, platform):
 		# Prepare to determine the projects we will be building
 		self.projectManagers = []
-		dataFile = open(projectsFile, 'r'):
+		dataFile = open(projectsFile, 'r')
 
 		# Grab the project instance for each and create a manager for it
 		for line in dataFile:
