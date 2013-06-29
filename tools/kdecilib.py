@@ -877,7 +877,7 @@ class BulkBuildManager(object):
 		# Ask each manager to prepare the sources for a build
 		for manager in self.projectManagers:
 			# Mention the project being worked on
-			print "\n==== Preparing Sources for %s\n"
+			print "\n==== Preparing Sources for %s\n" % manager.project.identifier
 			# Checkout sources
 			manager.checkout_sources()
 			# Cleanup the sources
