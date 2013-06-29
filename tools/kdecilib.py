@@ -868,8 +868,8 @@ class BulkBuildManager(object):
 		# We need to run a rsync command, so grab the first available build manager
 		manager = self.projectManagers[0]
 		# Get our local prefix and remote prefix
-		localPrefix = manager.config.get('General', 'installPrefix', vars=specialArguments)
-		remotePrefix = manager.config.get('General', 'remoteHostPrefix', vars=specialArguments)
+		localPrefix = manager.config.get('General', 'installPrefix')
+		remotePrefix = manager.config.get('General', 'remoteHostPrefix')
 		# Perform the global dependencies sync
 		return manager.perform_rsync( source=remotePrefix, destination=localPrefix )
 
