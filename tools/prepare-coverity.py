@@ -31,7 +31,7 @@ for dirname, dirnames, filenames in os.walk('config/projects'):
 		ProjectManager.load_extra_project( filePath )
 
 # Base handling: load special dependency data and ignored projects list
-with open('config/base/%s' % config.get('General', 'systemBase'), 'r') as fileHandle:
+with open('config/base/%s' % arguments.base, 'r') as fileHandle:
 	ProjectManager.setup_dependencies( fileHandle.readlines() )
 
 with open('config/base/ignore', 'r') as fileHandle:
