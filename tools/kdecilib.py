@@ -355,6 +355,7 @@ class BuildManager(object):
 	def run_build_commands(self, buildCommands):
 		# Prepare, and load parameters we will need later
 		cpuCount = multiprocessing.cpu_count()
+		buildDirectory = self.build_directory()
 		installPath = os.path.join( self.projectSources, 'install' )
 
 		# Prepare the environment
