@@ -569,7 +569,7 @@ class BuildManager(object):
 			return False
 
 		# Do we need to checkout the sources too?
-		if checkoutSources:
+		if doCheckout:
 			# Check the sources out
 			command = self.config.get('Source', 'gitCheckoutCommand')
 			command = command.format( branch=self.projectBranch )
