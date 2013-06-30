@@ -1,2 +1,2 @@
-kdelibs: frameworks
-kdepimlibs: master
+kdelibs: frameworks: qt5
+kdepimlibs: master: qt4

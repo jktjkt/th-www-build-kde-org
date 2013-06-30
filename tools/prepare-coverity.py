@@ -11,7 +11,6 @@ from kdecilib import Project, ProjectManager, BulkBuildManager, check_jenkins_en
 parser = argparse.ArgumentParser(description='Utility to control bulk building of projects in a automated manner.')
 parser.add_argument('--sourceRoot', type=str)
 parser.add_argument('--platform', type=str, choices=['linux64-g++', 'win32-mingw-cross'], default='linux64-g++')
-parser.add_argument('--base', type=str, choices=['qt5', 'qt4', 'common'], default='qt4')
 # Parse the arguments
 arguments = parser.parse_args()
 
@@ -31,22 +30,23 @@ for dirname, dirnames, filenames in os.walk('config/projects'):
 		ProjectManager.load_extra_project( filePath )
 
 # Base handling: load special dependency data and ignored projects list
-with open('config/base/%s' % arguments.base, 'r') as fileHandle:
-	ProjectManager.setup_dependencies( fileHandle.readlines() )
+for base in ['qt5', 'qt4', 'common']:
+	with open('config/base/%s' % base, 'r') as fileHandle:
+		ProjectManager.setup_dependencies( fileHandle, globalBase = base )
 
 with open('config/base/ignore', 'r') as fileHandle:
-	ProjectManager.setup_ignored( fileHandle.readlines() )
+	ProjectManager.setup_ignored( fileHandle )
 
 # Load the list of ignored projects
 with open('dependencies/build-script-ignore', 'r') as fileHandle:
-	ProjectManager.setup_ignored( fileHandle.readlines() )
+	ProjectManager.setup_ignored( fileHandle )
 
 # Load the dependencies
 with open('dependencies/dependency-data', 'r') as fileHandle:
-	ProjectManager.setup_dependencies( fileHandle.readlines() )
+	ProjectManager.setup_dependencies( fileHandle )
 
 # Prepare the bulk build manager
-bulkManager = BulkBuildManager('config/coverity/projects.list', arguments.sourceRoot, arguments.base, arguments.platform)
+bulkManager = BulkBuildManager('config/coverity/projects.list', arguments.sourceRoot, arguments.platform)
 
 # Give out some information on what we are going to do...
 print "\nKDE Coverity Submission Build"

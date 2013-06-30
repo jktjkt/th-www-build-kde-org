@@ -123,7 +123,7 @@ class ProjectManager(object):
 
 	# Setup the dependencies from kde-build-metadata.git
 	@staticmethod
-	def setup_dependencies( depData ):
+	def setup_dependencies( depData, systemBase = None ):
 		for depEntry in depData:
 			# Cleanup the dependency entry and remove any comments
 			depEntry = depEntry.strip()
@@ -156,8 +156,16 @@ class ProjectManager(object):
 			if match.group('dependency_branch'):
 				dependencyBranch = match.group('dependency_branch')
 
+			# Is this a global dynamic project?
+			if systemBase is not None and projectName[-1] == '*':
+				dependencyEntry = ( projectName, projectBranch, dependency, dependencyBranch )
+				# Is it negated or not?
+				if match.group('ignore_dependency'):
+					Project.globalNegatedDeps[ systemBase ].append( dependencyEntry )
+				else:
+					Project.globalDependencies[ systemBase ].append( dependencyEntry )
 			# Is this a dynamic project?
-			if projectName[-1] == '*':
+			elif projectName[-1] == '*':
 				dependencyEntry = ( projectName, projectBranch, dependency, dependencyBranch )
 				# Is it negated or not?
 				if match.group('ignore_dependency'):
@@ -186,6 +194,8 @@ class ProjectManager(object):
 
 class Project(object):
 	# Lists of "dynamic dependencies" and "dynamic negated dependencies" which apply to multiple projects
+	globalDependencies = defaultdict(list)
+	globalNegatedDeps = defaultdict(list)
 	dynamicDependencies = []
 	dynamicNegatedDeps = []
 
@@ -226,10 +236,14 @@ class Project(object):
 		return 'master'
 
 	# Return a list of dependencies of ourselves
-	def determine_dependencies(self, desiredBranch, includeSubDeps = True):
+	def determine_dependencies(self, desiredBranch, systemBase, includeSubDeps = True):
+		# Prepare: Combine all dynamic dependencies and negations for processing
+		allDynamicDeps = Project.globalDependencies[systemBase] + Project.dynamicDependencies
+		allNegatedDynamicDeps = Project.globalNegatedDeps[systemBase] + Project.dynamicNegatedDeps
+
 		# Prepare: Get the list of dynamic dependencies and negations which apply to us
-		dynamicDeps = self._resolve_dynamic_dependencies( desiredBranch, Project.dynamicDependencies )
-		negatedDynamic = self._resolve_dynamic_dependencies( desiredBranch, Project.dynamicNegatedDeps )
+		dynamicDeps = self._resolve_dynamic_dependencies( desiredBranch, allDynamicDeps )
+		negatedDynamic = self._resolve_dynamic_dependencies( desiredBranch, allNegatedDynamicDeps )
 
 		# Start our list of dependencies
 		# Run the list of dynamic dependencies against the dynamic negations to do so
@@ -251,9 +265,9 @@ class Project(object):
 		if includeSubDeps:
 			toLookup = set(ourDeps) - set(finalDynamic)
 			for dependency, dependencyBranch in toLookup:
-				ourDeps = ourDeps + dependency.determine_dependencies(dependencyBranch, True)
+				ourDeps = ourDeps + dependency.determine_dependencies(dependencyBranch, systemBase, includeSubDeps = True)
 			for dependency, dependencyBranch in finalDynamic:
-				ourDeps = ourDeps + dependency.determine_dependencies(dependencyBranch, False)
+				ourDeps = ourDeps + dependency.determine_dependencies(dependencyBranch, systemBase, includeSubDeps = False)
 
 		# Re-ensure the current project is not listed 
 		# Dynamic dependency resolution of sub-dependencies may have re-added it
@@ -306,7 +320,8 @@ class BuildManager(object):
 		# Resolve the branch
 		self.projectBranch = project.resolve_branch( projectBranch )
 		# Get the list of dependencies to ensure we only build it once
-		self.dependencies = project.determine_dependencies( self.projectBranch )
+		systemBase = self.config.get('General', 'systemBase')
+		self.dependencies = project.determine_dependencies( self.projectBranch, systemBase )
 		# We set the installPrefix now for convenience access elsewhere
 		self.installPrefix = self.project_prefix( self.project, self.projectBranch )
 
@@ -831,7 +846,7 @@ class BuildManager(object):
 
 class BulkBuildManager(object):
 	# Initialize ourselves
-	def __init__(self, projectsFile, sourceRoot, base, platform):
+	def __init__(self, projectsFile, sourceRoot, platform):
 		# Prepare to determine the projects we will be building
 		self.projectManagers = []
 		dataFile = open(projectsFile, 'r')
@@ -839,13 +854,14 @@ class BulkBuildManager(object):
 		# Grab the project instance for each and create a manager for it
 		for line in dataFile:
 			# Make sure we have a project / branch to work with
-			buildMatch = re.match("(?P<project>[^:]+):\s*(?P<branch>.+)", line)
+			buildMatch = re.match("(?P<project>[^:]+):\s*(?P<branch>[^:]+):?\s*(?P<systemBase>.+)", line)
 			if not buildMatch:
 				continue
 
 			# Retrieve the project / branch to work with
 			projectName = buildMatch.group('project').lower()
-			branch = buildMatch.group('branch').lower()
+			branch = buildMatch.group('branch')
+			systemBase = buildMatch.group('systemBase')
 
 			# Get the project - and if we don't know it, ignore and continue
 			project = ProjectManager.lookup( projectName )
@@ -858,7 +874,7 @@ class BulkBuildManager(object):
 				os.makedirs( projectSources )
 
 			# Generate a configuration
-			config = load_project_configuration( project.identifier, base, platform )
+			config = load_project_configuration( project.identifier, systemBase, platform )
 
 			# Create the manager
 			manager = BuildManager(project, branch, projectSources, config)
@@ -901,16 +917,16 @@ class BulkBuildManager(object):
 			manager.compile_build()
 
 # Loads a configuration for a given project
-def load_project_configuration( project, base = None, platform = None ):
+def load_project_configuration( project, systemBase = None, platform = None ):
 	# Create a configuration parser
-	config = ConfigParser.SafeConfigParser( {'systemBase': base} )
+	config = ConfigParser.SafeConfigParser( {'systemBase': systemBase} )
 	# List of prospective files to parse
 	configFiles =  ['config/build/global.cfg', 'config/build/{base}.cfg', 'config/build/{host}.cfg', 'config/build/{platform}.cfg']
 	configFiles += ['config/build/{project}/project.cfg', 'config/build/{project}/{base}.cfg', 'config/build/{project}/{host}.cfg']
 	configFiles += ['config/build/{project}/{platform}.cfg']
 	# Go over the list and load in what we can
 	for confFile in configFiles:
-		confFile = confFile.format( host=socket.gethostname(), base=base, platform=platform, project=project )
+		confFile = confFile.format( host=socket.gethostname(), base=systemBase, platform=platform, project=project )
 		config.read( confFile )
 	# All done, return the configuration
 	return config
