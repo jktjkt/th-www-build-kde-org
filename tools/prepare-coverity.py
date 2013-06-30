@@ -60,7 +60,7 @@ bulkManager.prepare_sources()
 
 # Sync all the dependencies
 print "\n== Syncing Dependencies from Master Server\n"
-bulkManager.sync_dependencies():
+bulkManager.sync_dependencies()
 
 # Configure the builds
 print "\n== Configuring Builds\n"
