@@ -537,7 +537,7 @@ class BuildManager(object):
 		# Return the dict of the cloned environment, suitable for use with subprocess.Popen
 		return clonedEnv
 
-	def checkout_sources(self, checkoutSources = False):
+	def checkout_sources(self, doCheckout = False):
 		# We cannot handle general dependencies here
 		if self.project.generalDependency:
 			return True
@@ -894,7 +894,7 @@ class BulkBuildManager(object):
 			# Mention the project being worked on
 			print "\n==== Preparing Sources for %s\n" % manager.project.identifier
 			# Checkout sources
-			manager.checkout_sources()
+			manager.checkout_sources( doCheckout = True )
 			# Cleanup the sources
 			manager.cleanup_sources()
 			# Apply any patches
