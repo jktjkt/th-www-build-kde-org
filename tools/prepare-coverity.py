@@ -32,7 +32,7 @@ for dirname, dirnames, filenames in os.walk('config/projects'):
 # Base handling: load special dependency data and ignored projects list
 for base in ['qt5', 'qt4', 'common']:
 	with open('config/base/%s' % base, 'r') as fileHandle:
-		ProjectManager.setup_dependencies( fileHandle, globalBase = base )
+		ProjectManager.setup_dependencies( fileHandle, systemBase = base )
 
 with open('config/base/ignore', 'r') as fileHandle:
 	ProjectManager.setup_ignored( fileHandle )
