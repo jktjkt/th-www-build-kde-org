@@ -2,6 +2,7 @@
 import os
 import sys
 import time
+import shlex
 import urllib
 import argparse
 from lxml import etree
