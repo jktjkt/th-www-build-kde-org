@@ -7,7 +7,7 @@ import urllib
 import argparse
 import subprocess
 from lxml import etree
-from kdecilib import Project, ProjectManager, BuildManager, check_jenkins_environment
+from kdecilib import Project, ProjectManager, BuildManager, check_jenkins_environment, load_project_configuration
 
 # Load our command line arguments
 parser = argparse.ArgumentParser(description='Utility to initialize a git repository before handover to the build executor.')
