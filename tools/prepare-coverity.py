@@ -5,6 +5,7 @@ import time
 import shlex
 import urllib
 import argparse
+import subprocess
 from lxml import etree
 from kdecilib import Project, ProjectManager, BulkBuildManager, check_jenkins_environment, load_project_configuration
 
