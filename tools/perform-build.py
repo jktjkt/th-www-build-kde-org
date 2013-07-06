@@ -8,6 +8,7 @@ parser = argparse.ArgumentParser(description='Utility to control building and ex
 parser.add_argument('--project', type=str)
 parser.add_argument('--branch', type=str)
 parser.add_argument('--sources', type=str)
+parser.add_argument('--variation', type=str)
 parser.add_argument('--platform', type=str, choices=['linux64-g++', 'win32-mingw-cross'], default='linux64-g++')
 parser.add_argument('--base', type=str, choices=availableBases, default='qt4')
 
@@ -16,7 +17,7 @@ environmentArgs = check_jenkins_environment()
 arguments = parser.parse_args( namespace=environmentArgs )
 
 # Load our configuration, projects and dependencies
-config = load_project_configuration( arguments.project, arguments.base, arguments.platform )
+config = load_project_configuration( arguments.project, arguments.base, arguments.platform, arguments.variation )
 load_projects( 'kde_projects.xml', 'http://projects.kde.org/kde_projects.xml', 'config/projects' )
 load_project_dependencies( availableBases, 'config/base/', 'dependencies/' )
 

@@ -922,16 +922,16 @@ class BulkBuildManager(object):
 			manager.compile_build()
 
 # Loads a configuration for a given project
-def load_project_configuration( project, systemBase = None, platform = None ):
+def load_project_configuration( project, systemBase = None, platform = None, variation = None ):
 	# Create a configuration parser
 	config = ConfigParser.SafeConfigParser( {'systemBase': systemBase} )
 	# List of prospective files to parse
 	configFiles =  ['config/build/global.cfg', 'config/build/{base}.cfg', 'config/build/{host}.cfg', 'config/build/{platform}.cfg']
 	configFiles += ['config/build/{project}/project.cfg', 'config/build/{project}/{base}.cfg', 'config/build/{project}/{host}.cfg']
-	configFiles += ['config/build/{project}/{platform}.cfg']
+	configFiles += ['config/build/{project}/{platform}.cfg', 'config/build/{project}/{variation}.cfg']
 	# Go over the list and load in what we can
 	for confFile in configFiles:
-		confFile = confFile.format( host=socket.gethostname(), base=systemBase, platform=platform, project=project )
+		confFile = confFile.format( host=socket.gethostname(), base=systemBase, platform=platform, project=project, variation=variation )
 		config.read( confFile )
 	# All done, return the configuration
 	return config
@@ -989,6 +989,11 @@ def check_jenkins_environment():
 	if 'WORKSPACE' in os.environ:
 		# Transfer it
 		arguments.sources = os.environ['WORKSPACE']
+
+	# Do we have a build variation?
+	if 'Variation' in os.environ:
+		# We need this to determine our specific build variation
+		arguments.variation = os.environ['Variation']
 
 	# Do we need to change into the proper working directory?
 	if 'JENKINS_SLAVE_HOME' in os.environ:
