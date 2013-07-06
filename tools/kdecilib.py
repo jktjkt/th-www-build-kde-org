@@ -5,6 +5,7 @@ import sys
 import time
 import copy
 import shlex
+import urllib
 import shutil
 import socket
 import fnmatch
@@ -14,6 +15,9 @@ import ConfigParser
 import multiprocessing
 from lxml import etree
 from collections import defaultdict
+
+# Bases we suggest projects use
+availableBases = ['qt5', 'qt4', 'common']
 
 class ProjectManager(object):
 	# Projects which we know, keyed by their identifier
@@ -618,7 +622,7 @@ class BuildManager(object):
 		# Do we have anything to apply?
 		patchesDir = os.path.join( self.config.get('General', 'scriptsLocation'), 'patches', self.project.identifier, self.projectBranch )
 		if not os.path.exists(patchesDir):
-			print "\n=== No patches to apply\n"
+			print "=== No patches to apply\n"
 			return True
 
 		# Iterate over the patches and apply them
@@ -629,8 +633,9 @@ class BuildManager(object):
 				patchPath = os.path.join( dirname, filename )
 				# Apply the patch
 				try:
-					print "\n=== Applying: %s\n"%patchPath
+					print "=== Applying: %s\n" % patchPath
 					process = subprocess.check_call( command + [patchPath], stdout=sys.stdout, stderr=sys.stderr, cwd=self.projectSources )
+					print ""
 				except subprocess.CalledProcessError:
 					# Make sure the patch applied successfully - if it failed, then we should halt here
 					return False
@@ -930,6 +935,41 @@ def load_project_configuration( project, systemBase = None, platform = None ):
 		config.read( confFile )
 	# All done, return the configuration
 	return config
+
+# Loads the projects
+def load_projects( projectFile, projectFileUrl, configDirectory ):
+	# Download the list of projects if necessary
+	if not os.path.exists(projectFile) or time.time() > os.path.getmtime(projectFile) + 60*60:
+		urllib.urlretrieve(projectFileUrl, projectFile)
+
+	# Now load the list of projects into the project manager
+	with open(projectFile, 'r') as fileHandle:
+		ProjectManager.load_projects( etree.parse(fileHandle) )
+
+	# Load special projects
+	for dirname, dirnames, filenames in os.walk( configDirectory ):
+		for filename in filenames:
+			filePath = os.path.join( dirname, filename )
+			ProjectManager.load_extra_project( filePath )
+
+# Load dependencies
+def load_project_dependencies( possibleBases, baseDepDirectory, globalDepDirectory ):
+	# Load all base specific dependencies
+	for base in possibleBases:
+		with open( baseDepDirectory + base, 'r' ) as fileHandle:
+			ProjectManager.setup_dependencies( fileHandle, systemBase = base )
+
+	# Load the local list of ignored projects
+	with open( baseDepDirectory + 'ignore', 'r' ) as fileHandle:
+		ProjectManager.setup_ignored( fileHandle )
+
+	# Load the global list of ignored projects
+	with open( globalDepDirectory + 'build-script-ignore', 'r' ) as fileHandle:
+		ProjectManager.setup_ignored( fileHandle )
+
+	# Load the dependencies
+	with open( globalDepDirectory + 'dependency-data', 'r' ) as fileHandle:
+		ProjectManager.setup_dependencies( fileHandle )
 
 # Checks for a Jenkins environment, and sets up a argparse.Namespace appropriately if found
 def check_jenkins_environment():
