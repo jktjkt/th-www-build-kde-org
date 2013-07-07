@@ -542,8 +542,8 @@ class BuildManager(object):
 		return clonedEnv
 
 	def checkout_sources(self, doCheckout = False):
-		# We cannot handle general dependencies here
-		if self.project.generalDependency:
+		# We cannot handle projects we don't have Git repository urls for
+		if not self.project.url:
 			return True
 
 		# Does the git repository exist?
@@ -573,10 +573,20 @@ class BuildManager(object):
 			return False
 
 		# Do we need to checkout the sources too?
-		if doCheckout:
+		if self.config.getboolean('Source', 'alwaysCheckoutSources') or doCheckout:
 			# Check the sources out
 			command = self.config.get('Source', 'gitCheckoutCommand')
 			command = command.format( branch=self.projectBranch )
+			try:
+				subprocess.check_call( shlex.split(command), cwd=self.projectSources )
+			except subprocess.CalledProcessError:
+				return False
+
+		# Do we need to run a post-checkout command?
+		if self.config.getboolean('Source', 'runPostCheckoutCommand'):
+			# Get the command in question and run it
+			command = self.config.get('Source', 'postCheckoutCommand')
+			command = command.format( sources=self.projectSources )
 			try:
 				subprocess.check_call( shlex.split(command), cwd=self.projectSources )
 			except subprocess.CalledProcessError:
