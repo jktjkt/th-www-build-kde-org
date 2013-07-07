@@ -934,7 +934,7 @@ class BulkBuildManager(object):
 			manager.compile_build()
 
 # Loads a configuration for a given project
-def load_project_configuration( project, systemBase = None, platform = None, variation = None ):
+def load_project_configuration( project, systemBase, platform, variation = None ):
 	# Create a configuration parser
 	config = ConfigParser.SafeConfigParser( {'systemBase': systemBase} )
 	# List of prospective files to parse
