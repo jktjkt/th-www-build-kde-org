@@ -622,7 +622,7 @@ class BuildManager(object):
 		# Do we have anything to apply?
 		patchesDir = os.path.join( self.config.get('General', 'scriptsLocation'), 'patches', self.project.identifier, self.projectBranch )
 		if not os.path.exists(patchesDir):
-			print "=== No patches to apply\n"
+			print "=== No patches to apply"
 			return True
 
 		# Iterate over the patches and apply them
