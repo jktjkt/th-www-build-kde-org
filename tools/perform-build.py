@@ -76,4 +76,8 @@ manager.execute_tests()
 print "\n== Executing cppcheck\n"
 manager.execute_cppcheck()
 
+# Perform a lcov processing run
+print "\n== Performing lcov processing\n"
+manager.generate_lcov_data_in_cobertura_format()
+
 print "\n== Run Completed Successfully\n"

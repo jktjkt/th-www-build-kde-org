@@ -849,6 +849,18 @@ class BuildManager(object):
 			process = subprocess.Popen( command, stdout=sys.stdout, stderr=cppcheckXml, cwd=self.projectSources, env=runtimeEnv )
 			process.wait()
 
+	def generate_lcov_data_in_cobertura_format(self):
+		# Prepare to execute gcovr
+		coberturaFile = os.path.join( self.build_directory(), 'CoberturaLcovResults.xml' )
+		command = self.config.get('QualityCheck', 'gcovrCommand')
+		command = command.format( sources=self.projectSources )
+		command = shlex.split(command)
+
+		# Run gcovr to gather up the lcov data and present it in Cobertura format
+		with open(coberturaFile, 'w') as coberturaXml:
+			process = subprocess.Popen( command, stdout=coberturaXml, stderr=sys.stderr, cwd=self.projectSources )
+			process.wait()
+
 class BulkBuildManager(object):
 	# Initialize ourselves
 	def __init__(self, projectsFile, sourceRoot, platform):
