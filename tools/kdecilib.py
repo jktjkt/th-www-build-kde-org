@@ -5,7 +5,9 @@ import sys
 import time
 import copy
 import shlex
+import urllib
 import shutil
+import socket
 import fnmatch
 import argparse
 import subprocess
@@ -13,6 +15,9 @@ import ConfigParser
 import multiprocessing
 from lxml import etree
 from collections import defaultdict
+
+# Bases we suggest projects use
+availableBases = ['qt5', 'qt4', 'common']
 
 class ProjectManager(object):
 	# Projects which we know, keyed by their identifier
@@ -122,7 +127,7 @@ class ProjectManager(object):
 
 	# Setup the dependencies from kde-build-metadata.git
 	@staticmethod
-	def setup_dependencies( depData ):
+	def setup_dependencies( depData, systemBase = None ):
 		for depEntry in depData:
 			# Cleanup the dependency entry and remove any comments
 			depEntry = depEntry.strip()
@@ -155,8 +160,16 @@ class ProjectManager(object):
 			if match.group('dependency_branch'):
 				dependencyBranch = match.group('dependency_branch')
 
+			# Is this a global dynamic project?
+			if systemBase is not None and projectName[-1] == '*':
+				dependencyEntry = ( projectName, projectBranch, dependency, dependencyBranch )
+				# Is it negated or not?
+				if match.group('ignore_dependency'):
+					Project.globalNegatedDeps[ systemBase ].append( dependencyEntry )
+				else:
+					Project.globalDependencies[ systemBase ].append( dependencyEntry )
 			# Is this a dynamic project?
-			if projectName[-1] == '*':
+			elif projectName[-1] == '*':
 				dependencyEntry = ( projectName, projectBranch, dependency, dependencyBranch )
 				# Is it negated or not?
 				if match.group('ignore_dependency'):
@@ -185,6 +198,8 @@ class ProjectManager(object):
 
 class Project(object):
 	# Lists of "dynamic dependencies" and "dynamic negated dependencies" which apply to multiple projects
+	globalDependencies = defaultdict(list)
+	globalNegatedDeps = defaultdict(list)
 	dynamicDependencies = []
 	dynamicNegatedDeps = []
 
@@ -225,10 +240,14 @@ class Project(object):
 		return 'master'
 
 	# Return a list of dependencies of ourselves
-	def determine_dependencies(self, desiredBranch, includeSubDeps = True):
+	def determine_dependencies(self, desiredBranch, systemBase, includeSubDeps = True):
+		# Prepare: Combine all dynamic dependencies and negations for processing
+		allDynamicDeps = Project.globalDependencies[systemBase] + Project.dynamicDependencies
+		allNegatedDynamicDeps = Project.globalNegatedDeps[systemBase] + Project.dynamicNegatedDeps
+
 		# Prepare: Get the list of dynamic dependencies and negations which apply to us
-		dynamicDeps = self._resolve_dynamic_dependencies( desiredBranch, Project.dynamicDependencies )
-		negatedDynamic = self._resolve_dynamic_dependencies( desiredBranch, Project.dynamicNegatedDeps )
+		dynamicDeps = self._resolve_dynamic_dependencies( desiredBranch, allDynamicDeps )
+		negatedDynamic = self._resolve_dynamic_dependencies( desiredBranch, allNegatedDynamicDeps )
 
 		# Start our list of dependencies
 		# Run the list of dynamic dependencies against the dynamic negations to do so
@@ -250,9 +269,9 @@ class Project(object):
 		if includeSubDeps:
 			toLookup = set(ourDeps) - set(finalDynamic)
 			for dependency, dependencyBranch in toLookup:
-				ourDeps = ourDeps + dependency.determine_dependencies(dependencyBranch, True)
+				ourDeps = ourDeps + dependency.determine_dependencies(dependencyBranch, systemBase, includeSubDeps = True)
 			for dependency, dependencyBranch in finalDynamic:
-				ourDeps = ourDeps + dependency.determine_dependencies(dependencyBranch, False)
+				ourDeps = ourDeps + dependency.determine_dependencies(dependencyBranch, systemBase, includeSubDeps = False)
 
 		# Re-ensure the current project is not listed 
 		# Dynamic dependency resolution of sub-dependencies may have re-added it
@@ -305,7 +324,8 @@ class BuildManager(object):
 		# Resolve the branch
 		self.projectBranch = project.resolve_branch( projectBranch )
 		# Get the list of dependencies to ensure we only build it once
-		self.dependencies = project.determine_dependencies( self.projectBranch )
+		systemBase = self.config.get('General', 'systemBase')
+		self.dependencies = project.determine_dependencies( self.projectBranch, systemBase )
 		# We set the installPrefix now for convenience access elsewhere
 		self.installPrefix = self.project_prefix( self.project, self.projectBranch )
 
@@ -521,6 +541,50 @@ class BuildManager(object):
 		# Return the dict of the cloned environment, suitable for use with subprocess.Popen
 		return clonedEnv
 
+	def checkout_sources(self, doCheckout = False):
+		# We cannot handle general dependencies here
+		if self.project.generalDependency:
+			return True
+
+		# Does the git repository exist?
+		gitDirectory = os.path.join( self.projectSources, '.git' )
+		if not os.path.exists(gitDirectory):
+			# Clone the repository
+			command = self.config.get('Source', 'gitCloneCommand')
+			command = command.format( url=self.project.url )
+			try:
+				subprocess.check_call( shlex.split(command), cwd=self.projectSources )
+			except subprocess.CalledProcessError:
+				return False
+
+		# Update the git repository
+		command = self.config.get('Source', 'gitFetchCommand')
+		try:
+			subprocess.check_call( shlex.split(command), cwd=self.projectSources )
+		except subprocess.CalledProcessError:
+			return False
+
+		# Ensure our desired branch is in place
+		command = self.config.get('Source', 'gitSetBranchCommand')
+		command = command.format( targetBranch=self.projectBranch )
+		try:
+			subprocess.check_call( shlex.split(command), cwd=self.projectSources )
+		except subprocess.CalledProcessError:
+			return False
+
+		# Do we need to checkout the sources too?
+		if doCheckout:
+			# Check the sources out
+			command = self.config.get('Source', 'gitCheckoutCommand')
+			command = command.format( branch=self.projectBranch )
+			try:
+				subprocess.check_call( shlex.split(command), cwd=self.projectSources )
+			except subprocess.CalledProcessError:
+				return False
+
+		# All successful
+		return True
+
 	def cleanup_sources(self):
 		# Prepare Git/Subversion paths
 		gitDirectory = os.path.join( self.projectSources, '.git' )
@@ -558,7 +622,7 @@ class BuildManager(object):
 		# Do we have anything to apply?
 		patchesDir = os.path.join( self.config.get('General', 'scriptsLocation'), 'patches', self.project.identifier, self.projectBranch )
 		if not os.path.exists(patchesDir):
-			print "\n=== No patches to apply\n"
+			print "=== No patches to apply\n"
 			return True
 
 		# Iterate over the patches and apply them
@@ -569,8 +633,9 @@ class BuildManager(object):
 				patchPath = os.path.join( dirname, filename )
 				# Apply the patch
 				try:
-					print "\n=== Applying: %s\n"%patchPath
+					print "=== Applying: %s\n" % patchPath
 					process = subprocess.check_call( command + [patchPath], stdout=sys.stdout, stderr=sys.stderr, cwd=self.projectSources )
+					print ""
 				except subprocess.CalledProcessError:
 					# Make sure the patch applied successfully - if it failed, then we should halt here
 					return False
@@ -784,6 +849,140 @@ class BuildManager(object):
 			process = subprocess.Popen( command, stdout=sys.stdout, stderr=cppcheckXml, cwd=self.projectSources, env=runtimeEnv )
 			process.wait()
 
+	def generate_lcov_data_in_cobertura_format(self):
+		# Prepare to execute gcovr
+		coberturaFile = os.path.join( self.build_directory(), 'CoberturaLcovResults.xml' )
+		command = self.config.get('QualityCheck', 'gcovrCommand')
+		command = command.format( sources=self.projectSources )
+		command = shlex.split(command)
+
+		# Run gcovr to gather up the lcov data and present it in Cobertura format
+		with open(coberturaFile, 'w') as coberturaXml:
+			process = subprocess.Popen( command, stdout=coberturaXml, stderr=sys.stderr, cwd=self.projectSources )
+			process.wait()
+
+class BulkBuildManager(object):
+	# Initialize ourselves
+	def __init__(self, projectsFile, sourceRoot, platform):
+		# Prepare to determine the projects we will be building
+		self.projectManagers = []
+		dataFile = open(projectsFile, 'r')
+
+		# Grab the project instance for each and create a manager for it
+		for line in dataFile:
+			# Make sure we have a project / branch to work with
+			buildMatch = re.match("(?P<project>[^:]+):\s*(?P<branch>[^:]+):?\s*(?P<systemBase>.+)", line)
+			if not buildMatch:
+				continue
+
+			# Retrieve the project / branch to work with
+			projectName = buildMatch.group('project').lower()
+			branch = buildMatch.group('branch')
+			systemBase = buildMatch.group('systemBase')
+
+			# Get the project - and if we don't know it, ignore and continue
+			project = ProjectManager.lookup( projectName )
+			if not project:
+				continue
+
+			# Make sure we have a sources directory
+			projectSources = os.path.join( sourceRoot, project.identifier )
+			if not os.path.exists( projectSources ):
+				os.makedirs( projectSources )
+
+			# Generate a configuration
+			config = load_project_configuration( project.identifier, systemBase, platform )
+
+			# Create the manager
+			manager = BuildManager(project, branch, projectSources, config)
+			self.projectManagers.append(manager)
+
+	def sync_dependencies(self):
+		# It is more efficient to ask each project to sync it's own dependencies
+		for manager in self.projectManagers:
+			# Notify that we are syncing dependencies for this project
+			print "\n==== Syncing Dependencies for %s\n" % manager.project.identifier
+			# Configure it, and ignore failure
+			manager.sync_dependencies()
+
+	def prepare_sources(self):
+		# Ask each manager to prepare the sources for a build
+		for manager in self.projectManagers:
+			# Mention the project being worked on
+			print "\n==== Preparing Sources for %s\n" % manager.project.identifier
+			# Checkout sources
+			manager.checkout_sources( doCheckout = True )
+			# Cleanup the sources
+			manager.cleanup_sources()
+			# Apply any patches
+			manager.apply_patches()
+
+	def configure_builds(self):
+		# Simply iterate over each manager and ask it to configure it's project
+		for manager in self.projectManagers:
+			# Notify that we are configuring this project
+			print "\n==== Configuring %s\n" % manager.project.identifier
+			# Configure it, and ignore failure
+			manager.configure_build()
+
+	def compile_builds(self):
+		# Simply iterate over each manager and ask it to compile it's project
+		for manager in self.projectManagers:
+			# Notify that we are configuring this project
+			print "\n==== Compiling %s\n" % manager.project.identifier
+			# Compile it, and ignore failure
+			manager.compile_build()
+
+# Loads a configuration for a given project
+def load_project_configuration( project, systemBase, platform, variation = None ):
+	# Create a configuration parser
+	config = ConfigParser.SafeConfigParser( {'systemBase': systemBase} )
+	# List of prospective files to parse
+	configFiles =  ['config/build/global.cfg', 'config/build/{base}.cfg', 'config/build/{host}.cfg', 'config/build/{platform}.cfg']
+	configFiles += ['config/build/{project}/project.cfg', 'config/build/{project}/{base}.cfg', 'config/build/{project}/{host}.cfg']
+	configFiles += ['config/build/{project}/{platform}.cfg', 'config/build/{project}/{variation}.cfg']
+	# Go over the list and load in what we can
+	for confFile in configFiles:
+		confFile = confFile.format( host=socket.gethostname(), base=systemBase, platform=platform, project=project, variation=variation )
+		config.read( confFile )
+	# All done, return the configuration
+	return config
+
+# Loads the projects
+def load_projects( projectFile, projectFileUrl, configDirectory ):
+	# Download the list of projects if necessary
+	if not os.path.exists(projectFile) or time.time() > os.path.getmtime(projectFile) + 60*60:
+		urllib.urlretrieve(projectFileUrl, projectFile)
+
+	# Now load the list of projects into the project manager
+	with open(projectFile, 'r') as fileHandle:
+		ProjectManager.load_projects( etree.parse(fileHandle) )
+
+	# Load special projects
+	for dirname, dirnames, filenames in os.walk( configDirectory ):
+		for filename in filenames:
+			filePath = os.path.join( dirname, filename )
+			ProjectManager.load_extra_project( filePath )
+
+# Load dependencies
+def load_project_dependencies( possibleBases, baseDepDirectory, globalDepDirectory ):
+	# Load all base specific dependencies
+	for base in possibleBases:
+		with open( baseDepDirectory + base, 'r' ) as fileHandle:
+			ProjectManager.setup_dependencies( fileHandle, systemBase = base )
+
+	# Load the local list of ignored projects
+	with open( baseDepDirectory + 'ignore', 'r' ) as fileHandle:
+		ProjectManager.setup_ignored( fileHandle )
+
+	# Load the global list of ignored projects
+	with open( globalDepDirectory + 'build-script-ignore', 'r' ) as fileHandle:
+		ProjectManager.setup_ignored( fileHandle )
+
+	# Load the dependencies
+	with open( globalDepDirectory + 'dependency-data', 'r' ) as fileHandle:
+		ProjectManager.setup_dependencies( fileHandle )
+
 # Checks for a Jenkins environment, and sets up a argparse.Namespace appropriately if found
 def check_jenkins_environment():
 	# Prepare
@@ -802,6 +1001,11 @@ def check_jenkins_environment():
 	if 'WORKSPACE' in os.environ:
 		# Transfer it
 		arguments.sources = os.environ['WORKSPACE']
+
+	# Do we have a build variation?
+	if 'Variation' in os.environ:
+		# We need this to determine our specific build variation
+		arguments.variation = os.environ['Variation']
 
 	# Do we need to change into the proper working directory?
 	if 'JENKINS_SLAVE_HOME' in os.environ:
