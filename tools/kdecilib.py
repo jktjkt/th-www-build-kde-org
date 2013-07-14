@@ -527,6 +527,11 @@ class BuildManager(object):
 			if os.path.exists( extraLocation ):
 				envChanges['PYTHONPATH'].append( extraLocation )
 
+			# Setup QMAKEFEATURES
+			extraLocation = os.path.join( reqPrefix, 'mkspecs' )
+			if os.path.exists( extraLocation ):
+				envChanges['QMAKEFEATURES'].append( extraLocation )
+
 		# Finally, we can merge this into the real environment
 		clonedEnv = copy.deepcopy(os.environ.__dict__['data'])
 		for variableName, variableEntries in envChanges.iteritems():
