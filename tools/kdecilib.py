@@ -528,7 +528,7 @@ class BuildManager(object):
 				envChanges['PYTHONPATH'].append( extraLocation )
 
 			# Setup QMAKEFEATURES
-			extraLocation = os.path.join( reqPrefix, 'mkspecs' )
+			extraLocation = os.path.join( reqPrefix, 'mkspecs/features' )
 			if os.path.exists( extraLocation ):
 				envChanges['QMAKEFEATURES'].append( extraLocation )
 
