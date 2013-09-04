@@ -1,2 +1,5 @@
 *: Qt5
 *: kdesupport/extra-cmake-modules[master]
+playground/network/sflphone-kde[master]: -kde/kdelibs
+playground/network/sflphone-kde[master]: -kde/kdepimlibs
+playground/network/sflphone-kde[master]: kde/kdelibs[frameworks]
