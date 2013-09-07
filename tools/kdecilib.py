@@ -176,6 +176,14 @@ class ProjectManager(object):
 					Project.dynamicNegatedDeps.append( dependencyEntry )
 				else:
 					Project.dynamicDependencies.append( dependencyEntry )
+			# Is this a base specific project rule?
+			elif systemBase is not None:
+				dependencyEntry = ( dependency, dependencyBranch )
+				# Is it negated or not?
+				if match.group('ignore_dependency'):
+					project.baseNegatedDeps[ systemBase ][ projectBranch ].append( dependencyEntry )
+				else:
+					project.baseDependencies[ systemBase ][ projectBranch ].append( dependencyEntry )
 			else:
 				dependencyEntry = ( dependency, dependencyBranch )
 				# Is it negated or not?
@@ -217,6 +225,12 @@ class Project(object):
 		# We have no dependencies or negated dependencies
 		self.dependencies = defaultdict(list)
 		self.negatedDeps = defaultdict(list)
+		# We have no base specific dependencies or negated dependencies either
+		self.baseDependencies = dict()
+		self.baseNegatedDeps = dict()
+		for base in availableBases:
+			self.baseDependencies[ base ] = defaultdict(list)
+			self.baseNegatedDeps[ base ] = defaultdict(list)
 
 	# Give ourselves a pretty name
 	def __repr__(self):
@@ -256,10 +270,12 @@ class Project(object):
 		# Add the project level dependencies to the list of our dependencies
 		# Then run the list of our dependencies against the project negations
 		ourDeps = self._negate_dependencies( desiredBranch, ourDeps + self.dependencies['*'], self.negatedDeps['*'] )
+		ourDeps = self._negate_dependencies( desiredBranch, ourDeps + self.baseDependencies[ systemBase ]['*'], self.baseNegatedDeps[ systemBase ]['*'] )
 
 		# Add the branch level dependencies to the list of our dependencies
 		# Then run the list of our dependencies against the branch negations
 		ourDeps = self._negate_dependencies( desiredBranch, ourDeps + self.dependencies[ desiredBranch ], self.negatedDeps[ desiredBranch ] )
+		ourDeps = self._negate_dependencies( desiredBranch, ourDeps + self.baseDependencies[ systemBase ][ desiredBranch ], self.baseNegatedDeps[ systemBase ][ desiredBranch ] )
 
 		# Ensure the current project is not listed (due to a dynamic dependency for instance)
 		ourDeps = [(project, branch) for project, branch in ourDeps if project != self]
