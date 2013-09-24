@@ -286,7 +286,9 @@ class Project(object):
 			toLookup = set(ourDeps) - set(finalDynamic)
 			for dependency, dependencyBranch in toLookup:
 				ourDeps = ourDeps + dependency.determine_dependencies(dependencyBranch, systemBase, includeSubDeps = True)
-			for dependency, dependencyBranch in finalDynamic:
+
+			dynamicLookup = set(ourDeps) & set(finalDynamic)
+			for dependency, dependencyBranch in dynamicLookup:
 				ourDeps = ourDeps + dependency.determine_dependencies(dependencyBranch, systemBase, includeSubDeps = False)
 
 		# Re-ensure the current project is not listed 
