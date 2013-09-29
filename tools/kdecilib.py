@@ -503,7 +503,7 @@ class BuildManager(object):
 					envChanges['PYTHONPATH'].append(extraLocation)
 
 				# Next is PERL5LIB
-				extraLocation = os.path.join( reqPrefix, libraryDirName, 'perl5/site_perl/5.14.2/x86_64-linux-thread-multi/' )
+				extraLocation = os.path.join( reqPrefix, libraryDirName, 'perl5/site_perl/5.16.2/x86_64-linux-thread-multi/' )
 				if os.path.exists( extraLocation ):
 					envChanges['PERL5LIB'].append(extraLocation)
 
