@@ -1,2 +1,5 @@
 *: Qt
 *: kdesupport/automoc[master]
+
+# QOAuth needs QCA
+shared/qoauth: kdesupport/qca
