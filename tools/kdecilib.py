@@ -561,6 +561,9 @@ class BuildManager(object):
 			# Set the variable into our cloned environment
 			clonedEnv[variableName] = newEntry
 
+		# Mark ourselves as a KDE session, for things like the platform plugin, etc.
+		clonedEnv['XDG_CURRENT_DESKTOP'] = 'KDE'
+
 		# Return the dict of the cloned environment, suitable for use with subprocess.Popen
 		return clonedEnv
 
