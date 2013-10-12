@@ -3,3 +3,6 @@
 
 # QOAuth needs QCA
 shared/qoauth: kdesupport/qca
+
+# Trojita needs Ragel
+extragear/pim/trojita: general/ragel
