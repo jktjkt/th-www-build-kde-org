@@ -1,7 +1,4 @@
-diff --git a/DIST b/DIST
-new file mode 100644
-index 0000000..1b62f9f
 --- /dev/null
-+++ b/DIST
++++ DIST
 @@ -0,0 +1 @@
 +build_parsers=no
