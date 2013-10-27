@@ -36,9 +36,7 @@ print "== Build Dependencies:"
 for dependency, dependencyBranch in manager.dependencies:
 	print "==== %s - Branch %s" %(dependency.identifier, dependencyBranch)
 
-# Cleanup the source tree and apply any necessary patches if we have them
-print "\n== Cleaning Source Tree\n"
-manager.cleanup_sources()
+# Apply any necessary patches if we have them
 print "\n== Applying Patches"
 if not manager.apply_patches():
 	sys.exit("Applying patches to project %s failed." % project.identifier)

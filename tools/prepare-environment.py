@@ -31,4 +31,10 @@ time.sleep( arguments.delay )
 
 # Prepare the sources and handover to Jenkins
 manager = BuildManager(project, arguments.branch, arguments.sources, config)
+
+print "\nPreparing to perform KDE Continuous Integration build"
+print "== Setting Up Sources\n"
 manager.checkout_sources()
+
+print "\n== Cleaning Source Tree\n"
+manager.cleanup_sources()
