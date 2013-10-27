@@ -459,14 +459,18 @@ class BuildManager(object):
 			if kdelibsDep and kdeRuntime:
 				libsProject, libsBranch = kdelibsDep[0]
 				requirements.append( (kdeRuntime, libsBranch) )
-			# Now we add ourselves
-			requirements.append( (self.project, self.projectBranch) )
 
 		# Turn the list of requirements into a list of prefixes
 		reqPrefixes = [self.project_prefix( requirement, requirementBranch ) for requirement, requirementBranch in requirements]
 		# Add the shared dependency directories
 		reqPrefixes.append( self.project_prefix('shared', None) )
 		reqPrefixes.append( self.project_prefix('shared', None, specialArguments={'systemBase': 'common'}) )
+
+		# For runtime, we need to add ourselves as well
+		# We add the local install/ root so this will work properly even if it has not been deployed
+		if runtime:
+			localInstall = os.path.join( self.projectSources, 'install', self.installPrefix[1:] )
+			reqPrefixes.append( localInstall )
 
 		# Generate the environment
 		envChanges = defaultdict(list)
