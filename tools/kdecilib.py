@@ -279,9 +279,6 @@ class Project(object):
 
 		# Ensure the current project is not listed (due to a dynamic dependency for instance)
 		ourDeps = [(project, branch) for project, branch in ourDeps if project != self]
-		print "=== Project: %s - %s" % (self.identifier, desiredBranch)
-		print repr(ourDeps)
-		print "\n\n"
 
 		# Add the dependencies of our dependencies if requested
 		# Dynamic dependencies are excluded otherwise it will be infinitely recursive
