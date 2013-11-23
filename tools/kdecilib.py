@@ -279,6 +279,9 @@ class Project(object):
 
 		# Ensure the current project is not listed (due to a dynamic dependency for instance)
 		ourDeps = [(project, branch) for project, branch in ourDeps if project != self]
+		print "=== Project: %s - %s" % (self.identifier, desiredBranch)
+		print repr(ourDeps)
+		print "\n\n"
 
 		# Add the dependencies of our dependencies if requested
 		# Dynamic dependencies are excluded otherwise it will be infinitely recursive
@@ -779,6 +782,10 @@ class BuildManager(object):
 		command = self.config.get('Test', 'xvfbCommand')
 		xvfbProcess = subprocess.Popen( shlex.split(command), stdout=open(os.devnull, 'w'), stderr=subprocess.STDOUT, env=runtimeEnv )
 
+		# Startup a Window Manager
+		command = self.config.get('Test', 'wmCommand')
+		wmProcess = subprocess.Popen( shlex.split(command), stdout=open(os.devnull, 'w'), stderr=subprocess.STDOUT, env=runtimeEnv )
+
 		# Startup D-Bus and ensure the environment is adjusted
 		command = self.config.get('Test', 'dbusLaunchCommand')
 		process = subprocess.Popen( shlex.split(command), stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=runtimeEnv )
@@ -839,6 +846,7 @@ class BuildManager(object):
 		# All finished, shut everyone down
 		command = self.config.get('Test', 'terminateTestEnvCommand')
 		subprocess.Popen( shlex.split(command) )
+		wmProcess.terminate()
 		xvfbProcess.terminate()
 
 	def convert_ctest_to_junit(self, buildDirectory):
