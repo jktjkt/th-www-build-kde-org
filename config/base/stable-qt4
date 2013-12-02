@@ -39,6 +39,7 @@ calligra: general/vc
 
 # Extragear
 extragear/libs/libkface: general/opencv
+extragear/libs/libkvkontakte: general/qjson
 extragear/multimedia/amarok: general/gmock
 extragear/network/telepathy/*: general/telepathy-qt4
 extragear/accessibility/simon: general/opencv
