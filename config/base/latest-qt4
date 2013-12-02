@@ -44,3 +44,4 @@ extragear/network/telepathy/*: general/telepathy-qt4
 extragear/accessibility/simon: general/opencv
 extragear/accessibility/simon: general/qwt
 extragear/sysadmin/muon: general/qoauth
+extragear/network/choqok: general/qjson
