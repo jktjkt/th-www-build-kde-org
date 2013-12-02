@@ -25,7 +25,7 @@ general/kdesupport-svn: kdesupport/automoc
 kde/*: general/kdesupport-svn
 kde/kdelibs: general/shared-desktop-ontologies
 kde/kdelibs: general/grantlee
-kde/kdelibs: general/dbusmenu-qt
+kde/kdelibs: general/libdbusmenu-qt
 kde/kde-workspace: general/libdbusmenu-qt
 kde/kdepim: general/grantlee
 kde/kdepim-runtime: general/libkolab
