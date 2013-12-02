@@ -20,3 +20,21 @@ general/libkolab: kde/kdelibs
 general/libkolab: kde/kdepimlibs
 general/qoauth: kdesupport/qca
 general/kdesupport-svn: kdesupport/automoc
+
+# KDE SC
+kde/*: general/kdesupport-svn
+kde/kde-workspace: general/libdbusmenu-qt
+kde/kdepim: general/grantlee
+kde/kdepim-runtime: general/libkolab
+kde/kdegraphics/okular: general/poppler
+kde/kdebindings/pykde4: general/pyqt4
+
+# Calligra
+calligra: general/vc
+
+# Extragear
+extragear/libs/libkface: general/opencv
+extragear/multimedia/amarok: general/gmock
+extragear/network/telepathy/*: general/telepathy-qt4
+extragear/accessibility/simon: general/opencv
+extragear/accessibility/simon: general/qwt
