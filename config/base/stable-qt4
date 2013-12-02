@@ -47,3 +47,6 @@ extragear/accessibility/simon: general/qwt
 extragear/sysadmin/muon: general/qoauth
 extragear/network/choqok: general/qjson
 extragear/multimedia/kamoso: general/qt-gstreamer
+
+# Playground
+playground/edu/artikulate: general/qt-mobility
