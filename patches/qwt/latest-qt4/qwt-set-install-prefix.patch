@@ -7,7 +7,7 @@ Index: qwtconfig.pri
  
  unix {
 -    QWT_INSTALL_PREFIX    = /usr/local/qwt-$$QWT_VERSION-svn
-+    QWT_INSTALL_PREFIX    = /srv/jenkins/install/linux/x86_64/g++/latest-qt4/general/qwt
++    QWT_INSTALL_PREFIX    = /srv/jenkins/install/linux/x86_64/g++/latest-qt4/general/qwt/inst
  }
  
  win32 {
