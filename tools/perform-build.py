@@ -6,7 +6,7 @@ from kdecilib import *
 # Load our command line arguments
 parser = argparse.ArgumentParser(description='Utility to control building and execution of tests in an automated manner.')
 parser.add_argument('--project', type=str)
-parser.add_argument('--branchGroup', type=str)
+parser.add_argument('--branchGroup', type=str, default='latest-qt4')
 parser.add_argument('--sources', type=str)
 parser.add_argument('--variation', type=str)
 parser.add_argument('--platform', type=str, choices=['linux64-g++'], default='linux64-g++')

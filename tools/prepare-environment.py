@@ -7,7 +7,7 @@ from kdecilib import *
 # Load our command line arguments
 parser = argparse.ArgumentParser(description='Utility to initialize a git repository before handover to the build executor.')
 parser.add_argument('--project', type=str)
-parser.add_argument('--branchGroup', type=str)
+parser.add_argument('--branchGroup', type=str, default='latest-qt4')
 parser.add_argument('--sources', type=str)
 parser.add_argument('--delay', type=int, default=10)
 parser.add_argument('--platform', type=str, choices=['linux64-g++', 'win32-mingw-cross'], default='linux64-g++')
