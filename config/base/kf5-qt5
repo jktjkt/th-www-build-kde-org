@@ -1,5 +1,22 @@
-*: Qt5
-*: kdesupport/extra-cmake-modules[master]
+# Everything needs CMake, Qt 5 and Extra CMake Modules
+*: general/cmake
+*: qt5
+*: kdesupport/extra-cmake-modules
+
+# Qt 5
+qt5: -kdesupport/extra-cmake-modules
+
+# General dependencies
+general/*: -kdesupport/extra-cmake-modules
+general/cmake: -qt
+general/libssh: -qt
+general/gmock: -qt
+general/libindi: -qt
+general/libkolabxml: -qt
+general/libssh: -qt
+general/vc: -qt
+
+# Playground/Network
 playground/network/sflphone-kde[master]: -kde/kdelibs
 playground/network/sflphone-kde[master]: -kde/kdepimlibs
 playground/network/sflphone-kde[master]: kde/kdelibs[frameworks]
