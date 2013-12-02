@@ -4,6 +4,7 @@ import os
 import sys
 import time
 import copy
+import json
 import shlex
 import urllib
 import shutil
@@ -15,9 +16,6 @@ import ConfigParser
 import multiprocessing
 from lxml import etree
 from collections import defaultdict
-
-# Bases we suggest projects use
-availableBases = ['qt5', 'qt4', 'common']
 
 class ProjectManager(object):
 	# Projects which we know, keyed by their identifier
@@ -68,17 +66,13 @@ class ProjectManager(object):
 			project.url = projectData.get('Project', 'url')
 
 		# Are we changing the general dependency state?
-		if projectData.has_option('Project', 'generalDependency'):
-			project.generalDependency = projectData.getboolean('Project', 'generalDependency')
+		if projectData.has_option('Project', 'sharedDependency'):
+			project.sharedDependency = projectData.getboolean('Project', 'sharedDependency')
 
-		# Are we registering any symbolic branches?
-		if projectData.has_section('SymbolicBranches'):
-			for symName in projectData.options('SymbolicBranches'):
-				project.symbolicBranches[ symName ] = projectData.get('SymbolicBranches', symName)
-
-		# If the symbolic branch 'trunk' was set we should also set 'master' to the same
-		if 'trunk' in project.symbolicBranches:
-			project.symbolicBranches['master'] = project.symbolicBranches['trunk']
+		# Are we registering any branch group associations?
+		if projectData.has_section('BranchGroups'):
+			for symName in projectData.options('BranchGroups'):
+				project.branchGroups[ symName ] = projectData.get('SymbolicBranches', symName)
 
 	# Load the kde_projects.xml data in
 	@staticmethod
@@ -100,20 +94,26 @@ class ProjectManager(object):
 				if branchItem.text is None or branchItem.text == 'none':
 					continue
 
-				# Is it a symbolic branch?
-				if branchItem.get('i18n') != None:
-					symName = branchItem.get('i18n')
-					project.symbolicBranches[symName] = branchItem.text
-
 				# Must be a normal branch then
 				project.branches.append( branchItem.text )
 
-			# If the symbolic branch 'trunk' was set we should also set 'master' to the same
-			if 'trunk' in project.symbolicBranches:
-				project.symbolicBranches['master'] = project.symbolicBranches['trunk']
-
 			# Register this project now - all setup is completed
 			ProjectManager._projects[ project.identifier ] = project
+
+	# Load in information concerning project branch groups
+	@staticmethod
+	def setup_branch_groups( moduleStructure ):
+		# Let's go over the given groups and categorise them appropriately
+		for entry, groups in moduleStructure['groups'].items():
+			# If it is dynamic, then store it away appropriately
+			if entry[-1] == '*':
+				Project.wildcardBranchGroups[entry] = groups
+				continue
+
+			# If it isn't dynamic, then find out the project it belongs to
+			project = ProjectManager.lookup( entry )
+			if project != None:
+				project.branchGroups = groups
 
 	# Setup ignored project metadata
 	@staticmethod
@@ -127,7 +127,7 @@ class ProjectManager(object):
 
 	# Setup the dependencies from kde-build-metadata.git
 	@staticmethod
-	def setup_dependencies( depData, systemBase = None ):
+	def setup_dependencies( depData ):
 		for depEntry in depData:
 			# Cleanup the dependency entry and remove any comments
 			depEntry = depEntry.strip()
@@ -160,30 +160,15 @@ class ProjectManager(object):
 			if match.group('dependency_branch'):
 				dependencyBranch = match.group('dependency_branch')
 
-			# Is this a global dynamic project?
-			if systemBase is not None and projectName[-1] == '*':
-				dependencyEntry = ( projectName, projectBranch, dependency, dependencyBranch )
-				# Is it negated or not?
-				if match.group('ignore_dependency'):
-					Project.globalNegatedDeps[ systemBase ].append( dependencyEntry )
-				else:
-					Project.globalDependencies[ systemBase ].append( dependencyEntry )
 			# Is this a dynamic project?
-			elif projectName[-1] == '*':
+			if projectName[-1] == '*':
 				dependencyEntry = ( projectName, projectBranch, dependency, dependencyBranch )
 				# Is it negated or not?
 				if match.group('ignore_dependency'):
 					Project.dynamicNegatedDeps.append( dependencyEntry )
 				else:
 					Project.dynamicDependencies.append( dependencyEntry )
-			# Is this a base specific project rule?
-			elif systemBase is not None:
-				dependencyEntry = ( dependency, dependencyBranch )
-				# Is it negated or not?
-				if match.group('ignore_dependency'):
-					project.baseNegatedDeps[ systemBase ][ projectBranch ].append( dependencyEntry )
-				else:
-					project.baseDependencies[ systemBase ][ projectBranch ].append( dependencyEntry )
+			# Otherwise it must be a project specific rule
 			else:
 				dependencyEntry = ( dependency, dependencyBranch )
 				# Is it negated or not?
@@ -205,9 +190,9 @@ class ProjectManager(object):
 			return
 
 class Project(object):
+	# Lists of known branch groups, and dynamically determined branch group mappings
+	wildcardBranchGroups = {}
 	# Lists of "dynamic dependencies" and "dynamic negated dependencies" which apply to multiple projects
-	globalDependencies = defaultdict(list)
-	globalNegatedDeps = defaultdict(list)
 	dynamicDependencies = []
 	dynamicNegatedDeps = []
 
@@ -217,65 +202,59 @@ class Project(object):
 		self.identifier = self.path = self.url = None
 		# We are not an ignored project by default
 		self.ignore = False
-		# We are not a general dependency by default
-		self.generalDependency = False
+		# We are not a shared dependency by default
+		self.sharedDependency = False
 		# We have no branches or symbolic branches
 		self.branches = []
-		self.symbolicBranches = {}
+		self.branchGroups = {}
 		# We have no dependencies or negated dependencies
 		self.dependencies = defaultdict(list)
 		self.negatedDeps = defaultdict(list)
-		# We have no base specific dependencies or negated dependencies either
-		self.baseDependencies = dict()
-		self.baseNegatedDeps = dict()
-		for base in availableBases:
-			self.baseDependencies[ base ] = defaultdict(list)
-			self.baseNegatedDeps[ base ] = defaultdict(list)
 
 	# Give ourselves a pretty name
 	def __repr__(self):
 		return "<Project instance with identifier %s>" % self.identifier
 
 	# Determine the actual name of the desired branch
-	def resolve_branch(self, branchName):
-		# Do we have a symbolic branch for the desired branch name?
-		if branchName in self.symbolicBranches:
-			return self.symbolicBranches[ branchName ]
+	def resolve_branch(self, branchGroup):
+		# Do we know this branch group internally?
+		if branchGroup in self.branchGroups:
+			return self.branchGroups[ branchGroup ]
 
-		# Do we have a global override symbolic branch?
-		if '*' in self.symbolicBranches:
-			return self.symbolicBranches['*']
+		# Go over the dynamic group names
+		for wildcardName, groups in Project.wildcardBranchGroups.items():
+			# Does the dynamic name match the path of the project?
+			if not fnmatch.fnmatch( self.path, wildcardName ):
+				continue
 
-		# Does the branch actually exist?
-		if branchName in self.branches:
-			return branchName
+			# Cache the whole wildcard to save future runs
+			self.branchGroups = groups
+			if branchGroup in self.branchGroups:
+				return self.branchGroups[ branchGroup ]
 
-		# The branch does not actually exist?!
+		# It seems everything above failed, so assume they mean 'master'
 		return 'master'
 
 	# Return a list of dependencies of ourselves
-	def determine_dependencies(self, desiredBranch, systemBase, includeSubDeps = True):
-		# Prepare: Combine all dynamic dependencies and negations for processing
-		allDynamicDeps = Project.globalDependencies[systemBase] + Project.dynamicDependencies
-		allNegatedDynamicDeps = Project.globalNegatedDeps[systemBase] + Project.dynamicNegatedDeps
+	def determine_dependencies(self, branchGroup, includeSubDeps = True):
+		# Determine what the real name is for dependency information lookups
+		ourBranch = self.resolve_branch(branchGroup)
 
 		# Prepare: Get the list of dynamic dependencies and negations which apply to us
-		dynamicDeps = self._resolve_dynamic_dependencies( desiredBranch, allDynamicDeps )
-		negatedDynamic = self._resolve_dynamic_dependencies( desiredBranch, allNegatedDynamicDeps )
+		dynamicDeps = self._resolve_dynamic_dependencies( ourBranch, Project.dynamicDependencies )
+		negatedDynamic = self._resolve_dynamic_dependencies( ourBranch, Project.dynamicNegatedDeps )
 
 		# Start our list of dependencies
 		# Run the list of dynamic dependencies against the dynamic negations to do so
-		ourDeps = finalDynamic = self._negate_dependencies( desiredBranch, dynamicDeps, negatedDynamic )
+		ourDeps = finalDynamic = self._negate_dependencies( branchGroup, dynamicDeps, negatedDynamic )
 
 		# Add the project level dependencies to the list of our dependencies
 		# Then run the list of our dependencies against the project negations
-		ourDeps = self._negate_dependencies( desiredBranch, ourDeps + self.dependencies['*'], self.negatedDeps['*'] )
-		ourDeps = self._negate_dependencies( desiredBranch, ourDeps + self.baseDependencies[ systemBase ]['*'], self.baseNegatedDeps[ systemBase ]['*'] )
+		ourDeps = self._negate_dependencies( branchGroup, ourDeps + self.dependencies['*'], self.negatedDeps['*'] )
 
 		# Add the branch level dependencies to the list of our dependencies
 		# Then run the list of our dependencies against the branch negations
-		ourDeps = self._negate_dependencies( desiredBranch, ourDeps + self.dependencies[ desiredBranch ], self.negatedDeps[ desiredBranch ] )
-		ourDeps = self._negate_dependencies( desiredBranch, ourDeps + self.baseDependencies[ systemBase ][ desiredBranch ], self.baseNegatedDeps[ systemBase ][ desiredBranch ] )
+		ourDeps = self._negate_dependencies( branchGroup, ourDeps + self.dependencies[ ourBranch ], self.negatedDeps[ ourBranch ] )
 
 		# Ensure the current project is not listed (due to a dynamic dependency for instance)
 		ourDeps = [(project, branch) for project, branch in ourDeps if project != self]
@@ -285,11 +264,11 @@ class Project(object):
 		if includeSubDeps:
 			toLookup = set(ourDeps) - set(finalDynamic)
 			for dependency, dependencyBranch in toLookup:
-				ourDeps = ourDeps + dependency.determine_dependencies(dependencyBranch, systemBase, includeSubDeps = True)
+				ourDeps = ourDeps + dependency.determine_dependencies(branchGroup, includeSubDeps = True)
 
 			dynamicLookup = set(ourDeps) & set(finalDynamic)
 			for dependency, dependencyBranch in dynamicLookup:
-				ourDeps = ourDeps + dependency.determine_dependencies(dependencyBranch, systemBase, includeSubDeps = False)
+				ourDeps = ourDeps + dependency.determine_dependencies(branchGroup, includeSubDeps = False)
 
 		# Re-ensure the current project is not listed 
 		# Dynamic dependency resolution of sub-dependencies may have re-added it
@@ -316,58 +295,47 @@ class Project(object):
 
 		return projectDeps
 
-	def _resolve_dependency_branch(self, branchName, dependentBranch):
-		# Do we need to help it find out the branch it should be using?
-		if branchName == '*':
-			branchName = dependentBranch
-
-		# Resolve the branch name in case it is symbolic or otherwise special
-		return self.resolve_branch(branchName)
-
-	def _negate_dependencies(self, desiredBranch, dependentProjects, negatedProjects):
+	def _negate_dependencies(self, branchGroup, dependentProjects, negatedProjects):
 		# First we go over both lists and resolve the branch name
-		resolvedDependencies = [(project, project._resolve_dependency_branch(branch, desiredBranch)) for project, branch in dependentProjects]
-		resolvedNegations =    [(project, project._resolve_dependency_branch(branch, desiredBranch)) for project, branch in negatedProjects]
+		resolvedDependencies = [(project, project.resolve_branch(branchGroup)) for project, branch in dependentProjects]
+		resolvedNegations =    [(project, project.resolve_branch(branchGroup)) for project, branch in negatedProjects]
 
 		# Remove any dependencies which have been negated
 		return list( set(resolvedDependencies) - set(resolvedNegations) )
 
 class BuildManager(object):
 	# Make sure we have our configuration and the project we are building available
-	def __init__(self, project, projectBranch, projectSources, configuration):
+	def __init__(self, project, branchGroup, projectSources, configuration):
 		# Save them for later use
 		self.project = project
+		self.branchGroup = branchGroup
 		self.projectSources = projectSources
 		self.config = configuration
 		# Resolve the branch
-		self.projectBranch = project.resolve_branch( projectBranch )
+		self.projectBranch = project.resolve_branch( self.branchGroup )
 		# Get the list of dependencies to ensure we only build it once
-		systemBase = self.config.get('General', 'systemBase')
-		self.dependencies = project.determine_dependencies( self.projectBranch, systemBase )
+		self.dependencies = project.determine_dependencies( self.branchGroup )
 		# We set the installPrefix now for convenience access elsewhere
-		self.installPrefix = self.project_prefix( self.project, self.projectBranch )
+		self.installPrefix = self.project_prefix( self.project )
 
 	# Determine the proper prefix (either local or remote) where a project is installed
-	def project_prefix(self, project, desiredBranch, local = True, includeHost = True, specialArguments = {}):
+	def project_prefix(self, project, local = True, includeHost = True):
 		# Determine the appropriate prefix
-		prefix = self.config.get('General', 'installPrefix', vars=specialArguments)
+		prefix = self.config.get('General', 'installPrefix')
 		if not local and includeHost:
-			prefix = self.config.get('General', 'remoteHostPrefix', vars=specialArguments)
+			prefix = self.config.get('General', 'remoteHostPrefix')
 		elif not local:
-			prefix = self.config.get('General', 'remotePrefix', vars=specialArguments)
+			prefix = self.config.get('General', 'remotePrefix')
 		
-		# Do we have a proper Project instance which is not a general dependency?
-		if isinstance(project, Project) and not project.generalDependency:
-			return os.path.join( prefix, project.path, desiredBranch )
-		# Maybe we have a proper Project instance which is a general dependency?
-		elif isinstance(project, Project) and project.generalDependency:
-			return os.path.join( prefix, project.path )
-		# Maybe the project has still been provided as a string?
-		elif isinstance(desiredBranch, str):
-			return os.path.join( prefix, project, desiredBranch )
+		# Do we have a proper Project instance which is not a shared dependency?
+		if isinstance(project, Project) and not project.sharedDependency:
+			return os.path.join( prefix, self.branchGroup, project.path )
+		# Maybe we have a proper Project instance which is a shared dependency?
+		elif isinstance(project, Project) and project.sharedDependency:
+			return os.path.join( prefix, 'shared', project.path )
 		# Final last-ditch fallback (should not happen)
 		else:
-			return os.path.join( prefix, project )
+			return os.path.join( prefix, self.branchGroup, project )
 
 	def build_directory(self):
 		# Maybe we have a project which prefers a in-source build?
@@ -377,9 +345,9 @@ class BuildManager(object):
 		# Assume an out-of-source build if it does not want an in-source build
 		return os.path.join( self.projectSources, 'build' )
 
-	def perform_rsync(self, source, destination, specialArguments = {}):
+	def perform_rsync(self, source, destination):
 		# Get the rsync command
-		rsyncCommand = self.config.get('General', 'rsyncCommand', vars=specialArguments)
+		rsyncCommand = self.config.get('General', 'rsyncCommand')
 		rsyncCommand = shlex.split( rsyncCommand )
 		# Add the source and destination to our arguments
 		rsyncCommand.append( source + '/' )
@@ -423,21 +391,11 @@ class BuildManager(object):
 
 	# Sync all of our dependencies from the master server
 	def sync_dependencies(self):
-		# Sync the shared common dependencies
-		hostPath = self.project_prefix( 'shared', None, local=False, specialArguments={'systemBase': 'common'} )
-		localPath = self.project_prefix( 'shared', None, specialArguments={'systemBase': 'common'} )
-		# Make sure the local path exists (otherwise rsync will fail)
-		if not os.path.exists( localPath ):
-			os.makedirs( localPath )
-		if not self.perform_rsync( source=hostPath, destination=localPath ):
-			return False
-
 		# Sync the project and shared system base dependencies
-		candidates = self.dependencies + [('shared', None)]
-		for candidate, candidateBranch in candidates:
+		for candidate, candidateBranch in self.dependencies:
 			# Determine the host (source) and local (destination) directories we are syncing
-			hostPath = self.project_prefix( candidate, candidateBranch, local=False )
-			localPath = self.project_prefix( candidate, candidateBranch )
+			hostPath = self.project_prefix( candidate, local=False )
+			localPath = self.project_prefix( candidate )
 			# Make sure the local path exists (otherwise rsync will fail)
 			if not os.path.exists( localPath ):
 				os.makedirs( localPath )
@@ -461,10 +419,7 @@ class BuildManager(object):
 				requirements.append( (kdeRuntime, libsBranch) )
 
 		# Turn the list of requirements into a list of prefixes
-		reqPrefixes = [self.project_prefix( requirement, requirementBranch ) for requirement, requirementBranch in requirements]
-		# Add the shared dependency directories
-		reqPrefixes.append( self.project_prefix('shared', None) )
-		reqPrefixes.append( self.project_prefix('shared', None, specialArguments={'systemBase': 'common'}) )
+		reqPrefixes = [self.project_prefix( requirement ) for requirement, requirementBranch in requirements]
 
 		# For runtime, we need to add ourselves as well
 		# We add the local install/ root so this will work properly even if it has not been deployed
@@ -660,7 +615,7 @@ class BuildManager(object):
 
 	def apply_patches(self):
 		# Do we have anything to apply?
-		patchesDir = os.path.join( self.config.get('General', 'scriptsLocation'), 'patches', self.project.identifier, self.projectBranch )
+		patchesDir = os.path.join( self.config.get('General', 'scriptsLocation'), 'patches', self.project.identifier, self.branchGroup )
 		if not os.path.exists(patchesDir):
 			print "=== No patches to apply"
 			return True
@@ -736,24 +691,19 @@ class BuildManager(object):
 		if not os.path.exists( self.installPrefix ):
 			os.makedirs( self.installPrefix )
 
-		# If we are moving a general dependency, then we need to disable deletion
-		specialArguments = {}
-		if self.project.generalDependency:
-			specialArguments['rsyncExtraArgs'] = ''
-
 		# First we have to transfer the install from the "install root" to the actual install location
 		sourcePath = os.path.join( self.projectSources, 'install', self.installPrefix[1:] )
-		if not self.perform_rsync( source=sourcePath, destination=self.installPrefix, specialArguments=specialArguments ):
+		if not self.perform_rsync( source=sourcePath, destination=self.installPrefix ):
 			return False
 
 		# Next we ensure the remote directory exists
-		serverPath = self.project_prefix( self.project, self.projectBranch, local=False, includeHost=False )
+		serverPath = self.project_prefix( self.project, local=False, includeHost=False )
 		command = self.config.get('General', 'createRemotePathCommand').format( remotePath=serverPath )
 		process = subprocess.Popen( shlex.split(command), stdout=sys.stdout, stderr=sys.stderr)
 		process.wait()
 
 		# Now we sync the actual install up to the master server so it can be used by other build slaves
-		serverPath = self.project_prefix( self.project, self.projectBranch, local=False )
+		serverPath = self.project_prefix( self.project, local=False )
 		return self.perform_rsync( source=self.installPrefix, destination=serverPath )
 
 	def execute_tests(self):
@@ -906,95 +856,23 @@ class BuildManager(object):
 			process = subprocess.Popen( command, stdout=coberturaXml, stderr=sys.stderr, cwd=self.projectSources )
 			process.wait()
 
-class BulkBuildManager(object):
-	# Initialize ourselves
-	def __init__(self, projectsFile, sourceRoot, platform):
-		# Prepare to determine the projects we will be building
-		self.projectManagers = []
-		dataFile = open(projectsFile, 'r')
-
-		# Grab the project instance for each and create a manager for it
-		for line in dataFile:
-			# Make sure we have a project / branch to work with
-			buildMatch = re.match("(?P<project>[^:]+):\s*(?P<branch>[^:]+):?\s*(?P<systemBase>.+)", line)
-			if not buildMatch:
-				continue
-
-			# Retrieve the project / branch to work with
-			projectName = buildMatch.group('project').lower()
-			branch = buildMatch.group('branch')
-			systemBase = buildMatch.group('systemBase')
-
-			# Get the project - and if we don't know it, ignore and continue
-			project = ProjectManager.lookup( projectName )
-			if not project:
-				continue
-
-			# Make sure we have a sources directory
-			projectSources = os.path.join( sourceRoot, project.identifier )
-			if not os.path.exists( projectSources ):
-				os.makedirs( projectSources )
-
-			# Generate a configuration
-			config = load_project_configuration( project.identifier, systemBase, platform )
-
-			# Create the manager
-			manager = BuildManager(project, branch, projectSources, config)
-			self.projectManagers.append(manager)
-
-	def sync_dependencies(self):
-		# It is more efficient to ask each project to sync it's own dependencies
-		for manager in self.projectManagers:
-			# Notify that we are syncing dependencies for this project
-			print "\n==== Syncing Dependencies for %s\n" % manager.project.identifier
-			# Configure it, and ignore failure
-			manager.sync_dependencies()
-
-	def prepare_sources(self):
-		# Ask each manager to prepare the sources for a build
-		for manager in self.projectManagers:
-			# Mention the project being worked on
-			print "\n==== Preparing Sources for %s\n" % manager.project.identifier
-			# Checkout sources
-			manager.checkout_sources( doCheckout = True )
-			# Cleanup the sources
-			manager.cleanup_sources()
-			# Apply any patches
-			manager.apply_patches()
-
-	def configure_builds(self):
-		# Simply iterate over each manager and ask it to configure it's project
-		for manager in self.projectManagers:
-			# Notify that we are configuring this project
-			print "\n==== Configuring %s\n" % manager.project.identifier
-			# Configure it, and ignore failure
-			manager.configure_build()
-
-	def compile_builds(self):
-		# Simply iterate over each manager and ask it to compile it's project
-		for manager in self.projectManagers:
-			# Notify that we are configuring this project
-			print "\n==== Compiling %s\n" % manager.project.identifier
-			# Compile it, and ignore failure
-			manager.compile_build()
-
 # Loads a configuration for a given project
-def load_project_configuration( project, systemBase, platform, variation = None ):
+def load_project_configuration( project, branchGroup, platform, variation = None ):
 	# Create a configuration parser
-	config = ConfigParser.SafeConfigParser( {'systemBase': systemBase} )
+	config = ConfigParser.SafeConfigParser()
 	# List of prospective files to parse
-	configFiles =  ['config/build/global.cfg', 'config/build/{base}.cfg', 'config/build/{host}.cfg', 'config/build/{platform}.cfg']
-	configFiles += ['config/build/{project}/project.cfg', 'config/build/{project}/{base}.cfg', 'config/build/{project}/{host}.cfg']
-	configFiles += ['config/build/{project}/{platform}.cfg', 'config/build/{project}/{variation}.cfg']
+	configFiles =  ['global.cfg', '{platform}.cfg', '{host}.cfg']
+	configFiles += ['{project}/project.cfg', '{project}/{platform}.cfg', '{project}/{variation}.cfg', '{project}/{branchGroup}.cfg']
+	configFiles += ['{project}/{branchGroup}-{platform}.cfg', '{project}/{branchGroup}-{variation}.cfg']
 	# Go over the list and load in what we can
 	for confFile in configFiles:
-		confFile = confFile.format( host=socket.gethostname(), base=systemBase, platform=platform, project=project, variation=variation )
-		config.read( confFile )
+		confFile = confFile.format( host=socket.gethostname(), branchGroup=branchGroup, platform=platform, project=project, variation=variation )
+		config.read( 'config/build/' + confFile )
 	# All done, return the configuration
 	return config
 
 # Loads the projects
-def load_projects( projectFile, projectFileUrl, configDirectory ):
+def load_projects( projectFile, projectFileUrl, configDirectory, moduleStructure ):
 	# Download the list of projects if necessary
 	if not os.path.exists(projectFile) or time.time() > os.path.getmtime(projectFile) + 60*60:
 		urllib.urlretrieve(projectFileUrl, projectFile)
@@ -1003,18 +881,21 @@ def load_projects( projectFile, projectFileUrl, configDirectory ):
 	with open(projectFile, 'r') as fileHandle:
 		ProjectManager.load_projects( etree.parse(fileHandle) )
 
-	# Load special projects
+	# Load the branch group data now
+	with open(moduleStructure, 'r') as fileHandle:
+		ProjectManager.setup_branch_groups( json.load(fileHandle) )
+
+	# Finally, load special projects
 	for dirname, dirnames, filenames in os.walk( configDirectory ):
 		for filename in filenames:
 			filePath = os.path.join( dirname, filename )
 			ProjectManager.load_extra_project( filePath )
 
 # Load dependencies
-def load_project_dependencies( possibleBases, baseDepDirectory, globalDepDirectory ):
-	# Load all base specific dependencies
-	for base in possibleBases:
-		with open( baseDepDirectory + base, 'r' ) as fileHandle:
-			ProjectManager.setup_dependencies( fileHandle, systemBase = base )
+def load_project_dependencies( baseDepDirectory, baseName, globalDepDirectory ):
+	# Load base specific dependencies
+	with open( baseDepDirectory + baseName, 'r' ) as fileHandle:
+		ProjectManager.setup_dependencies( fileHandle )
 
 	# Load the local list of ignored projects
 	with open( baseDepDirectory + 'ignore', 'r' ) as fileHandle:
@@ -1038,9 +919,16 @@ def check_jenkins_environment():
 		# Split it out
 		jobMatch = re.match("(?P<project>[^_]+)_?(?P<branch>[^_]+)?_?(?P<base>[^_]+)?", os.environ['JOB_NAME'])
 		# Now transfer in any non-None attributes
-		for name, value in jobMatch.groupdict().iteritems():
-			if value is not None:
-				setattr(arguments, name, value.lower())
+		# If we have the project name, transfer it
+		if jobMatch.group('project') is not None:
+			arguments.project = jobMatch.group('project')
+		# Determine our branch group, based on the given branch/base combo
+		if jobMatch.group('base') == 'qt5':
+			arguments.branchGroup = 'kf5-qt5'
+		elif jobMatch.group('branch') == 'stable':
+			arguments.branchGroup = 'stable-qt4'
+		elif jobMatch.group('branch') == 'master':
+			arguments.branchGroup = 'latest-qt4'
 
 	# Do we have a workspace?
 	if 'WORKSPACE' in os.environ:

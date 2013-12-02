@@ -1,0 +1,21 @@
+# Everything needs CMake, Qt and Automoc
+*: general/cmake
+*: qt
+*: kdesupport/automoc
+
+# Qt
+qt: -kdesupport/automoc
+
+# General dependencies
+general/*: -kdesupport/automoc
+general/cmake: -qt
+general/libssh: -qt
+general/gmock: -qt
+general/libindi: -qt
+general/libkolabxml: -qt
+general/libssh: -qt
+general/vc: -qt
+general/libkolab: kde/kdelibs
+general/libkolab: kde/kdepimlibs
+general/qoauth: kdesupport/qca
+general/kdesupport-svn: kdesupport/automoc
