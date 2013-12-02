@@ -17,6 +17,9 @@ general/libssh: -qt5
 general/vc: -qt5
 general/shared-desktop-ontologies: -qt5
 
+# KDE Frameworks
+kde/kdelibs: general/libdbusmenu-qt
+
 # Playground/Network
 playground/network/sflphone-kde[master]: -kde/kdelibs
 playground/network/sflphone-kde[master]: -kde/kdepimlibs
