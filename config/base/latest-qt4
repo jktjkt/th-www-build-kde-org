@@ -16,6 +16,7 @@ general/libkolabxml: -qt
 general/libssh: -qt
 general/vc: -qt
 general/shared-desktop-ontologies: -qt
+general/libkolab: general/libkolabxml
 general/libkolab: kde/kdelibs
 general/libkolab: kde/kdepimlibs
 general/qoauth: kdesupport/qca
