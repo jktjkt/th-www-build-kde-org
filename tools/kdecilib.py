@@ -329,7 +329,7 @@ class BuildManager(object):
 		
 		# Do we have a proper Project instance which is not a shared dependency?
 		if isinstance(project, Project) and not project.sharedDependency:
-			return os.path.join( prefix, self.branchGroup, project.path )
+			return os.path.join( prefix, self.branchGroup, project.path, 'inst' )
 		# Maybe we have a proper Project instance which is a shared dependency?
 		elif isinstance(project, Project) and project.sharedDependency:
 			return os.path.join( prefix, 'shared', project.path )
