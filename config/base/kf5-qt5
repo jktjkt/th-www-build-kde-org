@@ -8,13 +8,14 @@ qt5: -kdesupport/extra-cmake-modules
 
 # General dependencies
 general/*: -kdesupport/extra-cmake-modules
-general/cmake: -qt
-general/libssh: -qt
-general/gmock: -qt
-general/libindi: -qt
-general/libkolabxml: -qt
-general/libssh: -qt
-general/vc: -qt
+general/cmake: -qt5
+general/libssh: -qt5
+general/gmock: -qt5
+general/libindi: -qt5
+general/libkolabxml: -qt5
+general/libssh: -qt5
+general/vc: -qt5
+general/shared-desktop-ontologies: -qt5
 
 # Playground/Network
 playground/network/sflphone-kde[master]: -kde/kdelibs
