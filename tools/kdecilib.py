@@ -917,7 +917,7 @@ def check_jenkins_environment():
 	# Do we have a job name?
 	if 'JOB_NAME' in os.environ:
 		# Split it out
-		jobMatch = re.match("(?P<project>[^_]+)_?(?P<branch>[^_]+)?_?(?P<base>[^_]+)?", os.environ['JOB_NAME'])
+		jobMatch = re.match("(?P<project>[^_]+)_?(?P<branch>[^_]+)?_?(?P<base>[^_/]+)?", os.environ['JOB_NAME'])
 		# Now transfer in any non-None attributes
 		# If we have the project name, transfer it
 		if jobMatch.group('project') is not None:
