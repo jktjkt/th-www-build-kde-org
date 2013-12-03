@@ -53,4 +53,4 @@ extragear/network/choqok: general/qoauth
 extragear/multimedia/kamoso: general/qt-gstreamer
 
 # Playground
-playground/edu/artikulate: general/qt-mobility
+playground/edu/artikulate: general/qt-gstreamer
