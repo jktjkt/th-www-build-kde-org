@@ -1,7 +1,5 @@
-diff --git a/apps/haartraining/CMakeLists.txt b/apps/haartraining/CMakeLists.txt
-index cdc2805..693a2c0 100644
---- a/apps/haartraining/CMakeLists.txt
-+++ b/apps/haartraining/CMakeLists.txt
+--- apps/haartraining/CMakeLists.txt
++++ apps/haartraining/CMakeLists.txt
 @@ -14,7 +14,7 @@ if(WIN32)
    link_directories(${CMAKE_CURRENT_BINARY_DIR})
  endif()
