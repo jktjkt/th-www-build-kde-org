@@ -51,6 +51,7 @@ extragear/sysadmin/muon: general/qoauth
 extragear/network/choqok: general/qjson
 extragear/network/choqok: general/qoauth
 extragear/multimedia/kamoso: general/qt-gstreamer
+extragear/office/skrooge: general/opencv
 
 # Playground
 playground/edu/artikulate: general/qt-gstreamer
