@@ -467,7 +467,7 @@ class BuildManager(object):
 					envChanges['PERL5LIB'].append(extraLocation)
 
 				# Next up is QT_PLUGIN_PATH
-				for pluginDirName in ['qt4/plugins', 'kde4/plugins', 'plugins']:
+				for pluginDirName in ['qt4/plugins', 'kde4/plugins', 'plugins', 'qca']:
 					extraLocation = os.path.join( reqPrefix, libraryDirName, pluginDirName )
 					if os.path.exists( extraLocation ):
 						envChanges['QT_PLUGIN_PATH'].append(extraLocation)
