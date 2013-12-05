@@ -18,6 +18,7 @@ general/vc: -qt5
 general/shared-desktop-ontologies: -qt5
 
 # KDE Frameworks
+kde/*: general/kdesupport-svn
 kde/kdelibs: general/libdbusmenu-qt
 
 # Playground/Network
