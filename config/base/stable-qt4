@@ -42,6 +42,7 @@ extragear/libs/libkface: general/opencv
 extragear/libs/libkscreen: general/qjson
 extragear/libs/libkvkontakte: general/qjson
 extragear/multimedia/amarok: general/gmock
+extragear/multimedia/amarok: general/qjson
 extragear/network/telepathy/*: general/telepathy-qt4
 extragear/network/telepathy/*: general/qt-gstreamer
 extragear/accessibility/simon: general/opencv
