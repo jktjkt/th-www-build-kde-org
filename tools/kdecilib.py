@@ -906,7 +906,7 @@ def load_project_dependencies( baseDepDirectory, baseName, globalDepDirectory ):
 		ProjectManager.setup_ignored( fileHandle )
 
 	# Load the dependencies
-	with open( globalDepDirectory + 'dependency-data', 'r' ) as fileHandle:
+	with open( globalDepDirectory + 'dependency-data-' + baseName, 'r' ) as fileHandle:
 		ProjectManager.setup_dependencies( fileHandle )
 
 # Checks for a Jenkins environment, and sets up a argparse.Namespace appropriately if found
