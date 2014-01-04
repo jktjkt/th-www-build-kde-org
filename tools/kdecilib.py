@@ -130,13 +130,12 @@ class ProjectManager(object):
 	def setup_dependencies( depData ):
 		for depEntry in depData:
 			# Cleanup the dependency entry and remove any comments
-			depEntry = depEntry.strip()
 			commentPos = depEntry.find("#")
 			if commentPos >= 0:
 				depEntry = depEntry[0:commentPos]
 
 			# Prepare to extract the data and skip if the extraction fails
-			match = ProjectManager._dependencyRuleRe.search( depEntry )
+			match = ProjectManager._dependencyRuleRe.search( depEntry.strip() )
 			if not match:
 				continue
 
