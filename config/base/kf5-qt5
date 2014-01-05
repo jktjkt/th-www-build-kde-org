@@ -19,7 +19,7 @@ general/shared-desktop-ontologies: -qt5
 
 # KDE Frameworks
 kde/*: general/kdesupport-svn
-kde/kdelibs: general/libdbusmenu-qt
+kde/kde-workspace: general/libdbusmenu-qt
 
 # Playground/Network
 playground/network/sflphone-kde[master]: -kde/kdelibs
