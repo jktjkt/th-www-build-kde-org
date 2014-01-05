@@ -235,17 +235,19 @@ class Project(object):
 		return 'master'
 
 	# Return a list of dependencies of ourselves
-	def determine_dependencies(self, branchGroup, includeSubDeps = True):
+	def determine_dependencies(self, branchGroup, includeSubDeps = True, checkDynamicDeps = True):
 		# Determine what the real name is for dependency information lookups
 		ourBranch = self.resolve_branch(branchGroup)
+		ourDeps = finalDynamic = []
 
-		# Prepare: Get the list of dynamic dependencies and negations which apply to us
-		dynamicDeps = self._resolve_dynamic_dependencies( ourBranch, Project.dynamicDependencies )
-		negatedDynamic = self._resolve_dynamic_dependencies( ourBranch, Project.dynamicNegatedDeps )
+		if checkDynamicDeps:
+			# Prepare: Get the list of dynamic dependencies and negations which apply to us
+			dynamicDeps = self._resolve_dynamic_dependencies( ourBranch, Project.dynamicDependencies )
+			negatedDynamic = self._resolve_dynamic_dependencies( ourBranch, Project.dynamicNegatedDeps )
 
-		# Start our list of dependencies
-		# Run the list of dynamic dependencies against the dynamic negations to do so
-		ourDeps = finalDynamic = self._negate_dependencies( branchGroup, dynamicDeps, negatedDynamic )
+			# Start our list of dependencies
+			# Run the list of dynamic dependencies against the dynamic negations to do so
+			ourDeps = finalDynamic = self._negate_dependencies( branchGroup, dynamicDeps, negatedDynamic )
 
 		# Add the project level dependencies to the list of our dependencies
 		# Then run the list of our dependencies against the project negations
@@ -267,7 +269,7 @@ class Project(object):
 
 			dynamicLookup = set(ourDeps) & set(finalDynamic)
 			for dependency, dependencyBranch in dynamicLookup:
-				ourDeps = ourDeps + dependency.determine_dependencies(branchGroup, includeSubDeps = False)
+				ourDeps = ourDeps + dependency.determine_dependencies(branchGroup, includeSubDeps = True, checkDynamicDeps = False)
 
 		# Re-ensure the current project is not listed 
 		# Dynamic dependency resolution of sub-dependencies may have re-added it
