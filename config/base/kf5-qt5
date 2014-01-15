@@ -18,6 +18,7 @@ general/vc: -qt5
 general/shared-desktop-ontologies: -qt5
 
 # KDE Frameworks
+frameworks/kauth: kdesupport/polkit-qt-1
 kde/*: general/kdesupport-svn
 kde/kde-workspace: general/libdbusmenu-qt
 
