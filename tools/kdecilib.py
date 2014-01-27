@@ -906,7 +906,11 @@ def load_project_dependencies( baseDepDirectory, baseName, globalDepDirectory ):
 	with open( globalDepDirectory + 'build-script-ignore', 'r' ) as fileHandle:
 		ProjectManager.setup_ignored( fileHandle )
 
-	# Load the dependencies
+	# Load the dependencies - common ones first
+	with open( globalDepDirectory + 'dependency-data-common', 'r' ) as fileHandle:
+		ProjectManager.setup_dependencies( fileHandle )
+
+	# Load the dependencies - now branch group specific ones
 	with open( globalDepDirectory + 'dependency-data-' + baseName, 'r' ) as fileHandle:
 		ProjectManager.setup_dependencies( fileHandle )
 
