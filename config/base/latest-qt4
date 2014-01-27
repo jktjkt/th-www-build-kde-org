@@ -36,6 +36,7 @@ kde/kdepim: general/grantlee
 kde/kdepim-runtime: general/libkolab
 kde/kdegraphics/okular: general/poppler
 kde/kdebindings/pykde4: general/pyqt4
+kde/applications/kate: general/qjson
 
 # Calligra
 calligra: general/vc
@@ -58,6 +59,8 @@ extragear/network/choqok: general/qjson
 extragear/network/choqok: general/qoauth
 extragear/multimedia/kamoso: general/qt-gstreamer
 extragear/office/skrooge: general/opencv
+extragear/office/tellico: general/poppler
+extragear/kdevelop/kdevplatform: general/qjson
 
 # Playground
 playground/edu/artikulate: general/qt-gstreamer
