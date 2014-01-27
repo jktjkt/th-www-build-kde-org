@@ -28,6 +28,7 @@ kde/*: general/kdesupport-svn
 kde/kdelibs: general/shared-desktop-ontologies
 kde/kdelibs: general/grantlee
 kde/kdelibs: general/libdbusmenu-qt
+kde/kdelibs/kfilemetadata: general/poppler
 kde/kdepimlibs: general/qjson
 kde/kde-runtime: general/libssh
 kde/kde-workspace: general/libdbusmenu-qt
