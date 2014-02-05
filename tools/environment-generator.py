@@ -14,7 +14,8 @@ arguments = parser.parse_args()
 
 # Load our configuration, projects and dependencies
 config = load_project_configuration( arguments.project, arguments.branchGroup, arguments.platform, arguments.variation )
-load_projects( 'kde_projects.xml', 'http://projects.kde.org/kde_projects.xml', 'config/projects', 'dependencies/logical-module-structure' )
+if not load_projects( 'kde_projects.xml', 'http://projects.kde.org/kde_projects.xml', 'config/projects', 'dependencies/logical-module-structure' ):
+	sys.exit("Failure to load projects - unable to continue")
 load_project_dependencies( 'config/base/', arguments.branchGroup, 'dependencies/' )
 
 # Load the requested project

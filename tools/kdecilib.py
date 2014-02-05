@@ -880,7 +880,11 @@ def load_projects( projectFile, projectFileUrl, configDirectory, moduleStructure
 
 	# Now load the list of projects into the project manager
 	with open(projectFile, 'r') as fileHandle:
-		ProjectManager.load_projects( etree.parse(fileHandle) )
+		try:
+			ProjectManager.load_projects( etree.parse(fileHandle) )
+		except:
+			os.remove(projectFile)
+			return False
 
 	# Load the branch group data now
 	with open(moduleStructure, 'r') as fileHandle:
@@ -891,6 +895,9 @@ def load_projects( projectFile, projectFileUrl, configDirectory, moduleStructure
 		for filename in filenames:
 			filePath = os.path.join( dirname, filename )
 			ProjectManager.load_extra_project( filePath )
+
+	# We are successful
+	return True
 
 # Load dependencies
 def load_project_dependencies( baseDepDirectory, baseName, globalDepDirectory ):

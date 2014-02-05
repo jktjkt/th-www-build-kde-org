@@ -18,7 +18,8 @@ arguments = parser.parse_args( namespace=environmentArgs )
 
 # Load the various configuration files, and the projects
 config = load_project_configuration( arguments.project, arguments.branchGroup, arguments.platform )
-load_projects( 'kde_projects.xml', 'http://projects.kde.org/kde_projects.xml', 'config/projects', 'dependencies/logical-module-structure' )
+if not load_projects( 'kde_projects.xml', 'http://projects.kde.org/kde_projects.xml', 'config/projects', 'dependencies/logical-module-structure' ):
+	sys.exit("Failure to load projects - unable to continue")
 
 # Load the requested project
 project = ProjectManager.lookup( arguments.project )
