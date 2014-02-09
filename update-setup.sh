@@ -57,10 +57,3 @@ pushd ${JENKINS_SLAVE_HOME}/poppler-test-data
         git pull
 )
 popd
-
-# Update the Jenkins CLI client
-pushd /tmp
-(
-	wget http://build.kde.org/jnlpJars/jenkins-cli.jar && mv jenkins-cli.jar ${JENKINS_SLAVE_HOME}/jenkins-cli.jar
-)
-popd
