@@ -688,6 +688,10 @@ class BuildManager(object):
 		return True
 
 	def deploy_installation(self):
+		# Is deployment disabled?
+		if not self.config.getboolean('Build', 'deployInstallation'):
+			return True
+
 		# Make sure the local destination exists
 		if not os.path.exists( self.installPrefix ):
 			os.makedirs( self.installPrefix )
