@@ -57,3 +57,18 @@ pushd ${JENKINS_SLAVE_HOME}/poppler-test-data
         git pull
 )
 popd
+
+# Setup the dependency diagram utilities (needed for dependency data extraction)
+if [ ! -d ${JENKINS_SLAVE_HOME}/kapidox ]; then
+	mkdir -p ${JENKINS_SLAVE_HOME}/kapidox
+fi
+pushd ${JENKINS_SLAVE_HOME}/kapidox
+(
+	if [ ! -d ".git" ]; then
+		git clone git://anongit.kde.org/kapidox .
+	fi
+	git fetch origin
+	git checkout wip/standalone-depdiagram-prepare
+	git merge --ff-only wip/standalone-depdiagram-prepare
+)
+popd

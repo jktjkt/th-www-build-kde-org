@@ -320,14 +320,14 @@ class BuildManager(object):
 		self.installPrefix = self.project_prefix( self.project )
 
 	# Determine the proper prefix (either local or remote) where a project is installed
-	def project_prefix(self, project, local = True, includeHost = True):
+	def project_prefix(self, project, local = True, includeHost = True, section = 'General'):
 		# Determine the appropriate prefix
-		prefix = self.config.get('General', 'installPrefix')
+		prefix = self.config.get( section, 'installPrefix' )
 		if not local and includeHost:
-			prefix = self.config.get('General', 'remoteHostPrefix')
+			prefix = self.config.get( section, 'remoteHostPrefix' )
 		elif not local:
-			prefix = self.config.get('General', 'remotePrefix')
-		
+			prefix = self.config.get( section, 'remotePrefix' )
+
 		# Do we have a proper Project instance which is not a shared dependency?
 		if isinstance(project, Project) and not project.sharedDependency:
 			return os.path.join( prefix, self.branchGroup, project.path, 'inst' )
@@ -860,6 +860,30 @@ class BuildManager(object):
 		with open(coberturaFile, 'w') as coberturaXml:
 			process = subprocess.Popen( command, stdout=coberturaXml, stderr=sys.stderr, cwd=self.projectSources )
 			process.wait()
+
+	def extract_dependency_information(self):
+		# Prepare our execution parameters
+		runtimeEnv = self.generate_environment(runtime=True)
+		outputDirectory = os.path.join( self.projectSources, 'dotdata' )
+
+		# Prepare to execute depdiagram-prepare
+		command = self.config.get('DependencyInformation', 'extractionCommand')
+		command = command.format( sources=self.projectSources, outputDir=outputDirectory )
+		command = shlex.split(command)
+
+		# Run depdiagram-prepare to extract the dependency information in *.dot format
+		process = subprocess.Popen( command, stdout=sys.stdout, stderr=sys.stderr, env=runtimeEnv )
+		process.wait()
+
+		# Next we ensure the remote directory exists
+		serverPath = self.project_prefix( self.project, local=False, includeHost=False, section='DependencyInformation' )
+		command = self.config.get('General', 'createRemotePathCommand').format( remotePath=serverPath )
+		process = subprocess.Popen( shlex.split(command), stdout=sys.stdout, stderr=sys.stderr)
+		process.wait()
+
+		# Now we need to transfer the data to it's final home, so it can be picked up by the API generation runs
+		serverPath = self.project_prefix( self.project, local=False, section='DependencyInformation' )
+		return self.perform_rsync( source=outputDirectory, destination=serverPath )
 
 # Loads a configuration for a given project
 def load_project_configuration( project, branchGroup, platform, variation = None ):
