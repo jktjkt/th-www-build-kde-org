@@ -1,0 +1,66 @@
+# Everything needs CMake, Qt and Automoc
+*: general/cmake
+*: qt
+*: kdesupport/automoc
+
+# Qt
+qt: -kdesupport/automoc
+
+# General dependencies
+general/*: -kdesupport/automoc
+general/cmake: -qt
+general/libssh: -qt
+general/gmock: -qt
+general/libindi: -qt
+general/libkolabxml: -qt
+general/libssh: -qt
+general/vc: -qt
+general/libmygpo-qt: general/qjson
+general/shared-desktop-ontologies: -qt
+general/libkolab: general/libkolabxml
+general/libkolab: kde/kdelibs
+general/libkolab: kde/kdepimlibs
+general/qoauth: kdesupport/qca
+general/kdesupport-svn: kdesupport/automoc
+
+# KDE SC
+kde/*: general/kdesupport-svn
+kde/kdelibs: general/shared-desktop-ontologies
+kde/kdelibs: general/grantlee
+kde/kdelibs: general/libdbusmenu-qt
+kde/kdelibs/kfilemetadata: general/poppler
+kde/kdelibs/nepomuk-core: general/poppler
+kde/kdepimlibs: general/qjson
+kde/kde-runtime: general/libssh
+kde/kde-workspace: general/libdbusmenu-qt
+kde/kdepim: general/grantlee
+kde/kdepim-runtime: general/libkolab
+kde/kdegraphics/okular: general/poppler
+kde/kdebindings/pykde4: general/pyqt4
+kde/applications/kate: general/qjson
+
+# Calligra
+calligra: general/vc
+
+# Extragear
+extragear/libs/libkface: general/opencv
+extragear/libs/libkscreen: general/qjson
+extragear/libs/libkvkontakte: general/qjson
+extragear/multimedia/amarok: general/gmock
+extragear/multimedia/amarok: general/qjson
+extragear/multimedia/amarok: general/liblastfm
+extragear/multimedia/amarok: general/libmygpo-qt
+extragear/network/telepathy/*: general/telepathy-qt4
+extragear/network/telepathy/*: general/qt-gstreamer
+extragear/accessibility/simon: general/opencv
+extragear/accessibility/simon: general/qwt
+extragear/sysadmin/muon: general/qjson
+extragear/sysadmin/muon: general/qoauth
+extragear/network/choqok: general/qjson
+extragear/network/choqok: general/qoauth
+extragear/multimedia/kamoso: general/qt-gstreamer
+extragear/office/skrooge: general/opencv
+extragear/kdevelop/kdevplatform: general/qjson
+
+# Playground
+playground/edu/artikulate: general/qt-gstreamer
