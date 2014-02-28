@@ -62,6 +62,7 @@ extragear/multimedia/kamoso: general/qt-gstreamer
 extragear/office/skrooge: general/opencv
 extragear/office/tellico: general/poppler
 extragear/kdevelop/kdevplatform: general/qjson
+extragear/multimedia/plasma-mediacenter: general/qxorm
 
 # Playground
 playground/edu/artikulate: general/qt-gstreamer
