@@ -68,7 +68,7 @@ pushd ${JENKINS_SLAVE_HOME}/kapidox
 		git clone git://anongit.kde.org/kapidox .
 	fi
 	git fetch origin
-	git checkout wip/standalone-depdiagram-prepare
-	git merge --ff-only wip/standalone-depdiagram-prepare
+	git checkout master
+	git merge --ff-only master
 )
 popd
