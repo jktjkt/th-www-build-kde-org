@@ -69,6 +69,6 @@ pushd ${JENKINS_SLAVE_HOME}/kapidox
 	fi
 	git fetch origin
 	git checkout master
-	git merge --ff-only master
+	git merge --ff-only origin/master
 )
 popd
