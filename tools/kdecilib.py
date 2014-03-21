@@ -890,7 +890,7 @@ def load_project_configuration( project, branchGroup, platform, variation = None
 	# Create a configuration parser
 	config = ConfigParser.SafeConfigParser()
 	# List of prospective files to parse
-	configFiles =  ['global.cfg', '{platform}.cfg', '{host}.cfg']
+	configFiles =  ['global.cfg', '{platform}.cfg', '{branchGroup}.cfg', '{branchGroup}-{platform}.cfg', '{host}.cfg']
 	configFiles += ['{project}/project.cfg', '{project}/{platform}.cfg', '{project}/{variation}.cfg', '{project}/{branchGroup}.cfg']
 	configFiles += ['{project}/{branchGroup}-{platform}.cfg', '{project}/{branchGroup}-{variation}.cfg']
 	# Go over the list and load in what we can
