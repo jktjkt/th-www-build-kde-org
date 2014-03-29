@@ -1,0 +1,95 @@
+== Basics:
+- This is a documentation of all possible options within the CI system configuration file format
+- Please see job-execution.txt for information on the exact effects of each option and source code references
+
+== Loading of configuration files:
+- Files are loaded in the following order:
+   global.cfg
+   {platform}.cfg
+   {branchGroup}.cfg
+   {branchGroup}-{platform}.cfg
+   {host}.cfg
+   {project}/project.cfg
+   {project}/{platform}.cfg
+   {project}/{variation}.cfg
+   {project}/{branchGroup}.cfg
+   {project}/{branchGroup}-{platform}.cfg
+   {project}/{branchGroup}-{variation}.cfg
+
+- The macros expand as follows:
+   {host}: Hostname of the node conducting the build (eg: slave4)
+   {project}: Identifier of the project (eg: kdelibs)
+   {platform}: Identifier of the current type of host (eg: linux64-g++)
+   {branchGroup}: Name of the current branch group being built (eg: kf5-qt5)
+   {variation}: Name of the project variation being built. This is used to build different combinations of the same project/branch.
+
+- If a file cannot be found, it will be ignored. Files found are expected to be readable and in INI format.
+- Subsequent files will override those preceding them. 
+  - If a file does not set a given value, then the value of a previous file will be used.
+
+== Specifics to this INI format:
+- Any item in the DEFAULT section will act as a fallback for all other sections.
+  - By convention, all executable names themselves (but not arguments) are placed in the DEFAULT section
+- Specific macros %(<value>)s will automatically expand.
+  - <value> will be used to perform a key lookup within the section that contains this macro (as well as DEFAULT).
+  - Failure to expand these macros is fatal, and will cause the scripts to fail immediately.
+
+== Possible entries - DEFAULT section
+- configureExtraArgs: Arguments to be included when executing the configure command. Inserted after the executable itself.
+
+== Possible entries - General section
+- installPrefix: Base directory where all projects will be installed locally. For code see BuildManager.project_path() in kdecilib.py
+- remotePrefix: Base directory where all project builds will be stored on the master CI server
+- remoteHostPrefix: Provides the prefix used by RSync to transfer builds to the master CI server. 
+- rsyncCommand: Holds the full command used to invoke rsync, including arguments.
+- createRemotePathCommand: Holds the full command used to create directories on the master CI server.
+
+== Possible entries - Source section
+- alwaysCheckoutSources: Controls whether the scripts should always run the appropriate checkout command (normally skipped)
+- runPostCheckoutCommand: Controls whether the post checkout command should be run
+- gitCloneCommand: Command used to clone a given Git repository
+- gitFetchCommand: Command used to refresh a given Git repository's remote heads
+- gitSetBranchCommand: Command used to setup the 'jenkins' branch, based on the current branch group
+- gitCheckoutCommand: Command used to checkout a Git repository
+- postCheckoutCommand: Command which will be run post checkout. Will be run even if alwaysCheckoutSources is False.
+- gitCleanCommand: Command used to cleanse a Git checkout, necessary to cleanup from prior builds and tests.
+- svnRevertCommand: Command used to reverse any pending changes in a Subversion checkout.
+- bzrCleanCommand: Command used to cleanse a Bazaar checkout of local changes.
+- patchCommand: Command used to apply patches by BuildManager.apply_patches() in kdecilib.py
+
+== Possible entries - Build section
+- inSourceBuild: Boolean (True/False) controlling whether an in-source build should be used
+- cmakeBuildType: Type of CMake build which should be requested.
+- configureCommand: Command used to configure the project to build
+- postConfigureCommand: Command executed after configureCommand has completed, if set.
+- makeCommand: Command used to actually build the project
+- makeInstallCommand: Command used to install the project
+- updateMimeDatabaseCommand: Command used to invoke update-mime-database after a project has been installed
+- deployInstallation: Boolean (True/False) controlling whether a installation should be deployed for later use.
+
+== Possible entries - Test section
+- testsEnabled: Boolean (True/False) controlling whether tests should be executed
+- ctestCountTestsCommand: Command used to gather the number of tests available from a CTest enabled build
+- xvfbDisplayName: Value used to set DISPLAY in the test environment
+- xvfbCommand: Command used to start an X server (Xvfb) to support tests
+- wmCommand: Command used to launch an appropriate window manager, to support tests
+- dbusLaunchCommand: Command used to start a D-Bus Session bus, to support tests
+- kbuildsycocaCommand: Command used to fully regenerate the sycoca, necessary to ensure plugins, etc. are all found by tests
+- kdeinitCommand: Command used to start kdeinit, to save the first test from having to do so (and possibly hanging)
+- nepomukCommand: Command used to start Nepomuk's storage services, to allow tests to utilise it if necessary
+- kdeStartupWait: Integer value, specifying the number of seconds the system should sleep before starting tests
+- ctestRunCommand: Command used to actually execute all the tests
+- testTimePermitted: Integer value, specifying the number of seconds permitted for each test the project has
+- terminateTestEnvCommand: Command used to terminate all processes associated with testing
+
+== Possible entries - QualityCheck section
+- runCppcheck: Boolean (True/False) controlling whether cppcheck should be run
+- cppcheckCommand: Command used to perform the cppcheck testing
+- covBuildCommand: Reserved for future use - Coverity integration.
+- gcovrCommand: Command used to invoke gcovr - necessary for coverage testing.
+
+== Possible entries - DependencyInformation section
+- extractionCommand: Command used to extract dependency information from CMake build targets 
+- installPrefix: Local prefix where dependency information should be stored for projects
+- remotePrefix: Prefix on the CI master server where dependency information should be stored for projects
+- remoteHostPrefix: Provides the prefix used by RSync to transfer dependency information to the master CI server.

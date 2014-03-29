@@ -1,0 +1,110 @@
+== General
+- This documentation covers BuildManager.generate_environment() in kdecilib.py
+- Two different forms of environment can be generated: build or runtime.
+- Runtime environments are a superset of Build environments
+- Each item included by a Build/Runtime environment will be referred to as a "prefix"
+
+== Build environments:
+- Set the variables to cover all the dependencies of the project being built
+- Do not include anything else, such as the install prefix of the project itself or special case runtime dependencies
+
+== Runtime environments:
+- Include all dependencies of the project being built
+- But also includes the installation jail of the project which was just built and installed
+- Further, if the project depends on 'kdelibs' then it will also include 'kde-runtime' as a special case.
+
+== Setting of variables:
+- A given prefix will only be inserted into a variable if the path exists within it. (eg: to be included in PATH then {prefix}/bin should exist)
+- For paths which involve library directories, the following three combinations will be tested: lib, lib32, lib64.
+  If all are found, then all will be set
+
+== Variables set:
+- CMAKE_PREFIX_PATH
+  - Set to ensure CMake is aware of other places to look for dependencies when it runs.
+  - Is set to contain {prefix}
+
+- KDEDIRS
+  - Set to ensure KDE applications / libraries are aware of other places to look for their runtime requirements.
+  - Is set to contain {prefix}
+
+- PATH
+  - Set to ensure executables provided in a prefix can be found by everything else
+  - Is set to contain {prefix}/bin
+
+- LD_LIBRARY_PATH
+  - Set to ensure libraries provided in a prefix are available to executables, to allow them to run properly
+  - Is set to:
+    {prefix}/lib
+    {prefix}/lib32
+    {prefix}/lib64
+
+- PKG_CONFIG_PATH
+  - Set to ensure pkgconfig is able to find dependencies, as some build systems still use it
+  - Is set to:
+    {prefix}/lib/pkgconfig
+    {prefix}/lib32/pkgconfig
+    {prefix}/lib64/pkgconfig
+    {prefix}/share/pkgconfig
+
+- PYTHONPATH
+  - Set to ensure Python interpreters can find bindings, etc. Primarily for tests.
+  - Is set to:
+    {prefix}/lib/python2.7/site-packages
+    {prefix}/lib32/python2.7/site-packages
+    {prefix}/lib64/python2.7/site-packages
+    {prefix}/share/sip
+
+- PERL5LIB
+  - Set to ensure Perl 5.x interpreters can find bindings, etc. Primarily for tests.
+  - Is set to:
+    {prefix}/lib/perl5/site_perl/5.16.2/x86_64-linux-thread-multi/
+    {prefix}/lib32/perl5/site_perl/5.16.2/x86_64-linux-thread-multi/
+    {prefix}/lib64/perl5/site_perl/5.16.2/x86_64-linux-thread-multi/
+
+- QT_PLUGIN_PATH
+  - Set to ensure Qt finds all plugins made available in prefixes which it needs to know about
+  - Is set to:
+    {prefix}/lib/qt4/plugins
+    {prefix}/lib/kde4/plugins
+    {prefix}/lib/plugins
+    {prefix}/lib/qca
+    {prefix}/lib32/qt4/plugins
+    {prefix}/lib32/kde4/plugins
+    {prefix}/lib32/plugins
+    {prefix}/lib32/qca
+    {prefix}/lib64/qt4/plugins
+    {prefix}/lib64/kde4/plugins
+    {prefix}/lib64/plugins
+    {prefix}/lib64/qca
+
+- QML_IMPORT_PATH
+  - Set to ensure Qt applications using QML are able to discover their imports
+  - Is set to:
+    {prefix}/lib/qt4/imports
+    {prefix}/lib/kde4/imports
+    {prefix}/lib/imports
+    {prefix}/lib32/qt4/imports
+    {prefix}/lib32/kde4/imports
+    {prefix}/lib32/imports
+    {prefix}/lib64/qt4/imports
+    {prefix}/lib64/kde4/imports
+    {prefix}/lib64/imports
+
+- QML2_IMPORT_PATH
+  - Set to ensure Qt applications using QML2 are able to discover their imports
+  - Is set to:
+    {prefix}/lib/qml
+    {prefix}/lib32/qml
+    {prefix}/lib64/qml
+
+- XDG_DATA_DIRS
+  - Set to ensure XDG compliant projects can find their runtime data
+  - Is set to {prefix}/share
+
+- XDG_CONFIG_DIRS
+  - Set to ensure XDG compliant projects can find their system wide / installation configuration
+  - Is set to {prefix}/etc/xdg
+
+- QMAKEFEATURES
+  - Set to ensure QMake is able to discover mkspecs provided in non-Qt prefixes
+  - Is set to {prefix}/mkspecs/features

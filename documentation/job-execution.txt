@@ -1,0 +1,315 @@
+== Step 1: Determine what to build (our parameters)
+- The scripts take either arguments passed to them, or environment variables for this information.
+
+- In terms of arguments, they work as follows:
+  - project: Provides the identifier name of the project to build. Usually the same as the repository name on git.kde.org.
+  - branchGroup: Specifies which branch group we should be conducting this build for. It will control many other elements later on
+  - sources: Sets the directory where the sources to be built are located. 
+  - variation: Determines if we should be loading any further configuration files for this particular build
+  - platform: Intended to specify the operating system / platform we're on. Currently only supports linux64-g++ as an option
+  * Code for this can be found in perform-build.py / prepare-environment.py
+
+- If present, an environment variable will override a given argument. The following ones are respected:
+  - JOB_NAME: Usually contains the name of a Jenkins job, containing the project and branch group in this format: <project>_<branch>_<base>
+    For legacy compatibility reasons, the <branch>_<base> combination is then mapped to the various branch groups.
+  - WORKSPACE: Set the sources path
+  - Variation: Sets the variation argument.
+  - JENKINS_SLAVE_HOME: The scripts will chdir() to the value of this variable.
+  * Code for this can be found in check_jenkins_environment() in kdecilib.py
+
+== Step 2: Discover all project information
+- This information comes from three places: projects.kde.org, kde-build-metadata and our internal store.
+- It is imported in the order listed in below
+- All projects must have an identifier and path (which is used in numerous places)
+
+- projects.kde.org
+  - This pulls in the kde_projects.xml file and parses it.
+  - All repositories are considered to be a project.
+  - They are created with the appropriate identifier (repo name) and path (eg: kde/kdelibs)
+  - The repository URL is also extracted, to assist the prepare-environment.py script to setup the workspace.
+  * The parser for this is located in load_projects() in kdecilib.py
+
+- kde-build-metadata
+  - This provides branch group information for the various projects hosted on KDE infrastructure.
+  - As with other tools, this information is stored in the 'logical-module-structure' file in that repository.
+  * The parser for this is located in setup_branch_groups() in kdecilib.py
+
+- internal store:
+  - This is located at config/projects/ in this repository.
+  - It contains one file per project. The name of the file is irrelevant, but convention states it is <identifer>.cfg
+  - Each file is in INI format, with two possible sections: Project and BranchGroups
+  - Project section - allows setting the following variables:
+    - identifier: specifies the identifier for the project, which must be unique
+    - path: specifies the path for the project, which must include the identifier.
+      For non-KDE projects, convention states they belong in the general/* tree.
+    - url: Full URL to the Git repository, as would be given to a git clone command.
+    - sharedDependency: Set to either True or False. Defaults to False.
+      If True, then branch groups will not apply to this project, and it will be placed in the 'shared' branch group instead.
+      Only projects which do NOT depend on Qt and have the same version used across all branch groups should use this.
+  - BranchGroups - allows for the branch to be set for the various known branch groups.
+    - Use the name of the branch group as the key, and the branch as the value of each entry under this section.
+  * The parser for this is located in load_extra_project() in kdecilib.py
+
+== Step 3: Discover the dependencies between the various projects
+- This information comes from two places: kde-build-metadata and our internal store.
+- It consists of multiple elements in both cases: 
+  - File(s) containing dependency information
+  - File(s) containing ignore statements, which explicitly prohibit projects from being depended upon
+* The order the files are loaded in is governed by load_project_dependencies() in kdecilib.py
+- Internal store:
+  - Should only be used for dependency declarations for projects which originate from the internal store
+    This can include both their dependencies, as well as the dependency of KDE projects on them.
+  - Qt and Automoc are ignored to prevent dependency resolution loops. They are handled by the internal dependency rules only.
+  - The internal files follow the same format as the files in kde-build-metadata and are handled by the same parser.
+
+== Step 4: Initialize the build manager
+- At this point, the information collected in Step 1 is used to:
+  - Retrieve the project information we previously loaded
+  - Load the build configuration
+  - Resolve the branch we are going to build, using the branch group information previously loaded
+  - Determine the dependencies
+  - Determine the installation prefix
+* The code for this is located in BuildManager.__init__() in kdecilib.py
+
+- Loading the build configuration:
+  - Made up of a number of files under config/build/
+  - The files loaded, and the order in which they are done can be found in load_project_configuration() in kdecilib.py
+  - Subsequent files will override earlier files, with merging taking place automatically.
+  - These files are also in INI format and have a number of sections.
+  - The project name, branch group, variation, platform and build host all can potentially affect the files loaded.
+  - The majority of configuration information is located in global.cfg
+  * For more information on the build configuration details, see the separate documentation file "build-configuration.txt"
+
+- Resolve the branch:
+  - Uses the previously loaded branch group information to determine the branch we are going to build.
+  - This is used during the dependency resolution process, and by prepare-environment.py to checkout the correct branch.
+  * The code for this is in Project.resolve_branch() in kdecilib.py
+
+- Determine the dependencies:
+  - Uses the previously loaded dependency information to determine which projects we need to make available.
+  - This information will be used at many other stages later on.
+  - Projects are matched based on the path previously set earlier (eg: kde/kdelibs, general/cmake).
+  - The resolution process is fully recursive, except for dynamic dependencies - which cannot depend on other dynamic dependencies.
+    This is necessary to prevent recursive dependencies.
+  - A dynamic dependency is any dependency rule which uses wildcard matching.
+  * The code for this is in BuildManager.determine_dependencies() in kdecilib.py
+
+- Determine the installation prefix:
+  - This is dependent on the build configuration for the root prefix.
+  - The root prefix is joined with the branch group, project path and 'inst' to provide the final install prefix.
+    - The 'inst' suffix is necessary in case projects are nested within the same path.
+      Example: kde/kdelibs and kde/kdelibs/kactivities. 
+      Without this later stages would end up destroying the installed data.
+    - If we are dealing with a shared dependency, then the branch group is considered to be named "shared" instead.
+  - This method by default will produce a slave local path, however it can also provide:
+    - Jenkins master RSync URL including remote path
+    - Jenkins master remote path
+    - These two are both used as part of the syncing process for dependencies
+  * The code for this is in BuildManager.project_prefix() in kdecilib.py
+
+== Step 5: Apply patches
+- To assist in completing builds, the system can apply patches before initiating the build process
+  - This is primarily intended for use by non-KDE projects to fix incompatibilities
+  - However it could also be used as part of integration into a code review tool, or as a developer testing tool (not yet supported).
+- Patches can be found at patches/<project identifier>/<branch group>/
+- All files in this directory must be standard patches which apply cleanly
+- The command used to apply the patches is located in the build configuration, and is found in the Source section, key patchCommand.
+  - Current rules require valid binary patches, with paths given with a 0 index to the top level source directory.
+- Failure to apply a patch will cause the build to fail immediately.
+* Code for this can be found at BuildManager.apply_patches() in kdecilib.py
+
+== Step 6: Sync Dependencies
+- Uses RSync to retrieve the latest installation of each dependency of the project we are about to build.
+- The list of dependencies retrieved was determined previously in Step #4.
+- Each dependency will be synced in turn, with the local folder structure being created as necessary.
+- Any files which exist locally which do not remotely will be removed.
+- Failure to retrieve a dependency for any reason (non-zero exit code) will cause the build to fail immediately.
+* RSync operations are carried out by BuildManager.perform_rsync() in kdecilib.py
+  - The command is found in the build configuration - General section, key rsyncCommand.
+
+== Step 7: Configure the Build
+- First determines the build directory:
+  - If an out-of-source build will be performed, the build directory is the "build/" subdirectory of the source tree.
+  - In source builds are conducted in the root of the source tree.
+  - This behaviour is controlled by the build configuration - Build section, key inSourceBuild.
+    It is either True or False
+  - The global configuration sets this to True (as a default).
+  * Code for this can be found at BuildManager.build_directory() in kdecilib.py
+
+- If necessary, the build directory will then be created
+- Next, the system queues a command to run:
+  - Found in the build configuration - Build section, key configureCommand
+  - The global configuration sets this to use CMake.
+  - As a special variation, one can set a different option to add arguments to a CMake invocation
+    Found in the DEFAULT section, key configureExtraArgs - specified as empty by default
+  - As another special variation, the build type used by CMake (DCMAKE_BUILD_TYPE) can also be customised this way
+    It is set in the Build section, key cmakeBuildType - and is specified as Debug by the global configuration
+
+- Then it queues another command to run:
+  - Found in the build configuation - Build section, key postConfigureCommand
+  - If it has not been set, then it will be silently skipped. The global configuration omits this item.
+  - This should be used to run any commands which are necessary post-configure, but before make is called.
+
+- Finally the two commands are actually called:
+  - Environment variables, based on the project dependencies will be set beforehand.
+    For more information on this process, please see the documentation file "build-environment.txt"
+  - DESTDIR and INSTALL_ROOT will also be set, to jail the installation process
+    - This is necessary to prevent pollution of the installation trees taking place
+    - Pollution usually occurs when a build system disregards the installation prefix
+    - Any build system which does this is fundamentally broken and is not supported by the CI system
+  - The following macros will be expanded in any command:
+    {instPrefix} - Prefix where the build should be installed
+    {sources} - Path to the sources
+    {loadLevel} - Limit on the amount of system load the build process should generate (Unix load)
+    {jobCount} - Maximum number of compile workers which should be used at any time
+  * Code for this can be found at BuildManager.run_build_commands() in kdecilib.py
+
+* Code for this can be found at BuildManager.configure_build() in kdecilib.py
+
+== Step 8: Compile the Build
+- Executes a single command, using the above run_build_commands() function.
+- Command comes from the build configuration - Build section, key makeCommand
+- The global configuration sets this to "make -l {loadLevel} -j {jobCount}" by default
+* Code for this can be found at BuildManager.compile_build() in kdecilib.py
+
+== Step 9: Install the Build
+- Queues a command to be run:
+  - Found in the build configuration - Build section, key makeInstallCommand
+  - The global configuration set this to "make -l {loadLevel} -j {jobCount} install" by default
+  - It is expected the make install process will comply with DESTDIR / INSTALL_ROOT as this will be relied upon in later phases.
+
+- Next queues another command to run:
+  - Found in the build configuration - Build section, key postInstallationCommand
+  - If it has not been set, then it will be silently skipped. The global configuration omits this item.
+  - This should be used to run any commands which are necessary to finish installation
+
+- These two commands will then be called, using the above run_build_commands() function.
+
+- Finally, it checks for the existence of {instPrefix}/share/mime within the DESTDIR jail.
+  - If this directory is present, then the system will run update-mime-database
+  - This is done to ensure file associations, etc. function in the testing environment.
+  - The command run comes from the build configuration - Build section, key updateMimeDatabaseCommand
+  - The update-mime-database will otherwise be run using identical environment variables to a build command
+    Only exception will be the absence of DESTDIR and INSTALL_ROOT.
+
+* Code for this can be found at BuildManager.install_build() in kdecilib.py
+
+== Step 10: Deploy the Build
+- This step is necessary for the CI system to use the newly installed project in subsequent builds
+- Failure at this stage is usually caused by only two things:
+  - Failure of the project build system to respect the INSTALL_ROOT / DESTDIR jail
+  - Connectivity problems with the CI master server, where the latest copy of all built binaries is stored
+
+- First, it checks to determine if deployment is enabled.
+  - Controlled by the build configuration - Build section, key deployInstallation
+  - Accepts two values, True or False. Set by the global configuration to True.
+  - You would disable this for code review builds, or for multiple variation builds.
+    In the case of multiple variation builds, only one of them should be deployed.
+  - If deployment is disabled, then it will return indicating success.
+
+- Next, it determines if the deployment prefix exists locally
+  - This is the unjailed installation prefix
+  - If it does not exist, the directory structure is created
+
+- Now it transfers (by copying) the jailed installation to the final deployment prefix.
+  - Transfer is done using rsync - see BuildManager.perform_rsync() )
+
+- As a preparation step, it ensures the destination directory on the CI master server exists
+  - This is necessary as RSync is unable to handle creating the directory it is delivering into
+  - A separate command is used to compensate for this.
+  - The command is found in the build configuration - General section, key createRemotePathCommand
+  - The macro {remotePath} in the command will be expanded to the full directory path on the CI master server
+  - The directory path on the CI master server is determined using BuildManager.project_prefix()
+
+- Finally it actually transfers a copy of the final deployment to the CI master server
+  - This transfer is done using rsync - see BuildManager.perform_rsync()
+
+* Code for this can be found at BuildManager.deploy_build() in kdecilib.py
+
+== Step 11: Execute tests
+- This is only supported for CTest. Other frameworks for running tests are not supported.
+- It begins by generating a set of runtime environment variables, used for running all subsequent commands in this step.
+  - See "build-environment.txt" for details on the differences.
+
+- First, it determines whether testing procedures need to be run, by obtaining a count of the number of tests available
+  - This is done by running a command in the build directory and parsing it's output.
+  - The command is found in the build configuration - Test section, key ctestCountTestsCommand
+  - If the count is 0 then the process stops at this point
+
+- It also checks to see if execution of tests is enabled by the configuration
+  - This is controlled by the build configuration - Test section, key testsEnabled
+  - Possible values are True and False. Set by the global configuration to True.
+  - Tests would be disabled for a project where they are completely broken, or are abusing system resources (taking too long, etc)
+  - If tests are disabled, then the process also stops at this point
+
+- If the process was stopped due to no tests being present, or test execution being disabled:
+  - A dummy JUnit format success file will be copied to {buildDirectory}/JUnitTestResults.xml
+  - This is done to keep Jenkins happy - otherwise it will report a build failure when it goes to parse the results.
+  - The file is copied from templates/JUnitTestResults-Success.xml
+
+- Now it proceeds to setup a testing environment.
+  - All commands and variables in this section come from the build configuration - section Test.
+  - The environment variable DISPLAY is defined from the key xvfbDisplayName
+  - Starts Xvfb with the command in the key xvfbCommand
+  - Starts a window manager using the command in the key wmCommand
+  - Launches a D-Bus session bus
+    - Uses the command in the key dbusLaunchCommand
+    - Parses the output of this to extract the environment variables it sets, and sets those in the testing environment
+  - Invokes kbuildsycoca using the command in the key kbuildsycocaCommand
+  - Starts kdeinit and Nepomuk, using the commands in the keys kdeinitCommand and nepomukCommand
+  - Finally, it sleeps for the time specified in key kdeStartupWait to ensure everything is ready to go
+
+- The testing process itself now begins
+  - CTest is invoked using the command in the build configuration - Test section, key ctestRunCommand
+  - To prevent system abuse, a time limit is passed to CTest using the --timeout option ( specified as a number of seconds ).
+    Found in the build configuration - Test section, key testTimePermitted
+  - This same time limit is also used in a watchdog within the scripts.
+    - This is to prevent CTest from failing to observe the limit, which some tests can cause it to do.
+    - It will allow CTest to run for: ( number of tests found + 2 ) * time permitted per test
+    - Any execution cycle longer than this will cause CTest to be killed.
+      A dummy complete test failure result from templates/JUnitTestResults-Failure.xml will be used if this occurs.
+      The test process will then be ended at this point.
+
+- With testing now completed, the CTest XML output will now be converted into JUnit format for Jenkins to interpret
+  - This is done by BuildManager.convert_ctest_to_junit() using a XSLT file.
+  - The result will be stored in {buildDirectory}/JUnitTestResults.xml
+
+- Finally, it will cleanup by killing all processes it started.
+  - It uses a command in the build configuration - section Test, key terminateTestEnvCommand - to do the majority of this
+  - It will issue a terminate signal to the window manager and Xvfb itself.
+
+* Code for this can be found at BuildManager.execute_tests() in kdecilib.py
+
+== Step 12: Execute cppcheck
+- In order for this to be performed, it must be enabled in the build configuration:
+  - Located in the QualityCheck section, key runCppcheck
+  - Accepted values are True and False. Set to False by the global configuration.
+  - It is also disabled if the project uses an in-source build directory.
+
+- cppcheck itself is then run:
+  - The command is sourced from the build configuration - QualityCheck section, key cppcheckCommand
+  - Any of the following macros will be expanded in this command:
+    {cpuCount} - The logical processor count on this system
+    {sources} - Absolute path to the directory containing the sources
+    {buildDirectory} - Absolute path to the directory where the build was carried out
+  - The command will then be executed. <stdout> will be redirected to {buildDirectory}/cppcheck.xml which will later be parsed by Jenkins
+
+* Code for this can be found at BuildManager.execute_cppcheck() in kdecilib.py
+
+== Step 13: Execute LCOV
+- In order for this to have any useful effect, the project must have been compiled appropriately.
+  - This can usually be done with a CMake project by setting -DCMAKE_BUILD_TYPE to Profile
+  - See cmakeBuildType in Step #7 for more information on doing this within the build configuration
+
+- To integrate with Jenkins. gcovr is used to perform the processing, producing data in Cobertura format
+  - The command used is found in the section QualityCheck, key gcovrCommand
+  - It will always be executed for all projects, however is useless unless compiled properly per above.
+  - The generated report is stored at {buildDirectory}/CoberturaLcovResults.xml
+
+* Code for this can be found at BuildManager.generate_lcov_data_in_cobertura_format() in kdecilib.py
+
+== Step 14: Extract Dependency Information
+- This step is specific to KDE Frameworks 5 projects, however could theoretically be used by other projects as well
+- It will always be executed for all projects
+- Failure of this step will be ignored, and is not taken into consideration for the final result
+* Code for this can be found at BuildManager.extract_dependency_information() in kdecilib.py
