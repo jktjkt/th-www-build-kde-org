@@ -20,7 +20,7 @@ general/shared-desktop-ontologies: -qt5
 # KDE Frameworks
 frameworks/kauth: kdesupport/polkit-qt-1
 kde/*: general/kdesupport-svn
-kde/kde-workspace: general/libdbusmenu-qt
+kde/workspace/plasma-workspace: general/libdbusmenu-qt
 
 # Extragear
 extragear/multimedia/plasma-mediacenter: general/qxorm
