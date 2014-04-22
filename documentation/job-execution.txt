@@ -303,6 +303,7 @@
 
 - To integrate with Jenkins. gcovr is used to perform the processing, producing data in Cobertura format
   - The command used is found in the section QualityCheck, key gcovrCommand
+  - To discard some directories or files from being scanned, use gcovrExtraArgs field.
   - It will always be executed for all projects, however is useless unless compiled properly per above.
   - The generated report is stored at {buildDirectory}/CoberturaLcovResults.xml
 

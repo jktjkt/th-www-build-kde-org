@@ -86,6 +86,7 @@
 - runCppcheck: Boolean (True/False) controlling whether cppcheck should be run
 - cppcheckCommand: Command used to perform the cppcheck testing
 - covBuildCommand: Reserved for future use - Coverity integration.
+- gcovrExtraArgs: Extra arguments to pass to gcovr (mainly to exclude some unwanted directories).
 - gcovrCommand: Command used to invoke gcovr - necessary for coverage testing.
 
 == Possible entries - DependencyInformation section
