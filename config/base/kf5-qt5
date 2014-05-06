@@ -22,9 +22,6 @@ frameworks/kauth: kdesupport/polkit-qt-1
 kde/*: general/kdesupport-svn
 kde/workspace/plasma-workspace: general/libdbusmenu-qt
 
-# Extragear
-extragear/multimedia/plasma-mediacenter: general/qxorm
-
 # Playground/Network
 playground/network/sflphone-kde[master]: -kde/kdelibs
 playground/network/sflphone-kde[master]: -kde/kdepimlibs
