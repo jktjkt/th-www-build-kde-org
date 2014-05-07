@@ -43,6 +43,8 @@
 - remoteHostPrefix: Provides the prefix used by RSync to transfer builds to the master CI server. 
 - rsyncCommand: Holds the full command used to invoke rsync, including arguments.
 - createRemotePathCommand: Holds the full command used to create directories on the master CI server.
+- listPerlIncludeDirsCommand: Holds the full command used to list directories where Perl modules can be found.
+- extraPrefix: Directories to add to search paths e.g. PATH, PERL5LIB, LD_LIBRARY_PATH... (colon separated list).
 
 == Possible entries - Source section
 - alwaysCheckoutSources: Controls whether the scripts should always run the appropriate checkout command (normally skipped)

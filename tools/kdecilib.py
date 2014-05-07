@@ -318,6 +318,32 @@ class BuildManager(object):
 		self.dependencies = project.determine_dependencies( self.branchGroup )
 		# We set the installPrefix now for convenience access elsewhere
 		self.installPrefix = self.project_prefix( self.project )
+	    # Get python running version (used to set PYTHONPATH)
+	    self.pythonVersion = sys.version[:3].split(' ')[0]
+	    # Get perl module path installation (used to set PERL5LIB)
+	    self.perlSuffixes = self.find_perl_suffixes()
+	    # Set libraryPathVariable containing variable name used to manage dynamic library loading
+	    if sys.platform == 'darwin':
+	        self.libraryPathVariable = 'DYLD_LIBRARY_PATH'
+	    else:
+	        self.libraryPathVariable = 'LD_LIBRARY_PATH'
+
+	def find_perl_suffixes(self):
+	    suffixes = []
+	    # regexp = path containing /lib/, /lib32/ or /lib64/
+	    regexp = '.*/lib[0-9]*/(.*)[\n]'
+	    compiledRegexp = re.compile(regexp)
+	    # run listPerlIncludeDirsCommand which will display current paths where to find PERL module
+	    command = self.config.get('General', 'listPerlIncludeDirsCommand')
+	    process = subprocess.Popen( shlex.split(command), stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+	    process.wait()
+	    # Parse command output (1 directory per line)
+	    for variable in process.stdout:
+	        result = compiledRegexp.match(variable)
+	        if result is not None:
+	            # just keep path endings (i.e. path remaining after '/lib' pattern)
+	            suffixes.append(result.group(1))
+	    return suffixes
 
 	# Determine the proper prefix (either local or remote) where a project is installed
 	def project_prefix(self, project, local = True, includeHost = True, section = 'General'):
@@ -422,6 +448,13 @@ class BuildManager(object):
 		# Turn the list of requirements into a list of prefixes
 		reqPrefixes = [self.project_prefix( requirement ) for requirement, requirementBranch in requirements]
 
+	    # Append prefix(es) found in extraPrefix variable
+	    if self.config.has_option('General', 'extraPrefix'):
+	        extraPrefixes = self.config.get('General', 'extraPrefix')
+	        for extraPrefix in extraPrefixes.split(':')
+	            if os.path.exists(extraPrefix):
+	                reqPrefixes.append(extraPrefix)
+
 		# For runtime, we need to add ourselves as well
 		# We add the local install/ root so this will work properly even if it has not been deployed
 		if runtime:
@@ -450,7 +483,7 @@ class BuildManager(object):
 				# Do LD_LIBRARY_PATH
 				extraLocation = os.path.join( reqPrefix, libraryDirName )
 				if os.path.exists( extraLocation ):
-					envChanges['LD_LIBRARY_PATH'].append(extraLocation)
+					envChanges[self.libraryPathVariable].append(extraLocation)
 
 				# Now do PKG_CONFIG_PATH
 				extraLocation = os.path.join( reqPrefix, libraryDirName, 'pkgconfig' )
@@ -458,14 +491,15 @@ class BuildManager(object):
 					envChanges['PKG_CONFIG_PATH'].append(extraLocation)
 
 				# Now we check PYTHONPATH
-				extraLocation = os.path.join( reqPrefix, libraryDirName, 'python2.7/site-packages' )
+				extraLocation = os.path.join( reqPrefix, libraryDirName, 'python' + self.pythonVersion + '/site-packages' )
 				if os.path.exists( extraLocation ):
 					envChanges['PYTHONPATH'].append(extraLocation)
 
-				# Next is PERL5LIB
-				extraLocation = os.path.join( reqPrefix, libraryDirName, 'perl5/site_perl/5.16.2/x86_64-linux-thread-multi/' )
-				if os.path.exists( extraLocation ):
-					envChanges['PERL5LIB'].append(extraLocation)
+	            # Next is PERL5LIB
+	            for perlSuffix in self.perlSuffixes:
+	                extraLocation = os.path.join( reqPrefix, libraryDirName, perlSuffix )
+	                if os.path.exists( extraLocation ):
+	                    envChanges['PERL5LIB'].append(extraLocation)
 
 				# Next up is QT_PLUGIN_PATH
 				for pluginDirName in ['qt4/plugins', 'kde4/plugins', 'plugins', 'qca']:
@@ -729,14 +763,17 @@ class BuildManager(object):
 			# All done
 			return
 
-		# Setup Xvfb
-		runtimeEnv['DISPLAY'] = self.config.get('Test', 'xvfbDisplayName')
-		command = self.config.get('Test', 'xvfbCommand')
-		xvfbProcess = subprocess.Popen( shlex.split(command), stdout=open(os.devnull, 'w'), stderr=subprocess.STDOUT, env=runtimeEnv )
+	    # Spawn a base user interface if needed
+	    if self.use_xorg_environment():
+	        # Setup Xvfb
+	        runtimeEnv['DISPLAY'] = self.config.get('Test', 'xvfbDisplayName')
+	        command = self.config.get('Test', 'xvfbCommand')
+	        xvfbProcess = subprocess.Popen( shlex.split(command), stdout=open(os.devnull, 'w'), stderr=subprocess.STDOUT, env=runtimeEnv )
 
-		# Startup a Window Manager
-		command = self.config.get('Test', 'wmCommand')
-		wmProcess = subprocess.Popen( shlex.split(command), stdout=open(os.devnull, 'w'), stderr=subprocess.STDOUT, env=runtimeEnv )
+	        # Startup a Window Manager
+	        command = self.config.get('Test', 'wmCommand')
+	        wmProcess = subprocess.Popen( shlex.split(command), stdout=open(os.devnull, 'w'), stderr=subprocess.STDOUT, env=runtimeEnv )
+
 
 		# Startup D-Bus and ensure the environment is adjusted
 		command = self.config.get('Test', 'dbusLaunchCommand')
@@ -798,8 +835,9 @@ class BuildManager(object):
 		# All finished, shut everyone down
 		command = self.config.get('Test', 'terminateTestEnvCommand')
 		subprocess.Popen( shlex.split(command) )
-		wmProcess.terminate()
-		xvfbProcess.terminate()
+	    if self.use_xorg_environment():
+	        wmProcess.terminate()
+	        xvfbProcess.terminate()
 
 	def convert_ctest_to_junit(self, buildDirectory):
 		# Where is the base prefix for all test data for this project located?
@@ -884,6 +922,13 @@ class BuildManager(object):
 		# Now we need to transfer the data to it's final home, so it can be picked up by the API generation runs
 		serverPath = self.project_prefix( self.project, local=False, section='DependencyInformation' )
 		return self.perform_rsync( source=outputDirectory, destination=serverPath )
+
+	# Check if current process will require Xorg backend
+	# Currently only Linux platform will use Xorg backend
+	def use_xorg_environment(self):
+	    if sys.platform == 'linux2':
+		    return True
+		return False
 
 # Loads a configuration for a given project
 def load_project_configuration( project, branchGroup, platform, variation = None ):
