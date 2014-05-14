@@ -9,7 +9,7 @@ parser.add_argument('--project', type=str, required=True)
 parser.add_argument('--branchGroup', type=str, required=True)
 parser.add_argument('--sources', type=str, required=True)
 parser.add_argument('--variation', type=str)
-parser.add_argument('--platform', type=str, choices=['linux64-g++', 'darwin-mavericks'], default='linux64-g++')
+parser.add_argument('--platform', type=str, choices=['linux64-g++', 'darwin-mavericks', 'windows-mingw-w64'], default='linux64-g++')
 arguments = parser.parse_args()
 
 # Load our configuration, projects and dependencies

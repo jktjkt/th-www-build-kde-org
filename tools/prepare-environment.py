@@ -10,7 +10,7 @@ parser.add_argument('--project', type=str)
 parser.add_argument('--branchGroup', type=str, default='latest-qt4')
 parser.add_argument('--sources', type=str)
 parser.add_argument('--delay', type=int, default=10)
-parser.add_argument('--platform', type=str, choices=['linux64-g++', 'darwin-mavericks'], default='linux64-g++')
+parser.add_argument('--platform', type=str, choices=['linux64-g++', 'darwin-mavericks', 'windows-mingw-w64'], default='linux64-g++')
 
 # Parse the arguments
 environmentArgs = check_jenkins_environment()
