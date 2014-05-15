@@ -17,6 +17,18 @@ import multiprocessing
 from lxml import etree
 from collections import defaultdict
 
+def localAwareJoin(local, *p):
+	if local:
+		return os.path.join(*p)
+	else:
+		return "/".join(p)
+
+def makeRelativeLocation(path):
+	if sys.platform == "win32":
+		return path[3:]
+	else:
+		return path[1:]
+
 class ProjectManager(object):
 	# Projects which we know, keyed by their identifier
 	_projects = {}
@@ -359,10 +371,10 @@ class BuildManager(object):
 
 		# Do we have a proper Project instance which is not a shared dependency?
 		if isinstance(project, Project) and not project.sharedDependency:
-			return os.path.join( prefix, self.branchGroup, project.path, 'inst' )
+			return localAwareJoin( local, prefix, self.branchGroup, project.path, 'inst' )
 		# Maybe we have a proper Project instance which is a shared dependency?
 		elif isinstance(project, Project) and project.sharedDependency:
-			return os.path.join( prefix, 'shared', project.path )
+			return localAwareJoin( local, prefix, 'shared', project.path )
 		# Final last-ditch fallback (should not happen)
 		else:
 			return os.path.join( prefix, self.branchGroup, project )
@@ -379,6 +391,11 @@ class BuildManager(object):
 		# Get the rsync command
 		rsyncCommand = self.config.get('General', 'rsyncCommand')
 		rsyncCommand = shlex.split( rsyncCommand )
+
+		# If we have a Linux destination, but a Windows source we have to specify the permissions to be used
+		if source[1] == ':' and not destination[1] == ':':
+			rsyncCommand.append("--chmod=Du=rwx,Dgo=rx,Fu=rw,Fgo=r")
+
 		# Add the source and destination to our arguments
 		rsyncCommand.append( source + '/' )
 		rsyncCommand.append( destination )
@@ -406,7 +423,7 @@ class BuildManager(object):
 			# {sources} = Base directory where the project sources are located
 			# {loadLevel} = The desired maxmium load level during the build
 			# {jobCount} = The appropriate number of jobs which should be started during a build
-			command = command.format( instPrefix=self.installPrefix, sources=self.projectSources, loadLevel=cpuCount, jobCount=cpuCount + 1 )
+			command = command.format( instPrefix=self.installPrefix.replace("\\", "/"), sources=self.projectSources.replace("\\", "/"), loadLevel=cpuCount, jobCount=cpuCount + 1 )
 			command = shlex.split( command )
 
 			# Execute the command which is part of the build execution process
@@ -451,18 +468,24 @@ class BuildManager(object):
 		# Turn the list of requirements into a list of prefixes
 		reqPrefixes = [self.project_prefix( requirement ) for requirement, requirementBranch in requirements]
 
+		# Determine what character joins together environment variables
+		if sys.platform == "win32":
+			splitChar = ';'
+		else:
+			splitChar = ':'
+
 		# We need to include any prefixes specified in our configuration
 		# These may contain extra items not supplied by the base system and installed separately (MySQL outside OSS operating systems for instance)
 		if self.config.has_option('General', 'extraPrefix'):
 			extraPrefixes = self.config.get('General', 'extraPrefix')
-			for extraPrefix in extraPrefixes.split(':'):
+			for extraPrefix in extraPrefixes.split(splitChar):
 				if os.path.exists(extraPrefix):
 					reqPrefixes.append(extraPrefix)
 
 		# For runtime, we need to add ourselves as well
 		# We add the local install/ root so this will work properly even if it has not been deployed
 		if runtime:
-			localInstall = os.path.join( self.projectSources, 'install', self.installPrefix[1:] )
+			localInstall = os.path.join( self.projectSources, 'install', makeRelativeLocation(self.installPrefix) )
 			reqPrefixes.append( localInstall )
 
 		# Generate the environment
@@ -552,10 +575,10 @@ class BuildManager(object):
 		clonedEnv = copy.deepcopy(os.environ.__dict__['data'])
 		for variableName, variableEntries in envChanges.iteritems():
 			# Join them
-			newEntry = ':'.join( variableEntries )
+			newEntry = splitChar.join( variableEntries )
 			# If the variable already exists in the system environment, we prefix ourselves on
 			if variableName in clonedEnv:
-				newEntry = '%s:%s' % (newEntry, clonedEnv[variableName])
+				newEntry = '%s%s%s' % (newEntry, splitChar, clonedEnv[variableName])
 			# Set the variable into our cloned environment
 			clonedEnv[variableName] = newEntry
 
@@ -715,7 +738,7 @@ class BuildManager(object):
 
 		# Do we need to run update-mime-database?
 		buildEnv = self.generate_environment()
-		installRoot = os.path.join( self.projectSources, 'install', self.installPrefix[1:] )
+		installRoot = os.path.join( self.projectSources, 'install', makeRelativeLocation(self.installPrefix) )
 		mimeDirectory = os.path.join( installRoot, 'share', 'mime' )
 		if os.path.exists( mimeDirectory ):
 			# Invoke update-mime-database
@@ -735,7 +758,7 @@ class BuildManager(object):
 			os.makedirs( self.installPrefix )
 
 		# First we have to transfer the install from the "install root" to the actual install location
-		sourcePath = os.path.join( self.projectSources, 'install', self.installPrefix[1:] )
+		sourcePath = os.path.join( self.projectSources, 'install', makeRelativeLocation(self.installPrefix) )
 		if not self.perform_rsync( source=sourcePath, destination=self.installPrefix ):
 			return False
 
@@ -778,13 +801,15 @@ class BuildManager(object):
 			command = self.config.get('Test', 'wmCommand')
 			wmProcess = subprocess.Popen( shlex.split(command), stdout=open(os.devnull, 'w'), stderr=subprocess.STDOUT, env=runtimeEnv )
 
-		# Startup D-Bus and ensure the environment is adjusted
-		command = self.config.get('Test', 'dbusLaunchCommand')
-		process = subprocess.Popen( shlex.split(command), stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=runtimeEnv )
-		process.wait()
-		for variable in process.stdout:
-			 splitVars = variable.split('=', 1)
-			 runtimeEnv[ splitVars[0] ] = splitVars[1].strip()
+		# Spawn D-Bus if we need to...
+		if sys.platform <> "win32":
+			# Startup D-Bus and ensure the environment is adjusted
+			command = self.config.get('Test', 'dbusLaunchCommand')
+			process = subprocess.Popen( shlex.split(command), stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=runtimeEnv )
+			process.wait()
+			for variable in process.stdout:
+				 splitVars = variable.split('=', 1)
+				 runtimeEnv[ splitVars[0] ] = splitVars[1].strip()
 
 		# Rebuild the Sycoca
 		command = self.config.get('Test', 'kbuildsycocaCommand')
@@ -835,9 +860,12 @@ class BuildManager(object):
 		with open(junitFilename, 'w') as junitFile:
 			junitFile.write( str(junitOutput) )
 
-		# All finished, shut everyone down
-		command = self.config.get('Test', 'terminateTestEnvCommand')
-		subprocess.Popen( shlex.split(command) )
+		# Tidy up all the other processes if we can
+		if sys.platform <> "win32":
+			command = self.config.get('Test', 'terminateTestEnvCommand')
+			subprocess.Popen( shlex.split(command) )
+
+		# Shutdown the X processes too
 		if self.use_xorg_environment():
 			wmProcess.terminate()
 			xvfbProcess.terminate()
@@ -909,7 +937,7 @@ class BuildManager(object):
 
 		# Prepare to execute depdiagram-prepare
 		command = self.config.get('DependencyInformation', 'extractionCommand')
-		command = command.format( sources=self.projectSources, outputDir=outputDirectory )
+		command = command.format( sources=self.projectSources.replace("\\", "/"), outputDir=outputDirectory.replace("\\", "/") )
 		command = shlex.split(command)
 
 		# Run depdiagram-prepare to extract the dependency information in *.dot format
