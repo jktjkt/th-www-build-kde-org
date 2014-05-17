@@ -338,6 +338,8 @@ class BuildManager(object):
 		# Determine the name of the variable used to influence the library loader search path
 		if sys.platform == 'darwin':
 			self.libraryPathVariable = 'DYLD_LIBRARY_PATH'
+		else if sys.platform == 'win32':
+			self.libraryPathVariable = 'PATH'
 		else:
 			self.libraryPathVariable = 'LD_LIBRARY_PATH'
 
