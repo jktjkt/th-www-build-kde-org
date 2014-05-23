@@ -411,7 +411,7 @@ class BuildManager(object):
 		# Prepare, and load parameters we will need later
 		cpuCount = multiprocessing.cpu_count()
 		buildDirectory = self.build_directory()
-		installPath = os.path.join( self.projectSources, 'install' )
+		installPath = os.path.join( self.projectSources, 'local-inst' )
 
 		# Prepare the environment
 		# We need to ensure that 'make install' will deploy to the appropriate directory
@@ -487,7 +487,7 @@ class BuildManager(object):
 		# For runtime, we need to add ourselves as well
 		# We add the local install/ root so this will work properly even if it has not been deployed
 		if runtime:
-			localInstall = os.path.join( self.projectSources, 'install', makeRelativeLocation(self.installPrefix) )
+			localInstall = os.path.join( self.projectSources, 'local-inst', makeRelativeLocation(self.installPrefix) )
 			reqPrefixes.append( localInstall )
 
 		# Generate the environment
@@ -740,7 +740,7 @@ class BuildManager(object):
 
 		# Do we need to run update-mime-database?
 		buildEnv = self.generate_environment()
-		installRoot = os.path.join( self.projectSources, 'install', makeRelativeLocation(self.installPrefix) )
+		installRoot = os.path.join( self.projectSources, 'local-inst', makeRelativeLocation(self.installPrefix) )
 		mimeDirectory = os.path.join( installRoot, 'share', 'mime' )
 		if os.path.exists( mimeDirectory ):
 			# Invoke update-mime-database
@@ -760,7 +760,7 @@ class BuildManager(object):
 			os.makedirs( self.installPrefix )
 
 		# First we have to transfer the install from the "install root" to the actual install location
-		sourcePath = os.path.join( self.projectSources, 'install', makeRelativeLocation(self.installPrefix) )
+		sourcePath = os.path.join( self.projectSources, 'local-inst', makeRelativeLocation(self.installPrefix) )
 		if not self.perform_rsync( source=sourcePath, destination=self.installPrefix ):
 			return False
 
