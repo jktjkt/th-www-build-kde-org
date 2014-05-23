@@ -804,7 +804,7 @@ class BuildManager(object):
 			wmProcess = subprocess.Popen( shlex.split(command), stdout=open(os.devnull, 'w'), stderr=subprocess.STDOUT, env=runtimeEnv )
 
 		# Spawn D-Bus if we need to...
-		if sys.platform <> "win32":
+		if self.platform_uses_dbus():
 			# Startup D-Bus and ensure the environment is adjusted
 			command = self.config.get('Test', 'dbusLaunchCommand')
 			process = subprocess.Popen( shlex.split(command), stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=runtimeEnv )
@@ -863,7 +863,7 @@ class BuildManager(object):
 			junitFile.write( str(junitOutput) )
 
 		# Tidy up all the other processes if we can
-		if sys.platform <> "win32":
+		if self.platform_uses_dbus():
 			command = self.config.get('Test', 'terminateTestEnvCommand')
 			subprocess.Popen( shlex.split(command) )
 
@@ -964,6 +964,15 @@ class BuildManager(object):
 
 		# Assume everything else does not (Mac and Windows for instance)
 		return False
+
+	# Check if the current platform we are running on should be using D-Bus
+	def platform_uses_dbus(self):
+		# Windows and Mac do not
+		if sys.platform == 'win32' or sys.platform == 'darwin':
+			return False
+
+		# Assume everything else does
+		return True
 
 # Loads a configuration for a given project
 def load_project_configuration( project, branchGroup, platform, variation = None ):
