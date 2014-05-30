@@ -1,5 +1,6 @@
 # Everything needs CMake, Qt and Automoc
 *: general/cmake
+*: general/dogtail
 *: qt
 *: kdesupport/automoc
 
@@ -7,6 +8,7 @@
 qt: -kdesupport/automoc
 
 # General dependencies
+general/*: -general/dogtail
 general/*: -kdesupport/automoc
 general/cmake: -qt
 general/libssh: -qt

@@ -1,5 +1,6 @@
 # Everything needs CMake, Qt 5 and Extra CMake Modules
 *: general/cmake
+*: general/dogtail
 *: qt5
 *: kdesupport/extra-cmake-modules
 
@@ -7,6 +8,7 @@
 qt5: -kdesupport/extra-cmake-modules
 
 # General dependencies
+general/*: -general/dogtail
 general/*: -kdesupport/extra-cmake-modules
 general/cmake: -qt5
 general/libssh: -qt5
