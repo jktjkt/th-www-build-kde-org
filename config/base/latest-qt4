@@ -41,6 +41,7 @@ kde/kdepim-runtime: general/libkolab
 kde/kdegraphics/okular: general/poppler
 kde/kdebindings/pykde4: general/pyqt4
 kde/applications/kate: general/qjson
+kde/kdeedu/kstars: general/qjson
 
 # Calligra
 calligra: general/vc
