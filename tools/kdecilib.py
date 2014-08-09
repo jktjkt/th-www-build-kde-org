@@ -154,9 +154,16 @@ class ProjectManager(object):
 			# Determine which project is being assigned the dependency
 			projectName = match.group('project').lower()
 			project = ProjectManager.lookup( projectName )
-			# Validate it (if the project lookup failed and it is not dynamic, it must be invalid)
+			# Validate it (if the project lookup failed and it is not dynamic, then it is a virtual dependency)
 			if project == None and projectName[-1] != '*':
-				continue
+				# Create the virtual dependency
+				project = Project()
+				project.path = projectName
+				# Generate an identifier for it
+				splitted = projectName.split('/')
+				project.identifier = splitted[-1]
+				# Now register it - we can continue normally after this
+				ProjectManager._projects[ project.identifier ] = project
 
 			# Ensure we know the dependency - if it is marked as "ignore" then we skip this
 			dependencyName = match.group('dependency').lower()
