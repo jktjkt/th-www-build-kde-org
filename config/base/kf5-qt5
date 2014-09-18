@@ -21,7 +21,11 @@ general/shared-desktop-ontologies: -qt5
 
 # KDE Frameworks
 frameworks/kauth: kdesupport/polkit-qt-1
+frameworks/ktexteditor: general/libgit2
+
+# KDE Workspaces
 kde/*: general/kdesupport-svn
+kde/applications/kate: general/libgit2
 kde/workspace/plasma-workspace: general/libdbusmenu-qt
 
 # Extragear
