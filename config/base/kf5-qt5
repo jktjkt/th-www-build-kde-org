@@ -29,6 +29,7 @@ kde/applications/kate: general/libgit2
 kde/workspace/plasma-workspace: general/libdbusmenu-qt
 
 # Extragear
+extragear/kdevelop/kdevplatform: general/grantlee
 extragear/multimedia/plasma-mediacenter: general/mockcpp
 
 # Playground/Network
