@@ -985,7 +985,7 @@ class BuildManager(object):
 
 		# Now we need to transfer the data to it's final home, so it can be picked up by the API generation runs
 		serverPath = self.config.get('CMakeDependencyMetadata', 'remoteHostPrefix')
-		return self.perform_rsync( source=outputDirectory, destination=serverPath )
+		return self.perform_rsync( source=metadataPath, destination=serverPath )
 
 	# Check if the current platform we are running on needs an X environment
 	def use_xorg_environment(self):
