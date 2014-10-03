@@ -970,16 +970,16 @@ class BuildManager(object):
 
 		# Get the file we will be storing the resulting JSON in
 		metadataPath = self.config.get('CMakeDependencyMetadata', 'localPrefix')
-		metadataFile = self.config.get('CMakeDependencyMetadata', 'metadataFilename')
-		metadataFile = metaFilename.format( project=self.project.identifier, branchGroup=self.branchGroup )
-		metadataFile = os.path.join( metadataPath, metadataFilename )
+		metadataFilename = self.config.get('CMakeDependencyMetadata', 'metadataFilename')
+		metadataFilename = metadataFilename.format( project=self.project.identifier, branchGroup=self.branchGroup )
+		metadataFilename = os.path.join( metadataPath, metadataFile )
 
 		# Prepare to execute cmake-dependencies.py
 		command = self.config.get('CMakeDependencyMetadata', 'extractionCommand')
 		command = shlex.split(command)
 
 		# Run depdiagram-prepare to extract the dependency information in *.dot format
-		with open(metadataFile, 'w') as metadataOutput:
+		with open(metadataFilename, 'w') as metadataOutput:
 			process = subprocess.Popen( command, stdout=metadataOutput, stderr=metadataOutput, env=runtimeEnv, cwd=buildDirectory )
 			process.wait()
 
