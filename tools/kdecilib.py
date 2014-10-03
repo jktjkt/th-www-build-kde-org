@@ -963,6 +963,30 @@ class BuildManager(object):
 		serverPath = self.project_prefix( self.project, local=False, section='DependencyInformation' )
 		return self.perform_rsync( source=outputDirectory, destination=serverPath )
 
+	def extract_cmake_dependency_metadata(self):
+		# Prepare our execution parameters
+		runtimeEnv = self.generate_environment(runtime=True)
+		buildDirectory = os.path.join( self.projectSources, 'build' )
+
+		# Get the file we will be storing the resulting JSON in
+		metadataPath = self.config.get('CMakeDependencyMetadata', 'localPrefix')
+		metadataFile = self.config.get('CMakeDependencyMetadata', 'metadataFilename')
+		metadataFile = metaFilename.format( project=self.project.identifier, branchGroup=self.branchGroup )
+		metadataFile = os.path.join( metadataPath, metadataFilename )
+
+		# Prepare to execute cmake-dependencies.py
+		command = self.config.get('CMakeDependencyMetadata', 'extractionCommand')
+		command = shlex.split(command)
+
+		# Run depdiagram-prepare to extract the dependency information in *.dot format
+		with open(metadataFile, 'w') as metadataOutput:
+			process = subprocess.Popen( command, stdout=metadataOutput, stderr=metadataOutput, env=runtimeEnv, cwd=buildDirectory )
+			process.wait()
+
+		# Now we need to transfer the data to it's final home, so it can be picked up by the API generation runs
+		serverPath = self.config.get('CMakeDependencyMetadata', 'remoteHostPrefix')
+		return self.perform_rsync( source=outputDirectory, destination=serverPath )
+
 	# Check if the current platform we are running on needs an X environment
 	def use_xorg_environment(self):
 		# Linux systems use Xorg

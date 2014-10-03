@@ -72,3 +72,18 @@ pushd ${JENKINS_SLAVE_HOME}/kapidox
 	git merge --ff-only origin/master
 )
 popd
+
+# Drag in developer tools as well, as we use those for another form of dependency data extraction....
+if [ ! -d ${JENKINS_SLAVE_HOME}/kde-dev-scripts ]; then
+	mkdir -p ${JENKINS_SLAVE_HOME}/kde-dev-scripts
+fi
+pushd ${JENKINS_SLAVE_HOME}/kde-dev-scripts
+(
+	if [ ! -d ".git" ]; then
+		git clone git://anongit.kde.org/kde-dev-scripts .
+	fi
+	git fetch origin
+	git checkout master
+	git merge --ff-only origin/master
+)
+popd
