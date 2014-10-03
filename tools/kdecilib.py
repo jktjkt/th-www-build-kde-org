@@ -972,7 +972,7 @@ class BuildManager(object):
 		metadataPath = self.config.get('CMakeDependencyMetadata', 'localPrefix')
 		metadataFilename = self.config.get('CMakeDependencyMetadata', 'metadataFilename')
 		metadataFilename = metadataFilename.format( project=self.project.identifier, branchGroup=self.branchGroup )
-		metadataFilename = os.path.join( metadataPath, metadataFile )
+		metadataFilename = os.path.join( metadataPath, metadataFilename )
 
 		# Prepare to execute cmake-dependencies.py
 		command = self.config.get('CMakeDependencyMetadata', 'extractionCommand')
