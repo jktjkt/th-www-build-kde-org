@@ -81,5 +81,6 @@ manager.generate_lcov_data_in_cobertura_format()
 # Extract dependency data from CMake
 print "\n== Extracting dependency information from CMake\n"
 manager.extract_dependency_information()
+manager.extract_cmake_dependency_metadata()
 
 print "\n== Run Completed Successfully\n"
