@@ -964,27 +964,31 @@ class BuildManager(object):
 		return self.perform_rsync( source=outputDirectory, destination=serverPath )
 
 	def extract_cmake_dependency_metadata(self):
-		# Prepare our execution parameters
+		# Prepare to start work...
 		runtimeEnv = self.generate_environment(runtime=True)
 		buildDirectory = os.path.join( self.projectSources, 'build' )
+		serverPath = self.config.get('CMakeDependencyMetadata', 'remoteHostPrefix')
+		metadataPath = self.config.get('CMakeDependencyMetadata', 'localPrefix')
+
+		# Update the dependency metadata first
+		if not self.perform_rsync( source=serverPath, destination=metadataPath )
+			return False
 
 		# Get the file we will be storing the resulting JSON in
-		metadataPath = self.config.get('CMakeDependencyMetadata', 'localPrefix')
-		metadataFilename = self.config.get('CMakeDependencyMetadata', 'metadataFilename')
-		metadataFilename = metadataFilename.format( project=self.project.identifier, branchGroup=self.branchGroup )
-		metadataFilename = os.path.join( metadataPath, metadataFilename )
+		metaFilename = self.config.get('CMakeDependencyMetadata', 'metadataFilename')
+		metaFilename = metaFilename.format( project=self.project.identifier, branchGroup=self.branchGroup )
+		metaFilename = os.path.join( metadataPath, metaFilename )
 
-		# Prepare to execute cmake-dependencies.py
+		# Build up our command
 		command = self.config.get('CMakeDependencyMetadata', 'extractionCommand')
 		command = shlex.split(command)
 
 		# Run depdiagram-prepare to extract the dependency information in *.dot format
-		with open(metadataFilename, 'w') as metadataOutput:
+		with open(metaFilename, 'w') as metadataOutput:
 			process = subprocess.Popen( command, stdout=metadataOutput, stderr=metadataOutput, env=runtimeEnv, cwd=buildDirectory )
 			process.wait()
 
 		# Now we need to transfer the data to it's final home, so it can be picked up by the API generation runs
-		serverPath = self.config.get('CMakeDependencyMetadata', 'remoteHostPrefix')
 		return self.perform_rsync( source=metadataPath, destination=serverPath )
 
 	# Check if the current platform we are running on needs an X environment
