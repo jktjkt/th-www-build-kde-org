@@ -971,7 +971,7 @@ class BuildManager(object):
 		metadataPath = self.config.get('CMakeDependencyMetadata', 'localPrefix')
 
 		# Update the dependency metadata first
-		if not self.perform_rsync( source=serverPath, destination=metadataPath )
+		if not self.perform_rsync( source=serverPath, destination=metadataPath ):
 			return False
 
 		# Get the file we will be storing the resulting JSON in
