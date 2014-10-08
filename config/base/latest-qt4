@@ -64,6 +64,7 @@ extragear/sysadmin/muon: general/qoauth
 extragear/network/choqok: general/qjson
 extragear/network/choqok: general/qoauth
 extragear/multimedia/kamoso: general/qt-gstreamer
+extragear/multimedia/kdenlive: general/qjson
 extragear/office/skrooge: general/opencv
 extragear/office/tellico: general/poppler
 extragear/kdevelop/kdevplatform: general/qjson
