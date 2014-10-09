@@ -966,7 +966,7 @@ class BuildManager(object):
 	def extract_cmake_dependency_metadata(self):
 		# Prepare to start work...
 		runtimeEnv = self.generate_environment(runtime=True)
-		buildDirectory = os.path.join( self.projectSources, 'build' )
+		buildDirectory = self.build_directory()
 		serverPath = self.config.get('CMakeDependencyMetadata', 'remoteHostPrefix')
 		metadataPath = self.config.get('CMakeDependencyMetadata', 'localPrefix')
 
