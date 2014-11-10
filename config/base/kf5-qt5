@@ -26,6 +26,7 @@ frameworks/ktexteditor: general/libgit2
 # KDE Workspaces
 kde/*: general/kdesupport-svn
 kde/applications/kate: general/libgit2
+kde/applications/rocs: general/grantlee
 kde/workspace/plasma-workspace: general/libdbusmenu-qt
 
 # Extragear
