@@ -32,6 +32,7 @@ kde/workspace/plasma-workspace: general/libdbusmenu-qt
 # Extragear
 extragear/kdevelop/kdevplatform: general/grantlee
 extragear/multimedia/plasma-mediacenter: general/mockcpp
+extragear/network/telepathy/*: general/telepathy-qt5
 
 # Playground/Network
 playground/network/sflphone-kde[master]: -kde/kdelibs
