@@ -1,0 +1,40 @@
+# Everything needs CMake, Qt 5 and Extra CMake Modules
+*: general/cmake
+*: general/dogtail
+*: qt5
+*: kdesupport/extra-cmake-modules
+
+# Qt 5
+qt5: -kdesupport/extra-cmake-modules
+
+# General dependencies
+general/*: -general/dogtail
+general/*: -kdesupport/extra-cmake-modules
+general/cmake: -qt5
+general/libssh: -qt5
+general/gmock: -qt5
+general/libindi: -qt5
+general/libkolabxml: -qt5
+general/libssh: -qt5
+general/vc: -qt5
+general/shared-desktop-ontologies: -qt5
+
+# KDE Frameworks
+frameworks/kauth: kdesupport/polkit-qt-1
+frameworks/ktexteditor: general/libgit2
+
+# KDE Workspaces
+kde/*: general/kdesupport-svn
+kde/applications/kate: general/libgit2
+kde/applications/rocs: general/grantlee
+kde/workspace/plasma-workspace: general/libdbusmenu-qt
+
+# Extragear
+extragear/kdevelop/kdevplatform: general/grantlee
+extragear/multimedia/plasma-mediacenter: general/mockcpp
+extragear/network/telepathy/*: general/telepathy-qt5
+
+# Playground/Network
+playground/network/sflphone-kde[master]: -kde/kdelibs
+playground/network/sflphone-kde[master]: -kde/kdepimlibs
+playground/network/sflphone-kde[master]: kde/kdelibs[frameworks]
