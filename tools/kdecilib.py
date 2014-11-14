@@ -1089,7 +1089,7 @@ def check_jenkins_environment():
 		# Determine our branch group, based on the given branch/base combo
 		if jobMatch.group('base') == 'qt5':
 			if jobMatch.group('branch') == 'stable':
-				arguments.branchGroup = 'kf5-qt5-stable'
+				arguments.branchGroup = 'stable-kf5-qt5'
 			else:
 				arguments.branchGroup = 'kf5-qt5'
 		elif jobMatch.group('branch') == 'oldstable':
