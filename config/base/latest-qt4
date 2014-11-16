@@ -68,6 +68,8 @@ extragear/multimedia/kdenlive: general/qjson
 extragear/office/skrooge: general/opencv
 extragear/office/tellico: general/poppler
 extragear/kdevelop/kdevplatform: general/qjson
+extragear/office/kbibtex: general/qoauth
+extragear/office/kbibtex: general/poppler
 
 # Playground
 playground/edu/artikulate: general/qt-gstreamer
