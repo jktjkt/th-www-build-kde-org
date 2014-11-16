@@ -159,6 +159,7 @@ class ProjectManager(object):
 				# Create the virtual dependency
 				project = Project()
 				project.path = projectName
+				project.virtualDependency = True
 				# Generate an identifier for it
 				splitted = projectName.split('/')
 				project.identifier = splitted[-1]
@@ -222,6 +223,8 @@ class Project(object):
 		self.ignore = False
 		# We are not a shared dependency by default
 		self.sharedDependency = False
+		# We are not a virtual dependency by default either
+		self.virtualDependency = False
 		# We have no branches or symbolic branches
 		self.branches = []
 		self.branchGroups = {}
@@ -290,9 +293,9 @@ class Project(object):
 			for dependency, dependencyBranch in dynamicLookup:
 				ourDeps = ourDeps + dependency.determine_dependencies(branchGroup, includeSubDeps = True, checkDynamicDeps = False)
 
-		# Re-ensure the current project is not listed 
+		# Re-ensure the current project is not listed and that they are not virtual
 		# Dynamic dependency resolution of sub-dependencies may have re-added it
-		ourDeps = [(project, branch) for project, branch in ourDeps if project != self]
+		ourDeps = [(project, branch) for project, branch in ourDeps if project != self and not project.virtualDependency]
 
 		# Ensure we don't have any duplicates
 		return list(set(ourDeps))
