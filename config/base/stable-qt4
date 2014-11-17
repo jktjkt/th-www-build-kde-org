@@ -17,6 +17,7 @@ general/libindi: -qt
 general/libkolabxml: -qt
 general/libssh: -qt
 general/vc: -qt
+general/mockcpp: -qt
 general/libmygpo-qt: general/qjson
 general/shared-desktop-ontologies: -qt
 general/libkolab: general/libkolabxml
@@ -40,6 +41,7 @@ kde/kdepim-runtime: general/libkolab
 kde/kdegraphics/okular: general/poppler
 kde/kdebindings/pykde4: general/pyqt4
 kde/applications/kate: general/qjson
+kde/kdeedu/kstars: general/qjson
 
 # Calligra
 calligra: general/vc
@@ -52,6 +54,7 @@ extragear/multimedia/amarok: general/gmock
 extragear/multimedia/amarok: general/qjson
 extragear/multimedia/amarok: general/liblastfm
 extragear/multimedia/amarok: general/libmygpo-qt
+extragear/multimedia/plasma-mediacenter: general/mockcpp
 extragear/network/telepathy/*: general/telepathy-qt4
 extragear/network/telepathy/*: general/qt-gstreamer
 extragear/accessibility/simon: general/opencv
@@ -61,8 +64,12 @@ extragear/sysadmin/muon: general/qoauth
 extragear/network/choqok: general/qjson
 extragear/network/choqok: general/qoauth
 extragear/multimedia/kamoso: general/qt-gstreamer
+extragear/multimedia/kdenlive: general/qjson
 extragear/office/skrooge: general/opencv
+extragear/office/tellico: general/poppler
 extragear/kdevelop/kdevplatform: general/qjson
+extragear/office/kbibtex: general/qoauth
+extragear/office/kbibtex: general/poppler
 
 # Playground
 playground/edu/artikulate: general/qt-gstreamer
