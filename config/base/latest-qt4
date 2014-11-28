@@ -26,6 +26,7 @@ general/libkolab: kde/kdelibs
 general/libkolab: kde/kdepimlibs
 general/qoauth: kdesupport/qca
 general/kdesupport-svn: kdesupport/automoc
+general/libaccounts-qt: general/libaccounts-glib
 
 # KDE SC
 kde/*: general/kdesupport-svn
