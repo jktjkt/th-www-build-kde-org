@@ -419,6 +419,7 @@ class BuildManager(object):
 		rsyncCommand.append( source + '/' )
 		rsyncCommand.append( destination )
 		# Execute rsync and wait for it to finish
+		print '### %s' % rsyncCommand
 		process = subprocess.Popen( rsyncCommand, stdout=sys.stdout, stderr=sys.stderr )
 		process.wait()
 		# Indicate our success
@@ -447,6 +448,7 @@ class BuildManager(object):
 
 			# Execute the command which is part of the build execution process
 			try:
+				print '### %s' % (command,)
 				process = subprocess.check_call( command, stdout=sys.stdout, stderr=sys.stderr, cwd=buildDirectory, env=buildEnv )
 			except subprocess.CalledProcessError:
 				# Abort if it fails to complete
@@ -762,6 +764,7 @@ class BuildManager(object):
 		if os.path.exists( mimeDirectory ):
 			# Invoke update-mime-database
 			command = self.config.get('Build', 'updateMimeDatabaseCommand')
+			print '### (cwd: %s) %s' % (installRoot, command)
 			subprocess.call( shlex.split(command), stdout=sys.stdout, stderr=sys.stderr, cwd=installRoot, env=buildEnv )
 
 		# None of the commands failed, so assume we succeeded
@@ -784,6 +787,7 @@ class BuildManager(object):
 		# Next we ensure the remote directory exists
 		serverPath = self.project_prefix( self.project, local=False, includeHost=False )
 		command = self.config.get('General', 'createRemotePathCommand').format( remotePath=serverPath )
+		print '### %s' % (command,)
 		process = subprocess.Popen( shlex.split(command), stdout=sys.stdout, stderr=sys.stderr)
 		process.wait()
 
@@ -799,6 +803,7 @@ class BuildManager(object):
 
 		# Determine if we have tests to run....
 		command = self.config.get('Test', 'ctestCountTestsCommand')
+		print '### %s' % (command,)
 		process = subprocess.Popen( shlex.split(command), stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=runtimeEnv, cwd=buildDirectory)
 		stdout, stderr = process.communicate()
 		# Is it necessary to run tests? (tests must be enabled per configuration and CTest must report more than 1 test)
@@ -814,16 +819,19 @@ class BuildManager(object):
 			# Setup Xvfb
 			runtimeEnv['DISPLAY'] = self.config.get('Test', 'xvfbDisplayName')
 			command = self.config.get('Test', 'xvfbCommand')
+			print '### %s' % (command,)
 			xvfbProcess = subprocess.Popen( shlex.split(command), stdout=open(os.devnull, 'w'), stderr=subprocess.STDOUT, env=runtimeEnv )
 
 			# Startup a Window Manager
 			command = self.config.get('Test', 'wmCommand')
+			print '### %s' % (command,)
 			wmProcess = subprocess.Popen( shlex.split(command), stdout=open(os.devnull, 'w'), stderr=subprocess.STDOUT, env=runtimeEnv )
 
 		# Spawn D-Bus if we need to...
 		if self.platform_uses_dbus():
 			# Startup D-Bus and ensure the environment is adjusted
 			command = self.config.get('Test', 'dbusLaunchCommand')
+			print '### %s' % (command,)
 			process = subprocess.Popen( shlex.split(command), stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=runtimeEnv )
 			process.wait()
 			for variable in process.stdout:
@@ -833,6 +841,7 @@ class BuildManager(object):
 		# Rebuild the Sycoca
 		command = self.config.get('Test', 'kbuildsycocaCommand')
 		try:
+			print '### %s' % (command,)
 			process = subprocess.Popen( shlex.split(command), stdout=open(os.devnull, 'w'), stderr=subprocess.STDOUT, env=runtimeEnv )
 			process.wait()
 		except OSError:
@@ -842,7 +851,9 @@ class BuildManager(object):
 		kdeinitCommand = self.config.get('Test', 'kdeinitCommand')
 		nepomukCommand = self.config.get('Test', 'nepomukCommand')
 		try:
+			print '### %s' % (kdeinitCommand,)
 			subprocess.Popen( shlex.split(kdeinitCommand), stdout=open(os.devnull, 'w'), stderr=subprocess.STDOUT, env=runtimeEnv )
+			print '### %s' % (nepomukCommand,)
 			subprocess.Popen( shlex.split(nepomukCommand), stdout=open(os.devnull, 'w'), stderr=subprocess.STDOUT, env=runtimeEnv )
 		except OSError:
 			pass
@@ -852,6 +863,7 @@ class BuildManager(object):
 
 		# Execute CTest
 		command = self.config.get('Test', 'ctestRunCommand')
+		print '### %s' % (command,)
 		ctestProcess = subprocess.Popen( shlex.split(command), stdout=sys.stdout, stderr=sys.stderr, cwd=buildDirectory, env=runtimeEnv )
 
 		# Determine the maximum amount of time we will permit CTest to run for
@@ -882,6 +894,7 @@ class BuildManager(object):
 		# Tidy up all the other processes if we can
 		if self.platform_uses_dbus():
 			command = self.config.get('Test', 'terminateTestEnvCommand')
+			print '### %s' % (command,)
 			subprocess.Popen( shlex.split(command) )
 
 		# Shutdown the X processes too
@@ -934,6 +947,7 @@ class BuildManager(object):
 
 		# Run cppcheck and wait for it to finish
 		with open(cppcheckFilename, 'w') as cppcheckXml:
+			print '### %s' % (command,)
 			process = subprocess.Popen( command, stdout=sys.stdout, stderr=cppcheckXml, cwd=self.projectSources, env=runtimeEnv )
 			process.wait()
 
@@ -946,6 +960,7 @@ class BuildManager(object):
 
 		# Run gcovr to gather up the lcov data and present it in Cobertura format
 		with open(coberturaFile, 'w') as coberturaXml:
+			print '### %s' % (command,)
 			process = subprocess.Popen( command, stdout=coberturaXml, stderr=sys.stderr, cwd=self.projectSources )
 			process.wait()
 
@@ -960,12 +975,14 @@ class BuildManager(object):
 		command = shlex.split(command)
 
 		# Run depdiagram-prepare to extract the dependency information in *.dot format
+		print '### %s' % (command,)
 		process = subprocess.Popen( command, stdout=sys.stdout, stderr=sys.stderr, env=runtimeEnv )
 		process.wait()
 
 		# Next we ensure the remote directory exists
 		serverPath = self.project_prefix( self.project, local=False, includeHost=False, section='DependencyInformation' )
 		command = self.config.get('General', 'createRemotePathCommand').format( remotePath=serverPath )
+		print '### %s' % (command,)
 		process = subprocess.Popen( shlex.split(command), stdout=sys.stdout, stderr=sys.stderr)
 		process.wait()
 
@@ -995,6 +1012,7 @@ class BuildManager(object):
 
 		# Run depdiagram-prepare to extract the dependency information in *.dot format
 		with open(metaFilename, 'w') as metadataOutput:
+			print '### %s' % (command,)
 			process = subprocess.Popen( command, stdout=metadataOutput, stderr=metadataOutput, env=runtimeEnv, cwd=buildDirectory )
 			process.wait()
 
