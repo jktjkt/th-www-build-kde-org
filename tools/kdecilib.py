@@ -410,7 +410,7 @@ class BuildManager(object):
 
 	def install_path(self):
 		try:
-			return self.config.get('General', 'installPath')
+			return self.config.get('General', 'installPath').format(**os.environ)
 		except ConfigParser.NoOptionError:
 			return os.path.join( self.projectSources, 'local-inst' )
 
@@ -422,7 +422,7 @@ class BuildManager(object):
 
 		# Assume an out-of-source build if it does not want an in-source build
 		try:
-			return self.config.get('General', 'buildPath')
+			return self.config.get('General', 'buildPath').format(**os.environ)
 		except ConfigParser.NoOptionError:
 			return os.path.join( self.projectSources, 'build' )
 
