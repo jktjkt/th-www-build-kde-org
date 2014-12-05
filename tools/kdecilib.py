@@ -830,7 +830,8 @@ class BuildManager(object):
 		if not self.config.getboolean('Test', 'testsEnabled') or re.search('Total Tests: 0', stdout, re.MULTILINE):
 			# Copy in the skeleton file to keep Jenkins happy
 			unitTestSkeleton = os.path.join( self.config.get('General', 'scriptsLocation'), 'templates', 'JUnitTestResults-Success.xml' )
-			shutil.copyfile( unitTestSkeleton, junitFilename )
+			if not self.die_asap:
+				shutil.copyfile( unitTestSkeleton, junitFilename )
 			# All done
 			return True
 
