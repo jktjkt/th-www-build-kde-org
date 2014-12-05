@@ -862,7 +862,8 @@ class BuildManager(object):
 		time.sleep( self.config.getint('Test', 'kdeStartupWait') )
 
 		# Execute CTest
-		command = self.config.get('Test', 'ctestRunCommand')
+		cpuCount = 2 * multiprocessing.cpu_count()
+		command = self.config.get('Test', 'ctestRunCommand').format(jobCount=cpuCount)
 		print '### %s' % (command,)
 		ctestProcess = subprocess.Popen( shlex.split(command), stdout=sys.stdout, stderr=sys.stderr, cwd=buildDirectory, env=runtimeEnv )
 
