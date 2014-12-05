@@ -413,7 +413,10 @@ class BuildManager(object):
 			return self.projectSources
 
 		# Assume an out-of-source build if it does not want an in-source build
-		return os.path.join( self.projectSources, 'build' )
+		try:
+			return self.config.get('General', 'buildPath')
+		except ConfigParser.NoOptionError:
+			return os.path.join( self.projectSources, 'build' )
 
 	def perform_rsync(self, source, destination):
 		# Get the rsync command
