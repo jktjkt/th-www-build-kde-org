@@ -1049,6 +1049,7 @@ def load_project_configuration( project, branchGroup, platform, variation = None
 	# Go over the list and load in what we can
 	for confFile in configFiles:
 		confFile = confFile.format( host=socket.gethostname(), branchGroup=branchGroup, platform=platform, project=project, variation=variation )
+		print 'Reading conf from %s' % ('config/build/' + confFile)
 		config.read( 'config/build/' + confFile )
 	# All done, return the configuration
 	return config
