@@ -338,6 +338,14 @@ class BuildManager(object):
 		self.projectBranch = project.resolve_branch( self.branchGroup )
 		# Get the list of dependencies to ensure we only build it once
 		self.dependencies = project.determine_dependencies( self.branchGroup )
+		# filter out deps based on the platform
+		try:
+			ignored_deps = set(self.config.get('General', 'ignoredDependencies').split(' '))
+			print 'Will ignore the following dependencies: ' + ', '.join(ignored_deps)
+			self.dependencies = [(project, branch) for project, branch in self.dependencies
+							if project.identifier not in ignored_deps]
+		except ConfigParser.NoOptionError:
+			pass
 		# We set the installPrefix now for convenience access elsewhere
 		self.installPrefix = self.project_prefix( self.project )
 		# Determine our Python version (used later for environment variable setup)
