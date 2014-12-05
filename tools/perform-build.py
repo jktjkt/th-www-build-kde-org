@@ -68,7 +68,12 @@ if not manager.deploy_installation():
 
 # Execute the tests
 print "\n== Executing Tests\n"
-manager.execute_tests()
+tests_ok = manager.execute_tests()
+if manager.die_asap:
+	if tests_ok:
+		sys.exit(0)
+	else:
+		sys.exit("Tests failed.")
 
 # Run cppcheck
 print "\n== Executing cppcheck\n"

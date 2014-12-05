@@ -352,6 +352,15 @@ class BuildManager(object):
 			self.libraryPathVariable = 'PATH'
 		else:
 			self.libraryPathVariable = 'LD_LIBRARY_PATH'
+		# Should we die on a first error (True), or should the build continue
+		# even when e.g. tests fail (False)?
+		# Setting to True also skips stuff such as postprocessing of test log,
+		# etc. The idea is to indicate any success or failure through an exit
+		# status.
+		try:
+			self.die_asap = self.config.get('General', 'dieAsap')
+		except ConfigParser.NoOptionError:
+			self.die_asap = False
 
 	def find_perl_suffixes(self):
 		suffixes = []
@@ -812,7 +821,7 @@ class BuildManager(object):
 			unitTestSkeleton = os.path.join( self.config.get('General', 'scriptsLocation'), 'templates', 'JUnitTestResults-Success.xml' )
 			shutil.copyfile( unitTestSkeleton, junitFilename )
 			# All done
-			return
+			return True
 
 		# Spawn a base user interface if needed
 		if self.use_xorg_environment():
@@ -885,7 +894,13 @@ class BuildManager(object):
 			unitTestSkeleton = os.path.join( self.config.get('General', 'scriptsLocation'), 'templates', 'JUnitTestResults-Failure.xml' )
 			shutil.copyfile( unitTestSkeleton, junitFilename )
 			# Report our failure - overruns are not permitted
-			return
+			return False
+		elif ctestProcess.returncode != 0 and self.die_asap:
+			print 'Tests failed with exit code %s' % ctestProcess.returncode
+			return False
+		elif self.die_asap:
+			# take a shortcut
+			return True
 
 		# Transform the CTest output into JUnit output
 		junitOutput = self.convert_ctest_to_junit( buildDirectory )
