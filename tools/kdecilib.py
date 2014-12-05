@@ -392,7 +392,10 @@ class BuildManager(object):
 			return os.path.join( prefix, self.branchGroup, project )
 
 	def install_path(self):
-		return os.path.join( self.projectSources, 'local-inst' )
+		try:
+			return self.config.get('General', 'installPath')
+		except ConfigParser.NoOptionError:
+			return os.path.join( self.projectSources, 'local-inst' )
 
 
 	def build_directory(self):
@@ -501,7 +504,7 @@ class BuildManager(object):
 		# For runtime, we need to add ourselves as well
 		# We add the local install/ root so this will work properly even if it has not been deployed
 		if runtime:
-			localInstall = os.path.join( self.installPath(), makeRelativeLocation(self.installPrefix) )
+			localInstall = os.path.join( self.install_path(), makeRelativeLocation(self.installPrefix) )
 			reqPrefixes.append( localInstall )
 
 		# Generate the environment
