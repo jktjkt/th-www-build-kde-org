@@ -468,6 +468,7 @@ class BuildManager(object):
 
 			# Execute the command which is part of the build execution process
 			try:
+				print '### buildEnv: %s' % (buildEnv,)
 				print '### %s' % (command,)
 				process = subprocess.check_call( command, stdout=sys.stdout, stderr=sys.stderr, cwd=buildDirectory, env=buildEnv )
 			except subprocess.CalledProcessError:
@@ -784,6 +785,7 @@ class BuildManager(object):
 		if os.path.exists( mimeDirectory ):
 			# Invoke update-mime-database
 			command = self.config.get('Build', 'updateMimeDatabaseCommand')
+			print '### buildEnv: %s' % (buildEnv,)
 			print '### (cwd: %s) %s' % (installRoot, command)
 			subprocess.call( shlex.split(command), stdout=sys.stdout, stderr=sys.stderr, cwd=installRoot, env=buildEnv )
 
@@ -823,6 +825,7 @@ class BuildManager(object):
 
 		# Determine if we have tests to run....
 		command = self.config.get('Test', 'ctestCountTestsCommand')
+		print '### runtimeEnv: %s' % (runtimeEnv,)
 		print '### %s' % (command,)
 		process = subprocess.Popen( shlex.split(command), stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=runtimeEnv, cwd=buildDirectory)
 		stdout, stderr = process.communicate()
