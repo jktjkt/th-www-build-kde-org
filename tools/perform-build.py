@@ -61,10 +61,13 @@ print "\n== Installing the Build\n"
 if not manager.install_build():
 	sys.exit("Installation step exited with non-zero code, assuming failure to install from source for project %s." % project.identifier)
 
-# Deploy the newly completed build to the local tree as well as the master server
-print "\n== Deploying Installation\n"
-if not manager.deploy_installation():
-	sys.exit("Deployment of completed installation failed for project %s." % project.identifier)
+if not os.environ.has_key('TH_JOB_NAME') or os.environ['TH_JOB_NAME'].startswith('rebuilddep-'):
+	# Deploy the newly completed build to the local tree as well as the master server
+	print "\n== Deploying Installation\n"
+	if not manager.deploy_installation():
+		sys.exit("Deployment of completed installation failed for project %s." % project.identifier)
+else:
+	print "\n== This is a check job, not deploying installation\n"
 
 # Execute the tests
 print "\n== Executing Tests\n"
