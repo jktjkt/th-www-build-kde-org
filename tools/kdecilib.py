@@ -509,6 +509,10 @@ class BuildManager(object):
 		# Turn the list of requirements into a list of prefixes
 		reqPrefixes = [self.project_prefix( requirement ) for requirement, requirementBranch in requirements]
 
+		if runtime:
+			# Make sure that this stuff can find our own XDG_DATA_DIRS
+			reqPrefixes.append(self.installPrefix)
+
 		# Determine what character joins together environment variables
 		if sys.platform == "win32":
 			splitChar = ';'
