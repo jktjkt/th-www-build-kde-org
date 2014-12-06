@@ -447,7 +447,13 @@ class BuildManager(object):
 		# Prepare the environment
 		# We need to ensure that 'make install' will deploy to the appropriate directory
 		buildEnv = self.generate_environment()
-		buildEnv['DESTDIR'] = buildEnv['INSTALL_ROOT'] = installPath
+		# Because we're installing right to the correct place, do *not* specify either DESTDIR or INSTALL_ROOT.
+		# Doing that would result in duplicatation of the whole path and associated breakage.
+		try:
+			buildEnv.pop('DESTDIR')
+			buildEnv.pop('INSTALL_ROOT')
+		except KeyError:
+			pass
 
 		# Actually invoke the commands
 		for command in buildCommands:
