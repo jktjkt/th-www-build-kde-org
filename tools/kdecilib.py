@@ -408,13 +408,6 @@ class BuildManager(object):
 		else:
 			return os.path.join( prefix, self.branchGroup, project )
 
-	def install_path(self):
-		try:
-			return self.config.get('General', 'installPath').format(**os.environ)
-		except ConfigParser.NoOptionError:
-			return os.path.join( self.projectSources, 'local-inst' )
-
-
 	def build_directory(self):
 		# Maybe we have a project which prefers a in-source build?
 		if self.config.getboolean('Build', 'inSourceBuild'):
@@ -449,7 +442,7 @@ class BuildManager(object):
 		# Prepare, and load parameters we will need later
 		cpuCount = multiprocessing.cpu_count()
 		buildDirectory = self.build_directory()
-		installPath = self.install_path()
+		installPath = self.installPrefix
 
 		# Prepare the environment
 		# We need to ensure that 'make install' will deploy to the appropriate directory
@@ -523,12 +516,6 @@ class BuildManager(object):
 			for extraPrefix in extraPrefixes.split(splitChar):
 				if os.path.exists(extraPrefix):
 					reqPrefixes.append(extraPrefix)
-
-		# For runtime, we need to add ourselves as well
-		# We add the local install/ root so this will work properly even if it has not been deployed
-		if runtime:
-			localInstall = os.path.join( self.install_path(), makeRelativeLocation(self.installPrefix) )
-			reqPrefixes.append( localInstall )
 
 		# Generate the environment
 		envChanges = defaultdict(list)
@@ -780,7 +767,7 @@ class BuildManager(object):
 
 		# Do we need to run update-mime-database?
 		buildEnv = self.generate_environment()
-		installRoot = os.path.join( self.install_path(), makeRelativeLocation(self.installPrefix) )
+		installRoot = self.installPrefix
 		mimeDirectory = os.path.join( installRoot, 'share', 'mime' )
 		if os.path.exists( mimeDirectory ):
 			# Invoke update-mime-database
@@ -800,11 +787,6 @@ class BuildManager(object):
 		# Make sure the local destination exists
 		if not os.path.exists( self.installPrefix ):
 			os.makedirs( self.installPrefix )
-
-		# First we have to transfer the install from the "install root" to the actual install location
-		sourcePath = os.path.join( self.install_path(), makeRelativeLocation(self.installPrefix) )
-		if not self.perform_rsync( source=sourcePath, destination=self.installPrefix ):
-			return False
 
 		# Next we ensure the remote directory exists
 		serverPath = self.project_prefix( self.project, local=False, includeHost=False )
