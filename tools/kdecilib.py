@@ -594,11 +594,14 @@ class BuildManager(object):
 			extraLocation = os.path.join( reqPrefix, 'share' )
 			if os.path.exists( extraLocation ):
 				envChanges['XDG_DATA_DIRS'].append(extraLocation)
+			envChanges['XDG_DATA_DIRS'].append('/usr/local/share')
+			envChanges['XDG_DATA_DIRS'].append('/usr/share')
 
 			# Setup XDG_CONFIG_DIRS
 			extraLocation = os.path.join( reqPrefix, 'etc/xdg' )
 			if os.path.exists( extraLocation ):
 				envChanges['XDG_CONFIG_DIRS'].append(extraLocation)
+			envChanges['XDG_CONFIG_DIRS'].append('/etc/xdg')
 
 			# Setup PYTHONPATH
 			extraLocation = os.path.join( reqPrefix, 'share/sip' )
