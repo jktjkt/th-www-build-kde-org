@@ -39,3 +39,6 @@ extragear/network/telepathy/*: general/telepathy-qt5
 playground/network/sflphone-kde[master]: -kde/kdelibs
 playground/network/sflphone-kde[master]: -kde/kdepimlibs
 playground/network/sflphone-kde[master]: kde/kdelibs[frameworks]
+
+# Books
+books/kf5book: general/snippetextractor
