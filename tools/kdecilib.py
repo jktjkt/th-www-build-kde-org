@@ -484,9 +484,12 @@ class BuildManager(object):
 			# Determine the host (source) and local (destination) directories we are syncing
 			hostPath = self.project_prefix( candidate, local=False )
 			localPath = self.project_prefix( candidate )
-			preseedPath = self.project_prefix( candidate, section='PreseedDepSync' )
+			try:
+				preseedPath = self.project_prefix( candidate, section='PreseedDepSync' )
+			except ConfigParser.NoSectionError:
+				preseedPath = None
 
-			if os.path.exists( preseedPath ):
+			if preseedPath is not None and os.path.exists( preseedPath ):
 				# Some projects are already available in a "magic" preseeded directory.
 				# These can be simply symlinked from there to save a potentially expensive
 				# rsync cycle. It comes handy with e.g. debug build of Qt 5.4 which weighs
