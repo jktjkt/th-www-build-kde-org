@@ -484,6 +484,24 @@ class BuildManager(object):
 			# Determine the host (source) and local (destination) directories we are syncing
 			hostPath = self.project_prefix( candidate, local=False )
 			localPath = self.project_prefix( candidate )
+			preseedPath = self.project_prefix( candidate, section='PreseedDepSync' )
+
+			if os.path.exists( preseedPath ):
+				# Some projects are already available in a "magic" preseeded directory.
+				# These can be simply symlinked from there to save a potentially expensive
+				# rsync cycle. It comes handy with e.g. debug build of Qt 5.4 which weighs
+				# in roughly 2.8 GB. That takes time to sync, especially on slower network
+				# or on cold caches.
+				parentDir = os.path.dirname( localPath )
+				if not os.path.exists( parentDir ):
+					os.makedirs( parentDir )
+				if not os.path.exists( localPath ):
+					os.symlink( preseedPath, localPath )
+				if os.path.islink( localPath ):
+					continue
+				# If the path is, however, a directory already, let's just ignore it
+				# and proceed as usual with rsync
+
 			# Make sure the local path exists (otherwise rsync will fail)
 			if not os.path.exists( localPath ):
 				os.makedirs( localPath )
