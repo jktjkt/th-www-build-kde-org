@@ -27,9 +27,9 @@ frameworks/ktexteditor: general/libgit2
 kde/*: general/kdesupport-svn
 kde/applications/kate: general/libgit2
 kde/applications/rocs: general/grantlee
-kde/kdelibs/kfilemetadata: general/poppler
 kde/workspace/plasma-workspace: general/libdbusmenu-qt
 kde/workspace/kio-extras: general/libssh
+kde/workspace/kfilemetadata: general/poppler
 
 # Extragear
 extragear/kdevelop/kdevplatform: general/grantlee

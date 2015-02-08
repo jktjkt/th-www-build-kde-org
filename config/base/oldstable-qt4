@@ -30,7 +30,6 @@ kde/*: general/kdesupport-svn
 kde/kdelibs: general/shared-desktop-ontologies
 kde/kdelibs: general/grantlee
 kde/kdelibs: general/libdbusmenu-qt
-kde/kdelibs/kfilemetadata: general/poppler
 kde/kdelibs/nepomuk-core: general/poppler
 kde/kdepimlibs: general/qjson
 kde/kde-runtime: general/libssh
@@ -40,6 +39,7 @@ kde/kdepim-runtime: general/libkolab
 kde/kdegraphics/okular: general/poppler
 kde/kdebindings/pykde4: general/pyqt4
 kde/applications/kate: general/qjson
+kde/workspace/kfilemetadata: general/poppler
 
 # Calligra
 calligra: general/vc
