@@ -76,3 +76,4 @@ extragear/office/kbibtex: general/poppler
 
 # Playground
 playground/edu/artikulate: general/qt-gstreamer
+playground/libs/libqgit2: general/libgit2
