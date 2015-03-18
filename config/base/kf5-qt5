@@ -31,6 +31,10 @@ kde/workspace/plasma-workspace: general/libdbusmenu-qt
 kde/workspace/kio-extras: general/libssh
 kde/workspace/kfilemetadata: general/poppler
 
+# Extragear Office
+extragear/office/tellico: general/kdesupport-svn
+extragear/office/skrooge: general/grantlee
+
 # Extragear
 extragear/libs/libkface: general/opencv
 extragear/kdevelop/kdevplatform: general/grantlee
