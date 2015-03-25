@@ -18,6 +18,7 @@ general/libkolabxml: -qt5
 general/libssh: -qt5
 general/vc: -qt5
 general/shared-desktop-ontologies: -qt5
+general/qoauth: kdesupport/qca
 
 # KDE Frameworks
 frameworks/kauth: kdesupport/polkit-qt-1
