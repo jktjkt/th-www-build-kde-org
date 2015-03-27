@@ -43,6 +43,7 @@ extragear/multimedia/plasma-mediacenter: general/mockcpp
 extragear/network/telepathy/*: general/telepathy-qt5
 extragear/network/choqok: general/qjson
 extragear/network/choqok: general/qoauth
+extragear/network/libringclient: general/ring
 
 # Playground/Network
 playground/network/sflphone-kde[master]: -kde/kdelibs
