@@ -19,6 +19,7 @@ general/libssh: -qt
 general/vc: -qt
 general/mockcpp: -qt
 general/libaccounts-glib: -qt
+general/ring: -qt
 general/libmygpo-qt: general/qjson
 general/shared-desktop-ontologies: -qt
 general/libkolab: general/libkolabxml
