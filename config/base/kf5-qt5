@@ -33,7 +33,7 @@ kde/workspace/kio-extras: general/libssh
 kde/workspace/kfilemetadata: general/poppler
 
 # Calligra
-calligra: general/vc
+#calligra: general/vc
 
 # Extragear Office
 extragear/office/tellico: general/kdesupport-svn
