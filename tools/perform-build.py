@@ -3,6 +3,17 @@ import sys
 import argparse
 from kdecilib import *
 
+def sys_exit_override(*args, **kwargs):
+    global _real_sys_exit
+    if os.environ.has_key('TH_RESULT_FILE') and len(args) and args[0] != 0:
+        with open(os.environ['TH_RESULT_FILE'], 'wb') as fp:
+            fp.write(args[0])
+    _real_sys_exit(*args, **kwargs)
+
+_real_sys_exit = sys.exit
+sys.exit = sys_exit_override
+
+
 # Load our command line arguments
 parser = argparse.ArgumentParser(description='Utility to control building and execution of tests in an automated manner.')
 parser.add_argument('--project', type=str)
