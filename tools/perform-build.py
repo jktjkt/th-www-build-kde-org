@@ -50,33 +50,33 @@ for dependency, dependencyBranch in manager.dependencies:
 # Apply any necessary patches if we have them
 print "\n== Applying Patches"
 if not manager.apply_patches():
-	sys.exit("Applying patches to project %s failed." % project.identifier)
+	sys.exit("Applying patches failed.")
 
 # Sync all the dependencies
 print "\n== Syncing Dependencies from Master Server\n"
 if not manager.sync_dependencies():
-	sys.exit("Syncing dependencies from master server for project %s failed." % project.identifier)
+	sys.exit("Syncing dependencies failed.")
 
 # Configure the build
 print "\n== Configuring Build\n"
 if not manager.configure_build():
-	sys.exit("Configure step exited with non-zero code, assuming failure to configure for project %s." % project.identifier)
+	sys.exit("Configure failed.")
 
 # Build the project
 print "\n== Commencing the Build\n"
 if not manager.compile_build():
-	sys.exit("Compiliation step exited with non-zero code, assuming failure to build from source for project %s." % project.identifier)
+	sys.exit("Compilation failed.")
 
 # Install the project
 print "\n== Installing the Build\n"
 if not manager.install_build():
-	sys.exit("Installation step exited with non-zero code, assuming failure to install from source for project %s." % project.identifier)
+	sys.exit("Installation failed.")
 
 if not os.environ.has_key('TH_JOB_NAME') or (os.environ['TH_JOB_NAME'].startswith('rebuilddep-') and os.environ['TH_JOB_NAME'].find('-release-minimal-') == -1):
 	# Deploy the newly completed build to the local tree as well as the master server
 	print "\n== Deploying Installation\n"
 	if not manager.deploy_installation():
-		sys.exit("Deployment of completed installation failed for project %s." % project.identifier)
+		sys.exit("Deployment of completed installation failed.")
 else:
 	print "\n== This is a check job, not deploying installation\n"
 
