@@ -50,27 +50,27 @@ for dependency, dependencyBranch in manager.dependencies:
 # Apply any necessary patches if we have them
 print "\n== Applying Patches"
 if not manager.apply_patches():
-	sys.exit("Applying patches failed.")
+	sys.exit("FAILURE_patch")
 
 # Sync all the dependencies
 print "\n== Syncing Dependencies from Master Server\n"
 if not manager.sync_dependencies():
-	sys.exit("Syncing dependencies failed.")
+	sys.exit("FAILURE_deps")
 
 # Configure the build
 print "\n== Configuring Build\n"
 if not manager.configure_build():
-	sys.exit("Configure failed.")
+	sys.exit("FAILURE_configure")
 
 # Build the project
 print "\n== Commencing the Build\n"
 if not manager.compile_build():
-	sys.exit("Compilation failed.")
+	sys.exit("FAILURE_build")
 
 # Install the project
 print "\n== Installing the Build\n"
 if not manager.install_build():
-	sys.exit("Installation failed.")
+	sys.exit("FAILURE_install")
 
 if not os.environ.has_key('TH_JOB_NAME') or (os.environ['TH_JOB_NAME'].startswith('rebuilddep-') and os.environ['TH_JOB_NAME'].find('-release-minimal-') == -1):
 	# Deploy the newly completed build to the local tree as well as the master server
@@ -87,7 +87,7 @@ if manager.die_asap:
 	if tests_ok:
 		sys.exit(0)
 	else:
-		sys.exit("Tests failed.")
+		sys.exit("FAILURE_tests")
 
 # Run cppcheck
 print "\n== Executing cppcheck\n"
