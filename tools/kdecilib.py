@@ -917,6 +917,16 @@ class BuildManager(object):
 			time.sleep(1)
 			timeRunning += 1
 
+		# Check that the tests didn't manage to kill our X11 env for some reason
+		if self.use_xorg_environment():
+			xvfbProcess.poll()
+			if xvfbProcess.returncode is not None:
+				print 'WARNING: The xvfbProcess already exited with return code %s' % xvfbProcess.returncode
+
+			wmProcess.poll()
+			if wmProcess.returncode is not None:
+				print 'WARNING: The wmProcess already exited with return code %s' % wmProcess.returncode
+
 		# Is it still running? 
 		if ctestProcess.returncode is None:
 			# Kill it
