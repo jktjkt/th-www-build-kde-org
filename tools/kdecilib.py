@@ -615,14 +615,11 @@ class BuildManager(object):
 			extraLocation = os.path.join( reqPrefix, 'share' )
 			if os.path.exists( extraLocation ):
 				envChanges['XDG_DATA_DIRS'].append(extraLocation)
-			envChanges['XDG_DATA_DIRS'].append('/usr/local/share')
-			envChanges['XDG_DATA_DIRS'].append('/usr/share')
 
 			# Setup XDG_CONFIG_DIRS
 			extraLocation = os.path.join( reqPrefix, 'etc/xdg' )
 			if os.path.exists( extraLocation ):
 				envChanges['XDG_CONFIG_DIRS'].append(extraLocation)
-			envChanges['XDG_CONFIG_DIRS'].append('/etc/xdg')
 
 			# Setup PYTHONPATH
 			extraLocation = os.path.join( reqPrefix, 'share/sip' )
@@ -633,6 +630,11 @@ class BuildManager(object):
 			extraLocation = os.path.join( reqPrefix, 'mkspecs/features' )
 			if os.path.exists( extraLocation ):
 				envChanges['QMAKEFEATURES'].append( extraLocation )
+
+		# Make sure that we check the systemwide stuff, too
+		envChanges['XDG_DATA_DIRS'].append('/usr/local/share')
+		envChanges['XDG_DATA_DIRS'].append('/usr/share')
+		envChanges['XDG_CONFIG_DIRS'].append('/etc/xdg')
 
 		# Finally, we can merge this into the real environment
 		clonedEnv = copy.deepcopy(os.environ.__dict__['data'])
