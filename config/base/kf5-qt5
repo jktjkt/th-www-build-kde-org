@@ -18,6 +18,8 @@ general/libkolabxml: -qt5
 general/libssh: -qt5
 general/vc: -qt5
 general/shared-desktop-ontologies: -qt5
+# GpgME++
+kde/pim/gpgmepp: -general/kdesupport-svn
 
 # KDE Frameworks
 frameworks/kauth: kdesupport/polkit-qt-1
