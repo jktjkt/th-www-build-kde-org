@@ -20,7 +20,17 @@ parser.add_argument('--project', type=str)
 parser.add_argument('--branchGroup', type=str, default='latest-qt4')
 parser.add_argument('--sources', type=str)
 parser.add_argument('--variation', type=str)
-parser.add_argument('--platform', type=str, choices=['linux64-g++', 'darwin-mavericks', 'windows-mingw-w64', 'th-rhel7-gcc', 'th-rhel7-qt52', 'th-rhel7-qt53', 'th-rhel7-qt54', 'th-rhel7-qt55', 'th-rhel7-qt56', 'th-rhel7-qt57'], default='linux64-g++')
+parser.add_argument('--platform', type=str, choices=['linux64-g++',
+                                                     'darwin-mavericks',
+                                                     'windows-mingw-w64',
+                                                     'th-rhel7-gcc',
+                                                     'th-rhel7-qt52',
+                                                     'th-rhel7-qt55',
+                                                     'th-rhel7-qt56',
+                                                     'th-rhel7-qt57',
+                                                     'th-rhel7-qt58',
+                                                     'th-rhel7-qt58-asan',
+                                                    ], default='linux64-g++')
 
 # Parse the arguments
 environmentArgs = check_jenkins_environment()
