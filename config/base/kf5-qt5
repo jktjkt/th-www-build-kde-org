@@ -1,5 +1,7 @@
 # Everything needs CMake, Qt 5 and Extra CMake Modules
+*: general/cmake
 *: general/dogtail
+*: qt5
 *: kdesupport/extra-cmake-modules
 
 # Qt 5
